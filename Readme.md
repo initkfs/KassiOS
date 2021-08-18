@@ -1,1 +1,1 @@
-#### DON'T USE THIS - experimental repository.
+### The experimental repository. Please don't use it in production.
