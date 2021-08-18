@@ -1,0 +1,30 @@
+{
+    "description": "KassiOS",
+    "license": "",
+    "authors": [
+        "initkfs"
+    ],
+    "copyright": "Copyright © 2021, initkfs",
+    "name": "kassios",
+    "configurations": [{
+        "name": "kassios-main",
+        "buildOptions": [
+
+        ],
+        "dflags-dmd": [
+            "-vtls",
+            "-betterC",
+            "-c",
+            "-unittest",
+            "-boundscheck=off",
+            "-J=./data"
+        ],
+        "targetType": "staticLibrary",
+        "targetName": "kernel.o",
+        "targetPath": "./build",
+        "sourcePaths": ["./src"],
+        "importPaths": ["./src"],
+        "postBuildCommands": []
+    }],
+    "dependencies": {}
+}
