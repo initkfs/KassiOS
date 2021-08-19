@@ -74,8 +74,17 @@ size_t* alloc(size_t requestSizeInBytes)
     return cast(size_t*) block.data.ptr;
 }
 
-void free(size_t* dataPtr)
+void free(T...)(T ptrs)
 {
+    foreach (ptr; ptrs)
+    {
+        free(ptr);
+    }
+}
+
+void free(T)(T* ptr)
+{
+    size_t* dataPtr = cast(size_t*) ptr;
     MemBlock* block = getMemBlockByData(dataPtr);
     if (!block.used)
     {
@@ -83,7 +92,7 @@ void free(size_t* dataPtr)
     }
     const size = block.size;
     auto blockPtr = cast(ubyte*) dataPtr;
-    foreach (i; 0..size)
+    foreach (i; 0 .. size)
     {
         blockPtr[i] = 0;
     }
@@ -240,9 +249,12 @@ void getMemoryStat(ref size_t usedBytes, ref size_t bufferedBytes, ref size_t av
     while (block !is null)
     {
         size_t size = block.size;
-        if(block.used){
+        if (block.used)
+        {
             usedBytes += size;
-        }else {
+        }
+        else
+        {
             bufferedBytes += size;
         }
 

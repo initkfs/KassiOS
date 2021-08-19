@@ -14,6 +14,7 @@ private
     alias Tests = os.std.tests;
     alias Strings = os.std.text.strings;
     alias Allocator = os.core.mem.allocator;
+    alias Kstdio = os.std.io.kstdio;
 }
 
 extern (C) __gshared ulong KERNEL_END;
@@ -24,11 +25,20 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
     //TODO parse page tables, 0x6400000 (512 * 50 * 4096)
     auto memoryEnd = cast(ubyte*)(0x6400000 - 0x400);
 
+    TextDisplay.clearScreen;
+
     Allocator.setMemoryStart(memoryStart);
     Allocator.setMemoryEnd(memoryEnd);
 
     Tests.runTest!(Allocator);
     Tests.runTest!(Strings);
+
+    size_t usedBytes;
+    size_t bufferedBytes;
+    size_t availableBytes;
+
+    Allocator.getMemoryStat(usedBytes, bufferedBytes, availableBytes);
+    Kstdio.kprint(Strings.toString(usedBytes));
 }
 
 extern (C) __gshared void runInterruptServiceRoutine(const ulong num, const ulong err)
