@@ -17,6 +17,11 @@ err error(const string message, const string file = __FILE__, const int line = _
   return message;
 }
 
+err errorf(T)(const string message, T[] args, const string file = __FILE__, const int line = __LINE__)
+{
+  return error(message, file, line);
+}
+
 void panic(const string message, const string file = __FILE__, const int line = __LINE__)
 {
   Kstdio.kprint("PANIC: ");
