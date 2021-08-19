@@ -13,12 +13,21 @@ private
     alias Ascii = os.std.text.ascii;
     alias Tests = os.std.tests;
     alias Strings = os.std.text.strings;
+    alias Allocator = os.core.mem.allocator;
 }
 
 extern (C) __gshared ulong KERNEL_END;
 
 extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
 {
+    auto memoryStart = cast(ubyte*)(&KERNEL_END + 0x400);
+    //TODO parse page tables, 0x6400000 (512 * 50 * 4096)
+    auto memoryEnd = cast(ubyte*)(0x6400000 - 0x400);
+
+    Allocator.setMemoryStart(memoryStart);
+    Allocator.setMemoryEnd(memoryEnd);
+
+    Tests.runTest!(Allocator);
     Tests.runTest!(Strings);
 }
 
