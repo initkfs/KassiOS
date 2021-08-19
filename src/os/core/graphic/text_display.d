@@ -9,13 +9,10 @@ private
     alias Ports = os.core.io.ports;
 }
 
-__gshared struct TextDisplayData
-{
-    enum DISPLAY_COLUMNS = 80;
-    enum DISPLAY_LINES = 25;
-    enum DISPLAY_ATTRIBUTE = 7;
-    enum DISPLAY_MAX_INDEX = DISPLAY_COLUMNS * DISPLAY_LINES * 2;
-}
+enum DISPLAY_COLUMNS = 80;
+enum DISPLAY_LINES = 25;
+enum DISPLAY_ATTRIBUTE = 7;
+enum DISPLAY_MAX_INDEX = DISPLAY_COLUMNS * DISPLAY_LINES * 2;
 
 __gshared struct CGAColors
 {
@@ -48,7 +45,7 @@ __gshared struct CGAInfoColors
 
 private
 {
-    __gshared ubyte* TEXT_VIDEO_MEMORY_ADDRESS = cast(ubyte*) 0xB8000;
+    __gshared ubyte* textVideoMemoryPtr = cast(ubyte*) 0xB8000;
     __gshared bool cursorEnabled = false;
 
     __gshared int displayIndexX = 0;
@@ -61,8 +58,7 @@ bool isCursorEnabled()
 }
 
 //https://wiki.osdev.org/Text_Mode_Cursor
-void enableCursor(const ubyte cursorStart = 0, const ubyte cursorEnd = TextDisplayData
-        .DISPLAY_COLUMNS)
+void enableCursor(const ubyte cursorStart = 0, const ubyte cursorEnd = DISPLAY_COLUMNS)
 {
     if (isCursorEnabled)
     {
@@ -82,7 +78,6 @@ void enableCursor(const ubyte cursorStart = 0, const ubyte cursorEnd = TextDispl
     cursorEnabled = true;
 }
 
-//https://wiki.osdev.org/Text_Mode_Cursor
 void disableCursor()
 {
     if (!isCursorEnabled)
@@ -97,7 +92,7 @@ void disableCursor()
 
 private void updateCursor()
 {
-    const uint pos = displayIndexY * TextDisplayData.DISPLAY_COLUMNS + displayIndexX;
+    const uint pos = displayIndexY * DISPLAY_COLUMNS + displayIndexX;
 
     Ports.outportb(0x3D4, 0x0F);
     Ports.outportb(0x3D5, (pos & 0xFF));
@@ -107,13 +102,13 @@ private void updateCursor()
 
 private size_t updateCoordinates()
 {
-    if (displayIndexX > TextDisplayData.DISPLAY_COLUMNS - 1)
+    if (displayIndexX > DISPLAY_COLUMNS - 1)
     {
         newLine;
     }
 
     //row = chars in row * 2 (char + color)
-    const rowBytesCount = displayIndexY * TextDisplayData.DISPLAY_COLUMNS * 2;
+    const rowBytesCount = displayIndexY * DISPLAY_COLUMNS * 2;
     const currentColumnBytesCount = displayIndexX * 2;
 
     const positionByteX = rowBytesCount + currentColumnBytesCount;
@@ -151,8 +146,8 @@ void skipColumn()
 private void writeToTextVideoMemory(size_t position, const ubyte value,
         const ubyte color = CGAColors.DEFAULT_TEXT_COLOR)
 {
-    TEXT_VIDEO_MEMORY_ADDRESS[position] = value;
-    TEXT_VIDEO_MEMORY_ADDRESS[position + 1] = color;
+    textVideoMemoryPtr[position] = value;
+    textVideoMemoryPtr[position + 1] = color;
 }
 
 private void printToTextVideoMemory(const ubyte value,
@@ -178,7 +173,7 @@ void printCharRepeat(const char symbol, const size_t repeatCount = 1,
 {
 
     size_t count = repeatCount;
-    const size_t maxChars = TextDisplayData.DISPLAY_COLUMNS * TextDisplayData.DISPLAY_LINES;
+    const size_t maxChars = DISPLAY_COLUMNS * DISPLAY_LINES;
     if (count > maxChars)
     {
         count = maxChars;
@@ -198,7 +193,7 @@ void printChar(const char symbol, const ubyte color = CGAColors.DEFAULT_TEXT_COL
         return;
     }
 
-    if (displayIndexY > TextDisplayData.DISPLAY_LINES - 1)
+    if (displayIndexY > DISPLAY_LINES - 1)
     {
         scroll;
     }
@@ -235,7 +230,7 @@ void printStringRepeat(const string str, const size_t repeatCount = 1,
 {
 
     size_t mustBeStringCount = repeatCount;
-    const size_t maxStrings = (TextDisplayData.DISPLAY_LINES * TextDisplayData.DISPLAY_COLUMNS) / str
+    const size_t maxStrings = (DISPLAY_LINES * DISPLAY_COLUMNS) / str
         .length;
     if (mustBeStringCount > maxStrings)
     {
@@ -267,14 +262,18 @@ void clearScreen()
         disableCursor;
         isCursorDisabled = true;
     }
+
     resetCoordinates;
-    immutable charCount = TextDisplayData.DISPLAY_COLUMNS * TextDisplayData.DISPLAY_LINES;
+   
+    immutable charCount = DISPLAY_COLUMNS * DISPLAY_LINES;
     foreach (index; 0 .. charCount)
     {
         //don't use black color
         printToTextVideoMemory(' ');
     }
+    
     resetCoordinates;
+
     if (isCursorDisabled)
     {
         enableCursor;
