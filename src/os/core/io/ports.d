@@ -23,14 +23,14 @@ void outport(T)(const ushort port, T data)
 	}
 	else static if (is(T == ushort))
 	{
-		asm pure @trusted nothrow @nogc
+		asm
 		{
 			out DX, AX;
 		}
 	}
 	else static if (is(T == uint))
 	{
-		asm pure @trusted nothrow @nogc
+		asm
 		{
 			out DX, EAX;
 		}
@@ -72,7 +72,7 @@ T inport(T)(const ushort port) if (is(T == ubyte) || is(T == ushort) || is(T == 
 	}
 	else static if (is(T == ushort))
 	{
-		asm @trusted
+		asm
 		{
 			in AX, DX;
 			mov result, AX;
@@ -80,7 +80,7 @@ T inport(T)(const ushort port) if (is(T == ubyte) || is(T == ushort) || is(T == 
 	}
 	else static if (is(T == uint))
 	{
-		asm @trusted
+		asm
 		{
 			in EAX, DX;
 			mov result, EAX;
