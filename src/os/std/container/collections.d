@@ -47,6 +47,12 @@ void append(ref ArrayList!char list, string str)
 	}
 }
 
+void append(ref ArrayList!char list, char* str)
+{
+	import os.std.text.strings: toString;
+	append(list, toString(str));
+}
+
 err copy(T)(ref ArrayList!T src, size_t srcPos, ref ArrayList!T dest, size_t destPos, size_t length)
 {
 	if (length == 0)
@@ -63,9 +69,7 @@ err copy(T)(ref ArrayList!T src, size_t srcPos, ref ArrayList!T dest, size_t des
 
 	if (srcPos >= srcLength)
 	{
-		size_t[2] errArgs = [srcPos, srcLength];
-		return errorf("Can't copy array: source index %l must be less than source length %l",
-				errArgs);
+		return error("Can't copy array, source index must be less than source length");
 	}
 
 	//TODO check overflow
@@ -73,25 +77,19 @@ err copy(T)(ref ArrayList!T src, size_t srcPos, ref ArrayList!T dest, size_t des
 	const endPos = endPosWithLength - 1;
 	if (endPos >= srcLength)
 	{
-		size_t[4] errArgs = [srcPos, length, endPos, src.length];
-		return errorf("Can't copy array, count of copied elements exceeds source length: start index %l + %l length, end index is %l, but source length is %l",
-				errArgs);
+		return error("Can't copy array, count of copied elements exceeds source length");
 	}
 
 	if (destPos >= dest.length)
 	{
-		size_t[2] errArgs = [destPos, dest.length];
-		return errorf("Can't copy array: destination index %l must be less than destination length %l",
-				errArgs);
+		return error("Can't copy array, destination index must be less than destination length");
 	}
 
 	const endDestPosWithLength = destPos + length;
 	const endDestPos = endDestPosWithLength - 1;
 	if (endDestPos >= dest.length)
 	{
-		size_t[4] errArgs = [destPos, length, endDestPos, dest.length];
-		return errorf("Can't copy array, count of copied elements exceeds destination length: start index %l + %l length, end index is %l, but source length is %l",
-				errArgs);
+		return error("Can't copy array, count of copied elements exceeds destination length");
 	}
 
 	if (src !is dest)

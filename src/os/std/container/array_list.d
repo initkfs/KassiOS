@@ -113,6 +113,11 @@ struct ArrayList(T)
 	{
 		return list.length;
 	}
+
+	@property size_t* ptr()
+	{
+		return list.data.ptr;
+	}
 }
 
 unittest

@@ -5,9 +5,16 @@ module os.std.text.strings;
 
 import std.traits;
 
+const string FORMAT_ERROR = "_formaterror_";
+
 private
 {
     alias Allocator = os.core.mem.allocator;
+}
+
+bool isEqualz(const char* s1, const char* s2)
+{
+    return isEqual(toString(s1), toString(s2));
 }
 
 bool isEqual(const string s1, const string s2)
@@ -294,6 +301,141 @@ unittest
     Allocator.free(h0x7f);
 }
 
+//TODO 1e-9 -> :e-10
+// https://stackoverflow.com/questions/2302969/convert-a-float-to-a-string
+char* toString(const double x, const size_t maxDigitsAfterPoint = 0,
+        const double precision = 0.00000000000000001, const char sep = '.')
+{
+    import os.std.math.math_core : isNaN, isPositiveInf, isNegativeInf, log10, pow, floor, abs;
+
+    if (isNaN(x))
+    {
+        return toStringz("NaN");
+    }
+
+    if (isPositiveInf(x))
+    {
+        return toStringz("+Infinity");
+    }
+
+    if (isNegativeInf(x))
+    {
+        return toStringz("-Infinity");
+    }
+
+    if (x == 0)
+    {
+        return toStringz("0.0");
+    }
+
+    double value = x;
+    const bool isNeg = value < 0;
+    if (isNeg)
+    {
+        value = abs(value);
+    }
+
+    enum maxDigits = 80 + 1;
+    auto bufferSize = maxDigits;
+    if (isNeg)
+    {
+        bufferSize++;
+    }
+
+    auto bufferPtr = Allocator.alloc(bufferSize);
+    char* buffer = cast(char*) bufferPtr;
+
+    int rankPos = cast(int) log10(value);
+    int bufferIndex;
+    if (isNeg)
+    {
+        Allocator.set(buffer, '-', bufferPtr, bufferIndex);
+        bufferIndex++;
+    }
+
+    //TODO unsafe comparison
+    size_t separatorIndex;
+    while (value > (0 + precision) && bufferIndex < maxDigits)
+    {
+        const rankWeight = pow(10.0, rankPos);
+        const digitIndex = cast(int) floor(value / rankWeight);
+        value -= (digitIndex * rankWeight);
+        const ch = cast(char)('0' + digitIndex);
+        Allocator.set(buffer, ch, bufferPtr, bufferIndex);
+
+        if (rankPos == 0)
+        {
+            separatorIndex = ++bufferIndex;
+            Allocator.set(buffer, sep, bufferPtr, separatorIndex);
+            if (value < (0 + precision))
+            {
+                auto zeroIndex = ++bufferIndex;
+                Allocator.set(buffer, '0', bufferPtr, zeroIndex);
+            }
+        }
+
+        rankPos--;
+        bufferIndex++;
+    }
+    size_t indexExlude = bufferIndex;
+    if (maxDigitsAfterPoint != 0)
+    {
+        const newIndex = separatorIndex + maxDigitsAfterPoint + 1;
+        if (newIndex < bufferIndex)
+        {
+            indexExlude = newIndex;
+        }
+    }
+    Allocator.set(buffer, char.init, bufferPtr, indexExlude++);
+    auto result = cast(char*) buffer[0 .. indexExlude];
+    return result;
+}
+
+unittest
+{
+    import os.std.asserts : kassert;
+
+    auto zeroPtr = toString(0.0);
+    kassert(isEqualz(zeroPtr, "0.0"));
+    Allocator.free(zeroPtr);
+
+    auto infPtr = toString(double.infinity);
+    kassert(isEqualz(infPtr, "+Infinity"));
+    Allocator.free(infPtr);
+
+    auto infNegPtr = toString(-double.infinity);
+    kassert(isEqualz(infNegPtr, "-Infinity"));
+    Allocator.free(infNegPtr);
+
+    auto nanPtr = toString(double.nan);
+    kassert(isEqualz(nanPtr, "NaN"));
+    Allocator.free(nanPtr);
+
+    auto nanNegPtr = toString(-double.nan);
+    kassert(isEqualz(nanNegPtr, "NaN"));
+    Allocator.free(nanNegPtr);
+
+    auto onePtr = toString(1.0);
+    kassert(isEqualz(onePtr, "1.0"));
+    Allocator.free(onePtr);
+
+    auto oneNegPtr = toString(-1.0);
+    kassert(isEqualz(oneNegPtr, "-1.0"));
+    Allocator.free(oneNegPtr);
+
+    auto d1 = toString(0.02);
+    kassert(isEqualz(d1, "0.01999999999999999"));
+    Allocator.free(d1);
+
+    auto d2 = toString(3.56);
+    kassert(isEqualz(d2, "3.56000000000000004"));
+    Allocator.free(d2);
+
+    auto d3 = toString(-4.12);
+    kassert(isEqualz(d3, "-4.12000000000000009"));
+    Allocator.free(d3);
+}
+
 string reverse(const string s)
 {
     if (s is null)
@@ -375,4 +517,187 @@ unittest
     kassert(indexOf("hello", "lo") == 3);
     kassert(indexOf("aaaab", "aaab") == 1);
     kassert(indexOf("AAAAB", "AAAB") == 1);
+}
+
+char* format(T)(const string pattern, const T[] args, const char placeholder = '%')
+{
+    import os.std.container.array_list;
+
+    alias Collections = os.std.container.collections;
+    //TODO very inaccurate buffer size
+    size_t argsSize = args.sizeof;
+    static if (is(T == string))
+    {
+        argsSize = 0;
+        foreach (str; args)
+        {
+            argsSize += str.length;
+        }
+    }
+    auto buffer = ArrayList!char(pattern.length + argsSize);
+    scope (exit)
+    {
+        buffer.free;
+    }
+
+    size_t placeholderIndex;
+    bool isPlaceholderParse;
+
+    bool isZeroPadParse;
+
+    //TODO check placeholder count, etc
+    for (auto i = 0; i < pattern.length; i++)
+    {
+        auto patternChar = pattern[i];
+        if (patternChar == placeholder)
+        {
+            isPlaceholderParse = true;
+            continue;
+        }
+
+        if (isPlaceholderParse)
+        {
+            if (args.length == 0 || placeholderIndex >= args.length)
+            {
+                return toStringz(FORMAT_ERROR);
+            }
+
+            if (patternChar == '0')
+            {
+                isZeroPadParse = true;
+                continue;
+            }
+
+            T formatArg = args[placeholderIndex];
+            placeholderIndex++;
+
+            switch (patternChar)
+            {
+            case 'd':
+            case 'l':
+                {
+                    static if (isIntegral!(typeof(formatArg)))
+                    {
+                        const longValue = cast(long) formatArg;
+                        if (isZeroPadParse)
+                        {
+                            if (longValue < 10)
+                            {
+                                buffer.push('0');
+                            }
+                            isZeroPadParse = false;
+                        }
+
+                        char* longStr = toString(longValue, 10);
+                        Collections.append(buffer, longStr);
+                        Allocator.free(longStr);
+                    }
+                    break;
+                }
+            case 'x':
+                {
+                    static if (isIntegral!(typeof(formatArg)))
+                    {
+                        buffer.push('0');
+                        buffer.push('x');
+                        char* hexStr = toString(cast(long) formatArg, 16);
+                        Collections.append(buffer, hexStr);
+                        Allocator.free(hexStr);
+                    }
+                    break;
+                }
+            case 'X':
+                {
+                    static if (isIntegral!(typeof(formatArg)))
+                    {
+                        //TODO duplicate
+                        char* hexStr = toString(cast(long) formatArg, 16);
+                        Collections.append(buffer, hexStr);
+                        Allocator.free(hexStr);
+                    }
+                    break;
+                }
+            case 'b':
+                {
+                    static if (isIntegral!(typeof(formatArg)))
+                    {
+                        buffer.push('0');
+                        buffer.push('b');
+                        char* binStr = toString(cast(long) formatArg, 2);
+                        Collections.append(buffer, binStr);
+                        Allocator.free(binStr);
+                    }
+                    break;
+                }
+            case 's':
+                {
+                    static if (is(typeof(formatArg) == string))
+                    {
+                        Collections.append(buffer, formatArg);
+                    }
+                    break;
+                }
+            case 'f':
+                {
+                    static if (isFloatingPoint!(typeof(formatArg)))
+                    {
+                        //TODO real?
+                        double value = cast(double) formatArg;
+                        char* doublePtr = toString(value);
+                        Collections.append(buffer, doublePtr);
+                        Allocator.free(doublePtr);
+                    }
+                    break;
+                }
+            default:
+                {
+
+                }
+            }
+
+            isPlaceholderParse = false;
+            continue;
+        }
+
+        buffer.push(patternChar);
+    }
+
+    string result = cast(string)(cast(ubyte*) buffer.ptr)[0 .. (buffer.length)];
+    return toStringz(result);
+}
+
+unittest
+{
+    import os.std.asserts : kassert;
+
+    const integralPattern = "hello %d world %l";
+    ubyte[2] longArgs = [5, 10];
+    char* intRes = format(integralPattern, longArgs);
+    kassert(isEqual(toString(intRes), "hello 5 world 10"));
+    Allocator.free(intRes);
+
+    ubyte[1] hexArgs = [10];
+    char* hexRes = format("foo %x", hexArgs);
+    kassert(isEqual(toString(hexRes), "foo 0xA"));
+    Allocator.free(hexRes);
+
+    ubyte[1] hexShortArgs = [10];
+    char* hexShortRes = format("foo %X", hexShortArgs);
+    kassert(isEqual(toString(hexShortRes), "foo A"));
+    Allocator.free(hexShortRes);
+
+    ubyte[1] binArgs = [10];
+    char* binRes = format("%b foo", binArgs);
+    kassert(isEqual(toString(binRes), "0b1010 foo"));
+    Allocator.free(binRes);
+
+    string[2] strArgs = ["world", "hello"];
+    char* strRes = format("%s %s", strArgs);
+    kassert(isEqual(toString(strRes), "world hello"));
+    Allocator.free(strRes);
+
+    float[1] floatArgs = [4.5];
+    char* flRes = format(" foo %f bar ", floatArgs);
+    kassert(isEqual(toString(flRes), " foo 4.5 bar "));
+    Allocator.free(flRes);
 }
