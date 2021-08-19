@@ -14,6 +14,7 @@ private
     alias Ascii = os.std.text.ascii;
     alias Tests = os.std.tests;
     alias PCI = os.core.pci.pci_legacy;
+    alias Serial = os.core.io.serial;
     alias Strings = os.std.text.strings;
     alias Allocator = os.core.mem.allocator;
     alias Kstdio = os.std.io.kstdio;
