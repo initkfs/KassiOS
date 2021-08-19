@@ -14,7 +14,6 @@
         "dflags-dmd": [
             "-vtls",
             "-betterC",
-            "-c",
             "-unittest",
             "-boundscheck=off",
             "-J=./data"
