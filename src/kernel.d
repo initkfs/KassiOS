@@ -15,6 +15,7 @@ private
     alias Strings = os.std.text.strings;
     alias Allocator = os.core.mem.allocator;
     alias Kstdio = os.std.io.kstdio;
+    alias LinearList = os.std.container.linear_list;
     alias ArrayList = os.std.container.array_list;
     alias Collections = os.std.container.collections;
 }
@@ -34,6 +35,7 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
 
     Tests.runTest!(Allocator);
     Tests.runTest!(Strings);
+    Tests.runTest!(LinearList);
     Tests.runTest!(ArrayList);
     Tests.runTest!(Collections);
 
