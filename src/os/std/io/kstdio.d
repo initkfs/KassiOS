@@ -52,5 +52,5 @@ void kprintf(T)(const string format, const T[] args, const ubyte color = 0b111)
 void kprintfln(T)(const string format, const T[] args, const ubyte color = 0b111)
 {
     kprintf!T(format, args);
-    kprint(CarriageReturn.LF);
+    kprint(Ascii.LF);
 }
