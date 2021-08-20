@@ -214,9 +214,13 @@ private void flushTokenBuffer(Token* token, ref ArrayList!char tokenBuffer)
     tokenBuffer.clear;
 }
 
-private bool needFlushBuffer(Token* token)
+private bool isTypeBufferNeeded(TokenType type){
+    return type == TokenType.ID || type == TokenType.NUMBER;
+}
+
+private bool isBufferNeed(Token* token)
 {
-    return token && (token.type == TokenType.ID || token.type == TokenType.NUMBER);
+    return token && isTypeBufferNeeded(token.type);
 }
 
 void runLexer(string input, Lexer* lexer)
@@ -241,6 +245,12 @@ void runLexer(string input, Lexer* lexer)
     foreach (ch; input)
     {
         const type = getTokenTypeByChar(ch);
+
+        if(isPartParsed && isBufferNeed(token) && !isTypeBufferNeeded(type)){
+            flushTokenBuffer(token, tokenBuffer);
+            isPartParsed = false;
+        }
+
         switch (type)
         {
         case TokenType.ID:
@@ -254,15 +264,6 @@ void runLexer(string input, Lexer* lexer)
             isPartParsed = true;
             break;
         case TokenType.WHITESPACE:
-            if (isPartParsed && needFlushBuffer(token))
-            {
-                if (tokenBuffer.isEmpty)
-                {
-                    continue;
-                }
-                flushTokenBuffer(token, tokenBuffer);
-                isPartParsed = false;
-            }
             break;
         case TokenType.MINUS:
             token = createToken(TokenType.MINUS, token);
@@ -274,7 +275,7 @@ void runLexer(string input, Lexer* lexer)
         }
     }
 
-    if (isPartParsed && needFlushBuffer(token))
+    if (isPartParsed && isBufferNeed(token))
     {
         flushTokenBuffer(token, tokenBuffer);
         isPartParsed = false;
@@ -333,7 +334,7 @@ unittest
 
     kassert(index == 6);
 
-    const operationInput = " 5  + 6  ";
+    const operationInput = " 5+ 6  ";
     auto lexerCalc = cast(Lexer*) Allocator.alloc(Lexer.sizeof);
     scope (exit)
     {
