@@ -4,6 +4,8 @@
 module kernel;
 
 import os.std.tests;
+import os.std.errors;
+import os.std.asserts;
 
 //Import is required before aliases
 private
@@ -16,6 +18,10 @@ private
     alias Ports = os.core.io.ports;
     alias TextDisplay = os.core.graphic.text_display;
     alias Allocator = os.core.mem.allocator;
+    alias Idt = os.core.interrupt.idt;
+    alias Isr = os.core.interrupt.isr;
+    alias Irq = os.core.interrupt.irq;
+    alias Pic = os.core.interrupt.pic;
     alias PCI = os.core.pci.pci_legacy;
     alias RTC = os.core.io.rtc;
     alias Serial = os.core.io.serial;
@@ -45,6 +51,7 @@ extern (C) __gshared ulong KERNEL_END;
 
 extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
 {
+    
     auto memoryStart = cast(ubyte*)(&KERNEL_END + 0x400);
     //TODO parse page tables, 0x6400000 (512 * 50 * 4096)
     auto memoryEnd = cast(ubyte*)(0x6400000 - 0x400);
@@ -60,6 +67,10 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
                 magicArgs);
         return;
     }
+
+    Isr.init;
+    Irq.init;
+    Idt.init;
 
     //TODO check SSE
     CPU.enableSSE;
@@ -154,10 +165,95 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
 
 extern (C) __gshared void runInterruptServiceRoutine(const ulong num, const ulong err)
 {
-
+    //TODO Triple Fault
+    switch (num)
+    {
+    case Isr.Exception.DivideByZero:
+        panic("Divide by zero exception");
+        break;
+    case Isr.Exception.Debug:
+        panic("Debug trap");
+        break;
+    case Isr.Exception.Nmi:
+        panic("Non Maskable Interrupt");
+        break;
+    case Isr.Exception.Breakpoint:
+        panic("Breakpoint exception");
+        break;
+    case Isr.Exception.Overflow:
+        panic("Overflow exception");
+        break;
+    case Isr.Exception.BoundRangeExceed:
+        panic("Bound Range Exceeded exception");
+        break;
+    case Isr.Exception.InvalidOpcode:
+        panic("Invalid Opcode exception");
+        break;
+    case Isr.Exception.DeviceNotAvailable:
+        panic("Device Not Available exception (check FPU or SSE)");
+        break;
+    case Isr.Exception.DoubleFault:
+        panic("Double Fault exception");
+        break;
+    case Isr.Exception.InvalidTss:
+        panic("Invalid TSS exception");
+        break;
+    case Isr.Exception.SegmentNotPresent:
+        panic("Segment Not Present exception");
+        break;
+    case Isr.Exception.StackSegmentFault:
+        panic("Stack-Segment Fault exception");
+        break;
+    case Isr.Exception.GeneralProtectionFault:
+        panic("General Protection Fault exception");
+        break;
+    case Isr.Exception.PageFault:
+        size_t errorAddr;
+        asm
+        {
+            mov RAX, CR2;
+            mov errorAddr, RAX;
+        }
+        size_t[1] errorArgs = [errorAddr];
+        auto errMessagePtr = Strings.format("Page fault: %x", errorArgs);
+        scope (exit)
+        {
+            Allocator.free(errMessagePtr);
+        }
+        panic(Strings.toString(errMessagePtr));
+        break;
+    case Isr.Exception.FloatingPointException:
+        panic("x87 Floating-Point exception");
+        break;
+    case Isr.Exception.AlignmentCheck:
+        panic("Alignment Check exception");
+        break;
+    case Isr.Exception.MachineCheck:
+        panic("Machine Check exception");
+        break;
+    case Isr.Exception.SimdFpException:
+        panic("SIMD Floating-Point exception");
+        break;
+    case Isr.Exception.VirtualizationException:
+        panic("Virtualization exception");
+        break;
+    default:
+        panic("Unhandled exception");
+    }
 }
 
 extern (C) __gshared void runInterruptRequest(const ulong num, const ulong err)
 {
+    //irqs 0-15 are mapped to interrupt service routines 32-47
+    immutable uint irq = cast(immutable(uint)) num - 32;
+    switch (irq)
+    {
+    case Irq.Interrupts.Timer:
+        break;
+    case Irq.Interrupts.Keyboard:
+        break;
+    default:
+    }
 
+    Irq.sendInerruptEnd(num);
 }

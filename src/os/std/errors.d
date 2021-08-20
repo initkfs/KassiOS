@@ -42,12 +42,14 @@ void panic(const string message, const string file = __FILE__, const int line = 
     Syslog.errorf("Panic: %s, %s:%s", args);
   }
 
+  Kstdio.kprintln;
   Kstdio.kprint("PANIC: ");
   Kstdio.kprint(message);
   Kstdio.kprint(". ");
   Kstdio.kprint(file);
   Kstdio.kprint(":");
   Kstdio.kprint(lineStr);
+  Kstdio.kprintln;
   
   Allocator.free(lineStrPtr);
 
