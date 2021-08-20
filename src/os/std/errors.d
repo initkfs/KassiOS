@@ -7,26 +7,49 @@ alias err = string;
 
 private
 {
+  alias CoreConfig = os.core.config.core_config;
   alias Allocator = os.core.mem.allocator;
   alias Kstdio = os.std.io.kstdio;
   alias Strings = os.std.text.strings;
+  alias Syslog = os.core.logger.syslog;
 }
 
 err error(const string message, const string file = __FILE__, const int line = __LINE__)
 {
+
+  if (CoreConfig.isLogGeneratedErrors && Syslog.isErrorLevel)
+  {
+    auto lineStr = Strings.toString(line);
+    scope (exit)
+    {
+      Allocator.free(lineStr);
+    }
+    string[3] args = [message, file, Strings.toString(lineStr)];
+    Syslog.errorf("Application error: %s, %s:%s", args);
+  }
+
   return message;
 }
 
 void panic(const string message, const string file = __FILE__, const int line = __LINE__)
 {
+  auto lineStrPtr = Strings.toString(line);
+  string lineStr = Strings.toString(lineStrPtr);
+ 
+  if (Syslog.isErrorLevel)
+  {
+    string[3] args = [message, file, lineStr];
+    Syslog.errorf("Panic: %s, %s:%s", args);
+  }
+
   Kstdio.kprint("PANIC: ");
   Kstdio.kprint(message);
   Kstdio.kprint(". ");
   Kstdio.kprint(file);
   Kstdio.kprint(":");
-  auto fileLinePtr = Strings.toString(line);
-  Kstdio.kprint(fileLinePtr);
-  Allocator.free(fileLinePtr);
+  Kstdio.kprint(lineStr);
+  
+  Allocator.free(lineStrPtr);
 
   asm
   {

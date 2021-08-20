@@ -9,6 +9,7 @@ import os.std.tests;
 private
 {
     //Core
+    alias CoreConfig = os.core.config.core_config;
     alias CPU = os.core.cpu.x86_64;
     alias Ports = os.core.io.ports;
     alias TextDisplay = os.core.graphic.text_display;
@@ -67,6 +68,8 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
         Syslog.tracef("Set allocator start %x, end %x", memArgs);
     }
 
+    CoreConfig.setLogGeneratedErrors(false);
+
     Tests.runTest!(Allocator);
     Tests.runTest!(Strings);
     Tests.runTest!(LinearList);
@@ -77,6 +80,8 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
     Tests.runTest!(KashLexer);
     Tests.runTest!(KashParser);
     Tests.runTest!(KashExecutor);
+    
+    CoreConfig.setLogGeneratedErrors(true);
 
     size_t usedBytes;
     size_t bufferedBytes;
