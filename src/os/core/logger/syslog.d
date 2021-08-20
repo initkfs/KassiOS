@@ -65,12 +65,30 @@ private void log(LogLevel level, lazy string message, lazy string file, lazy int
     writeLogRecord(record);
 }
 
+private void logf(T)(LogLevel level, lazy string pattern, lazy T[] args,
+        lazy string file, lazy int line)
+{
+    if (!isForLogLevel(level, logLevel))
+    {
+        return;
+    }
+
+    auto messagePtr = Strings.format!T(pattern, args);
+    scope (exit)
+    {
+        Allocator.free(messagePtr);
+    }
+    const message = Strings.toString(messagePtr);
+    log(level, message, file, line);
+}
+
 private void writeLogRecord(ref LogRecord record)
 {
     const spaceChar = ' ';
 
     auto dateInfo = DateTime.toIsoSimpleString(record.datetime);
-    scope(exit){
+    scope (exit)
+    {
         Allocator.free(dateInfo);
     }
 
@@ -84,11 +102,17 @@ private void writeLogRecord(ref LogRecord record)
     Serial.write(':');
 
     auto lineInfo = Strings.toString(record.line);
-    scope(exit){
+    scope (exit)
+    {
         Allocator.free(lineInfo);
     }
     Serial.write(Strings.toString(lineInfo));
     Serial.write(Ascii.LF);
+}
+
+void tracef(T)(lazy string pattern, T[] args, const string file = __FILE__, const int line = __LINE__)
+{
+    logf(LogLevel.trace, pattern, args, file, line);
 }
 
 void trace(lazy string message, const string file = __FILE__, const int line = __LINE__)
@@ -96,9 +120,29 @@ void trace(lazy string message, const string file = __FILE__, const int line = _
     log(LogLevel.trace, message, file, line);
 }
 
+void trace(char* message, const string file = __FILE__, const int line = __LINE__)
+{
+    trace(Strings.toString(message), file, line);
+}
+
+void infof(T)(lazy string pattern, T[] args, const string file = __FILE__, const int line = __LINE__)
+{
+    logf(LogLevel.info, pattern, args, file, line);
+}
+
 void info(lazy string message, const string file = __FILE__, const int line = __LINE__)
 {
     log(LogLevel.info, message, file, line);
+}
+
+void info(char* message, const string file = __FILE__, const int line = __LINE__)
+{
+    info(Strings.toString(message), file, line);
+}
+
+void warnf(T)(lazy string pattern, T[] args, const string file = __FILE__, const int line = __LINE__)
+{
+    logf(LogLevel.warn, pattern, args, file, line);
 }
 
 void warn(lazy string message, const string file = __FILE__, const int line = __LINE__)
@@ -106,9 +150,24 @@ void warn(lazy string message, const string file = __FILE__, const int line = __
     log(LogLevel.warn, message, file, line);
 }
 
+void warn(char* message, const string file = __FILE__, const int line = __LINE__)
+{
+    warn(Strings.toString(message), file, line);
+}
+
+void errorf(T)(lazy string pattern, T[] args, const string file = __FILE__, const int line = __LINE__)
+{
+    logf(LogLevel.error, pattern, args, file, line);
+}
+
 void error(lazy string message, const string file = __FILE__, const int line = __LINE__)
 {
     log(LogLevel.error, message, file, line);
+}
+
+void error(char* message, const string file = __FILE__, const int line = __LINE__)
+{
+    error(Strings.toString(message), file, line);
 }
 
 unittest

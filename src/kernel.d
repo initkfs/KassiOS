@@ -58,11 +58,13 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
     Serial.writeln("Serial port enabled");
 
     Syslog.setLoggerLevel(LoggerCore.LogLevel.all);
-    if(Syslog.isTraceLevel){
+    if (Syslog.isTraceLevel)
+    {
         string[1] levelArgs = [Syslog.getLoggerLevelName];
-        auto levelInfo = Strings.format("Load logger with log level %s", levelArgs);
-        Syslog.trace(Strings.toString(levelInfo));
-        Allocator.free(levelInfo);
+        Syslog.tracef("Loaded logger with log level %s", levelArgs);
+
+        size_t[2] memArgs = [cast(size_t) memoryStart, cast(size_t) memoryEnd];
+        Syslog.tracef("Set allocator start %x, end %x", memArgs);
     }
 
     Tests.runTest!(Allocator);
