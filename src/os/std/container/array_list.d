@@ -73,6 +73,10 @@ struct ArrayList(T)
 		return List.removeAt!T(list, index);
 	}
 
+	void clear(){
+		List.clear(list);
+	}
+
 	int opApply(scope int delegate(ref T) dg)
 	{
 		int result = 0;

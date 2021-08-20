@@ -271,6 +271,10 @@ err removeAt(T)(LinearList* list, size_t index)
 	return null;
 }
 
+void clear(LinearList* list){
+	list.length = 0;
+}
+
 void iteratelist(T)(LinearList* list, void function(size_t, T, err) onIndexElement)
 {
 	foreach (i; 0 .. list.length)

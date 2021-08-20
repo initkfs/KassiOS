@@ -21,3 +21,7 @@ bool isDecimalDigit(const char c)
 {
 	return c >= '0' && c <= '9';
 }
+
+bool isAlpha(const char c){
+	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+}

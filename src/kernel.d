@@ -23,6 +23,9 @@ private
     alias Collections = os.std.container.collections;
     alias MathCore = os.std.math.math_core;
     alias MathRandom = os.std.math.math_random;
+    alias KashLexer = os.sys.kash.lexer;
+    alias KashParser = os.sys.kash.parser;
+    alias KashExecutor = os.sys.kash.executor;
 }
 
 extern (C) __gshared ulong KERNEL_END;
@@ -48,6 +51,9 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
     Tests.runTest!(Collections);
     Tests.runTest!(MathCore);
     Tests.runTest!(MathRandom);
+    Tests.runTest!(KashLexer);
+    Tests.runTest!(KashParser);
+    Tests.runTest!(KashExecutor);
 
     size_t usedBytes;
     size_t bufferedBytes;
@@ -55,6 +61,8 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
 
     Allocator.getMemoryStat(usedBytes, bufferedBytes, availableBytes);
     Kstdio.kprint(Strings.toString(usedBytes));
+
+    import os.sys.kash.lexer;
 }
 
 extern (C) __gshared void runInterruptServiceRoutine(const ulong num, const ulong err)
