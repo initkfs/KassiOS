@@ -26,7 +26,7 @@ void kprint(const string str, const ubyte color = 0b111)
     Display.printString(str, color);
 }
 
-void kprint(const char* str, const ubyte color = 0b111)
+void kprintz(const char* str, const ubyte color = 0b111)
 {
     Display.printString(Strings.toString(str), color);
 }
@@ -37,7 +37,7 @@ void kprintln(const string str = "", const ubyte color = 0b111)
     kprint(Ascii.LF);
 }
 
-void kprintln(const char* str, const ubyte color = 0b111)
+void kprintlnz(const char* str, const ubyte color = 0b111)
 {
     kprintln(Strings.toString(str), color);
 }
@@ -45,7 +45,7 @@ void kprintln(const char* str, const ubyte color = 0b111)
 void kprintf(T)(const string format, const T[] args, const ubyte color = 0b111)
 {
     char* result = Strings.format!T(format, args);
-    kprint(result, color);
+    kprintz(result, color);
     Allocator.free(result);
 }
 

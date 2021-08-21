@@ -143,7 +143,7 @@ fi
 #bochs -qf /dev/null -rc "$__dir/bochs_debug.rc" 'clock: sync=realtime, time0=local' ' display_library: x, options="gui_debug' 'megs: 128' 'boot: c' "ata0-master: type=disk, path=$osFile, mode=flat, cylinders=0, heads=0, spt=0, model=\"Generic 1234\", biosdetect=auto, translation=auto"
 
 #'display_library: x, options = "gui_debug"'
-#bochs -qf /dev/null 'cpuid: x86_64=1' 'clock: sync=realtime, time0=local' 'com1: enabled=1, mode=file, dev=serial.txt' 'display_library: x' 'megs: 64' 'boot: c' "ata0-master: type=disk, path=$osFile, mode=flat, cylinders=0, heads=0, spt=0, model=\"Generic 1234\", biosdetect=auto, translation=auto"
+#bochs -qf /dev/null 'boot: cdrom' 'display_library: sdl' 'vga: extension=vbe, update_freq=5' 'clock: sync=none, time0=local, rtc_sync=1' 'cpu: count=1, ips=200000000' 'cpuid: x86_64=1, mmx=1, sep=1, sse=sse4_2' 'com1: enabled=1, mode=file, dev=serial.txt' 'megs: 64' "ata0-slave: type=cdrom, path=$osFile, status=inserted"
 
 #memory size over 64M may give a mapping error for ACPI (Page Fault) due to the small number of page tables
 qemu-system-x86_64 -serial file:serial.txt -soundhw pcspk -d int,cpu_reset -s -m 64M -cdrom $osFile -monitor stdio

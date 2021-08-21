@@ -9,6 +9,11 @@ private
 	alias Ports = os.core.io.ports;
 }
 
+const
+{
+	enum notDisplayedCode = '\?';
+}
+
 private __gshared char[178] scanCodeTable = [
 	'\?', '\?', //0 unused
 	'\?', '\?', //ESC
@@ -60,7 +65,7 @@ private __gshared char[178] scanCodeTable = [
 	'\?' //F12
 ];
 
-public enum ScanCodes
+public enum SCANCODES
 {
 	CAPSLOCK = 0x3a,
 	LSHIFT = 0x2a,
@@ -74,25 +79,30 @@ private
 	__gshared bool isCapsLockPress = false;
 }
 
-bool isReleased(const char code) @safe pure
+bool isReleased(const ubyte code) @safe pure
 {
+	//7 bit set -> 10000000
 	return (code & 128) == 128;
 }
 
-bool isPressed(const char code) @safe pure
+bool isPressed(const ubyte code) @safe pure
 {
 	return !isReleased(code);
 }
 
 bool isSpecial(immutable(ubyte) code) @safe pure
 {
-	//TODO other codes
-	if (code == ScanCodes.LSHIFT || code == ScanCodes.RSHIFT || code == ScanCodes.CAPSLOCK)
+	if (code == SCANCODES.LSHIFT || code == SCANCODES.RSHIFT || code == SCANCODES.CAPSLOCK)
 	{
 		return true;
 	}
 
 	return false;
+}
+
+bool isUnrelated(immutable(ubyte) code) @safe pure
+{
+	return code == notDisplayedCode;
 }
 
 ubyte scanKeyCode()
@@ -105,12 +115,12 @@ ubyte scanKeyCode()
 		immutable ubyte releasedCode = cast(ubyte)(scanCode - 128);
 		switch (releasedCode)
 		{
-		case ScanCodes.CAPSLOCK:
+		case SCANCODES.CAPSLOCK:
 			break;
-		case ScanCodes.LSHIFT:
+		case SCANCODES.LSHIFT:
 			isShiftPress = false;
 			break;
-		case ScanCodes.RSHIFT:
+		case SCANCODES.RSHIFT:
 			isShiftPress = false;
 			break;
 		default:
@@ -120,13 +130,13 @@ ubyte scanKeyCode()
 	{
 		switch (scanCode)
 		{
-		case ScanCodes.LSHIFT:
+		case SCANCODES.LSHIFT:
 			isShiftPress = true;
 			break;
-		case ScanCodes.RSHIFT:
+		case SCANCODES.RSHIFT:
 			isShiftPress = true;
 			break;
-		case ScanCodes.CAPSLOCK:
+		case SCANCODES.CAPSLOCK:
 			isCapsLockPress = !isCapsLockPress;
 			break;
 		default:

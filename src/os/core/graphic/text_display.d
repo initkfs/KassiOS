@@ -121,9 +121,10 @@ private void resetCoordinates()
     displayIndexY = 0;
 }
 
-void backspace(const char emptyChar = ' ', const ubyte color = CGAColors.DEFAULT_TEXT_COLOR)
+void backspace(const size_t border = 0, const char emptyChar = ' ',
+        const ubyte color = CGAColors.DEFAULT_TEXT_COLOR)
 {
-    if (displayIndexX > 0)
+    if (displayIndexX > border)
     {
         displayIndexX--;
     }
@@ -230,8 +231,7 @@ void printStringRepeat(const string str, const size_t repeatCount = 1,
 {
 
     size_t mustBeStringCount = repeatCount;
-    const size_t maxStrings = (DISPLAY_LINES * DISPLAY_COLUMNS) / str
-        .length;
+    const size_t maxStrings = (DISPLAY_LINES * DISPLAY_COLUMNS) / str.length;
     if (mustBeStringCount > maxStrings)
     {
         mustBeStringCount = maxStrings;
@@ -264,18 +264,28 @@ void clearScreen()
     }
 
     resetCoordinates;
-   
+
     immutable charCount = DISPLAY_COLUMNS * DISPLAY_LINES;
     foreach (index; 0 .. charCount)
     {
         //don't use black color
         printToTextVideoMemory(' ');
     }
-    
+
     resetCoordinates;
 
     if (isCursorDisabled)
     {
         enableCursor;
     }
+}
+
+int getX()
+{
+    return displayIndexX;
+}
+
+int getY()
+{
+    return displayIndexY;
 }

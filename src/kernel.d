@@ -17,6 +17,7 @@ private
     alias CPU = os.core.cpu.x86_64;
     alias Ports = os.core.io.ports;
     alias TextDisplay = os.core.graphic.text_display;
+    alias Keyboard = os.core.io.keyboard;
     alias Allocator = os.core.mem.allocator;
     alias Idt = os.core.interrupt.idt;
     alias Isr = os.core.interrupt.isr;
@@ -45,13 +46,14 @@ private
     alias KashLexer = os.sys.kash.lexer;
     alias KashParser = os.sys.kash.parser;
     alias KashExecutor = os.sys.kash.executor;
+    alias Terminal = os.sys.term;
 }
 
 extern (C) __gshared ulong KERNEL_END;
 
 extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
 {
-    
+
     auto memoryStart = cast(ubyte*)(&KERNEL_END + 0x400);
     //TODO parse page tables, 0x6400000 (512 * 50 * 4096)
     auto memoryEnd = cast(ubyte*)(0x6400000 - 0x400);
@@ -142,25 +144,26 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
 
     CoreConfig.setLogGeneratedErrors(false);
 
-    Tests.runTest!(Allocator);
-    Tests.runTest!(Strings);
-    Tests.runTest!(LinearList);
-    Tests.runTest!(ArrayList);
-    Tests.runTest!(Collections);
-    Tests.runTest!(MathCore);
-    Tests.runTest!(MathRandom);
-    Tests.runTest!(KashLexer);
-    Tests.runTest!(KashParser);
-    Tests.runTest!(KashExecutor);
+    // Tests.runTest!(Allocator);
+    // Tests.runTest!(Strings);
+    // Tests.runTest!(LinearList);
+    // Tests.runTest!(ArrayList);
+    // Tests.runTest!(Collections);
+    // Tests.runTest!(MathCore);
+    // Tests.runTest!(MathRandom);
+    // Tests.runTest!(KashLexer);
+    // Tests.runTest!(KashParser);
+    // Tests.runTest!(KashExecutor);
 
     CoreConfig.setLogGeneratedErrors(true);
 
-    size_t usedBytes;
-    size_t bufferedBytes;
-    size_t availableBytes;
-
-    Allocator.getMemoryStat(usedBytes, bufferedBytes, availableBytes);
-    Kstdio.kprint(Strings.toString(usedBytes));
+    // size_t usedBytes;
+    // size_t bufferedBytes;
+    // size_t availableBytes;
+    // Allocator.getMemoryStat(usedBytes, bufferedBytes, availableBytes);
+    // Kstdio.kprint(Strings.toString(usedBytes));
+    Terminal.enable;
+    Terminal.start;
 }
 
 extern (C) __gshared void runInterruptServiceRoutine(const ulong num, const ulong err)
@@ -246,11 +249,17 @@ extern (C) __gshared void runInterruptRequest(const ulong num, const ulong err)
 {
     //irqs 0-15 are mapped to interrupt service routines 32-47
     immutable uint irq = cast(immutable(uint)) num - 32;
+    //be careful about returning before sending interrupt end
     switch (irq)
     {
     case Irq.Interrupts.Timer:
         break;
     case Irq.Interrupts.Keyboard:
+        const ubyte keyCode = Keyboard.scanKeyCode;
+        if (!Keyboard.isReleased(keyCode) && keyCode != 0) // k == '\?' 
+        {
+            Terminal.acceptInput(keyCode);
+        }
         break;
     default:
     }
