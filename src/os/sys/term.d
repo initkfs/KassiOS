@@ -11,13 +11,14 @@ private
     alias Display = os.core.graphic.text_display;
     alias Kstdio = os.std.io.kstdio;
     alias Keyboard = os.core.io.keyboard;
-    alias LinearList = os.std.container.linear_list;
+    alias List = os.std.container.linear_list;
     alias Ascii = os.std.text.ascii;
     alias GuiTextBox = os.std.gui.text.widget.box;
     alias Config = os.core.config.core_config;
     alias DateTime = os.std.date.datetime;
     alias SysTime = os.std.date.systime;
     alias Strings = os.std.text.strings;
+    alias Shell = os.sys.kash.shell;
 
     const
     {
@@ -29,6 +30,8 @@ private
     __gshared ubyte promptColor = Display.CGAColors.DEFAULT_TEXT_COLOR;
     __gshared ubyte errorColor = Display.CGAInfoColors.COLOR_ERROR;
     __gshared ubyte infoColor = Display.CGAColors.DEFAULT_TEXT_COLOR;
+
+    __gshared List.LinearList* textBuffer;
 }
 
 void start()
@@ -62,6 +65,15 @@ void printHeader()
     GuiTextBox.simpleBox(Strings.toString(osInfo), uiInfoColor);
 }
 
+private void resetTextBuffer()
+{
+    if (textBuffer !is null)
+    {
+        Allocator.free(textBuffer);
+        textBuffer = null;
+    }
+}
+
 void acceptInput(const ubyte keyCode)
 {
     if (!isActive || Keyboard.isSpecial(keyCode))
@@ -78,9 +90,20 @@ void acceptInput(const ubyte keyCode)
     if (Ascii.isBackspace(keyChar))
     {
         Display.backspace(promptText.length);
+        if (textBuffer !is null && !List.isEmpty(textBuffer))
+        {
+            char value;
+            List.pop(textBuffer, value);
+            if (List.isEmpty(textBuffer))
+            {
+                resetTextBuffer;
+                return;
+            }
+        }
     }
     else if (keyChar == Ascii.TAB)
     {
+        resetTextBuffer;
         printHelp;
     }
     else if (keyChar == Ascii.LF)
@@ -89,11 +112,55 @@ void acceptInput(const ubyte keyCode)
         {
             return;
         }
+
+        if (textBuffer !is null && !List.isEmpty(textBuffer))
+        {
+            string cmd = cast(string)(cast(ubyte*) textBuffer.data.ptr)[0 .. textBuffer.length];
+            char* outResult;
+            char* errResult;
+            scope (exit)
+            {
+                if (outResult)
+                {
+                    Allocator.free(outResult);
+                }
+                if (errResult)
+                {
+                    Allocator.free(errResult);
+                }
+            }
+            int returnCode = Shell.run(cmd, outResult, errResult);
+            if (outResult || errResult)
+            {
+                Kstdio.kprintln;
+            }
+
+            if (outResult && Strings.strlength(outResult) > 0)
+            {
+                Kstdio.kprintz(outResult);
+            }
+
+            if (errResult && Strings.strlength(errResult) > 0)
+            {
+                if(outResult){
+                    Kstdio.kprintln;
+                }
+                Kstdio.kprintz(errResult, errorColor);
+            }
+
+            resetTextBuffer;
+        }
+
         Display.newLine;
         printPrompt;
     }
     else
     {
+        if (textBuffer is null)
+        {
+            textBuffer = List.initList!char(Display.DISPLAY_COLUMNS);
+        }
+        List.push!char(textBuffer, keyChar);
         Kstdio.kprint(keyChar);
     }
 }

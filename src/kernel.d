@@ -46,6 +46,7 @@ private
     alias KashLexer = os.sys.kash.lexer;
     alias KashParser = os.sys.kash.parser;
     alias KashExecutor = os.sys.kash.executor;
+    alias KashShell = os.sys.kash.shell;
     alias Terminal = os.sys.term;
 }
 
@@ -144,16 +145,16 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
 
     CoreConfig.setLogGeneratedErrors(false);
 
-    // Tests.runTest!(Allocator);
-    // Tests.runTest!(Strings);
-    // Tests.runTest!(LinearList);
-    // Tests.runTest!(ArrayList);
-    // Tests.runTest!(Collections);
-    // Tests.runTest!(MathCore);
-    // Tests.runTest!(MathRandom);
-    // Tests.runTest!(KashLexer);
-    // Tests.runTest!(KashParser);
-    // Tests.runTest!(KashExecutor);
+    Tests.runTest!(Allocator);
+    Tests.runTest!(Strings);
+    Tests.runTest!(LinearList);
+    Tests.runTest!(ArrayList);
+    Tests.runTest!(Collections);
+    Tests.runTest!(MathCore);
+    Tests.runTest!(MathRandom);
+    Tests.runTest!(KashLexer);
+    Tests.runTest!(KashParser);
+    Tests.runTest!(KashExecutor);
 
     CoreConfig.setLogGeneratedErrors(true);
 
@@ -162,6 +163,7 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
     // size_t availableBytes;
     // Allocator.getMemoryStat(usedBytes, bufferedBytes, availableBytes);
     // Kstdio.kprint(Strings.toString(usedBytes));
+    KashShell.init;
     Terminal.enable;
     Terminal.start;
 }
