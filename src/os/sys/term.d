@@ -7,11 +7,17 @@ import std.traits;
 
 private
 {
+    alias Allocator = os.core.mem.allocator;
     alias Display = os.core.graphic.text_display;
     alias Kstdio = os.std.io.kstdio;
     alias Keyboard = os.core.io.keyboard;
     alias LinearList = os.std.container.linear_list;
     alias Ascii = os.std.text.ascii;
+    alias GuiTextBox = os.std.gui.text.widget.box;
+    alias Config = os.core.config.core_config;
+    alias DateTime = os.std.date.datetime;
+    alias SysTime = os.std.date.systime;
+    alias Strings = os.std.text.strings;
 
     const
     {
@@ -27,6 +33,7 @@ private
 
 void start()
 {
+    printHeader;
     printPrompt;
 }
 
@@ -34,6 +41,25 @@ void printPrompt()
 {
     Display.enableCursor;
     Kstdio.kprint(promptText, promptColor);
+}
+
+void printHeader()
+{
+    const ubyte uiInfoColor = Display.CGAInfoColors.COLOR_INFO;
+    auto dateTimeInfoPtr = DateTime.toIsoSimpleString(SysTime.getDateUtc);
+    scope (exit)
+    {
+        Allocator.free(dateTimeInfoPtr);
+    }
+    string[3] osInfoArgs = [
+        Config.osName, Config.osVersion, Strings.toString(dateTimeInfoPtr)
+    ];
+    const osInfo = Strings.format("%s %s. %s. Press Tab for command help", osInfoArgs);
+    scope (exit)
+    {
+        Allocator.free(osInfo);
+    }
+    GuiTextBox.simpleBox(Strings.toString(osInfo), uiInfoColor);
 }
 
 void acceptInput(const ubyte keyCode)

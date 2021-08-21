@@ -9,6 +9,11 @@ private
 	__gshared bool logGeneratedErrors;
 }
 
+const {
+	string osName = "KassiOS";
+	string osVersion = "0.1a";
+}
+
 void setLogGeneratedErrors(bool value)
 {
 	logGeneratedErrors = value;
