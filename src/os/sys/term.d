@@ -20,6 +20,7 @@ private
     alias Strings = os.std.text.strings;
     alias Shell = os.sys.kash.shell;
     alias Units = os.std.util.units;
+    alias Inspector = os.core.support.inspector;
 
     const
     {
@@ -66,7 +67,7 @@ void printHeader()
     {
         Allocator.free(dateTimeInfoPtr);
     }
-    
+
     auto lastCodeStr = Strings.toString(Shell.lastCode);
     scope (exit)
     {
@@ -79,12 +80,14 @@ void printHeader()
         Allocator.free(usedMemPtr);
     }
 
-    string[5] osInfoArgs = [
+    string statusInfo = Inspector.isErrors ? "Err" : "Ok";
+
+    string[6] osInfoArgs = [
         Config.osName, Config.osVersion, Strings.toString(dateTimeInfoPtr),
-        Strings.toString(usedMemPtr), Strings.toString(lastCodeStr)
+        statusInfo, Strings.toString(usedMemPtr), Strings.toString(lastCodeStr)
     ];
-    const osInfo = Strings.format(
-            "%s %s. %s. M:%s. RT:%s. Press Tab for help", osInfoArgs);
+    const osInfo = Strings.format("%s %s %s. %s. M:%s. RT:%s. Press Tab for help",
+            osInfoArgs);
     scope (exit)
     {
         Allocator.free(osInfo);

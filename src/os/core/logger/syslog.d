@@ -15,6 +15,7 @@ private
     alias SysTime = os.std.date.systime;
     alias Strings = os.std.text.strings;
     alias Ascii = os.std.text.ascii;
+    alias Inspector = os.core.support.inspector;
 
     __gshared LogLevel logLevel;
 }
@@ -59,6 +60,11 @@ private void log(LogLevel level, lazy string message, lazy string file, lazy int
     if (!isForLogLevel(level, logLevel))
     {
         return;
+    }
+
+    if (level == LogLevel.error)
+    {
+        Inspector.setErrors;
     }
 
     LogRecord record = LogRecord(message, level, SysTime.getDateTimeUtc, file, line);
