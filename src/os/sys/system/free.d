@@ -14,14 +14,20 @@ private
 int run(string args, ref char* outResult, ref char* errResult)
 {
     Kstdio.kprintln;
+
+    size_t usedBytes, bufferedBytes, availableBytes;
+    Allocator.getMemoryStat(usedBytes, bufferedBytes, availableBytes);
+
     const size_t physEnd = cast(size_t) Allocator.getMemoryPhysicalEnd;
     long[1] physInfo = [physEnd];
     Kstdio.kprintf("Physical memory end %x. ", physInfo);
 
     Kstdio.kprint("Rough size: ");
     auto sizePtr = Units.formatBytes(Allocator.getMemoryPhysicalUpper);
+    scope(exit){
+        Allocator.free(sizePtr);
+    }
     Kstdio.kprintz(sizePtr);
-    Allocator.free(sizePtr);
     Kstdio.kprintln;
 
     const size_t allocMemStart = cast(size_t) Allocator.getMemoryStart;
@@ -30,27 +36,26 @@ int run(string args, ref char* outResult, ref char* errResult)
     const long[3] allocInfo = [allocMemStart, allocMemCurrent, allocMemEnd];
     Kstdio.kprintfln("Allocator start: %x, current %x, end %x", allocInfo);
 
-    size_t usedBytes;
-    size_t bufferedBytes;
-    size_t availableBytes;
-
-    Allocator.getMemoryStat(usedBytes, bufferedBytes, availableBytes);
     Kstdio.kprint("Used: ");
     auto usedPtr = Units.formatBytes(usedBytes);
+    scope(exit){
+        Allocator.free(usedPtr);
+    }
     Kstdio.kprintz(usedPtr);
-    Allocator.free(usedPtr);
 
-    Allocator.getMemoryStat(usedBytes, bufferedBytes, availableBytes);
     Kstdio.kprint(" Buffered: ");
     auto buffPtr = Units.formatBytes(bufferedBytes);
+    scope(exit){
+        Allocator.free(buffPtr);
+    }
     Kstdio.kprintz(buffPtr);
-    Allocator.free(buffPtr);
 
-    Allocator.getMemoryStat(usedBytes, bufferedBytes, availableBytes);
     Kstdio.kprint(" Free: ");
     auto freePtr = Units.formatBytes(availableBytes);
+    scope(exit){
+        Allocator.free(freePtr);
+    }
     Kstdio.kprintlnz(freePtr);
-    Allocator.free(freePtr);
-    
+
     return 0;
 }

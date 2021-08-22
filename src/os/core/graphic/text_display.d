@@ -289,3 +289,14 @@ int getY()
 {
     return displayIndexY;
 }
+
+//TODO check value > 0
+void setX(int value)
+{
+    displayIndexX = value;
+}
+
+void setY(int value)
+{
+    displayIndexY = value;
+}

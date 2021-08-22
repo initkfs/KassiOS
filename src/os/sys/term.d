@@ -19,6 +19,7 @@ private
     alias SysTime = os.std.date.systime;
     alias Strings = os.std.text.strings;
     alias Shell = os.sys.kash.shell;
+    alias Units = os.std.util.units;
 
     const
     {
@@ -56,22 +57,34 @@ void clearScreen()
 void printHeader()
 {
     const ubyte uiInfoColor = Display.CGAInfoColors.COLOR_INFO;
+
+    size_t usedBytes, bufferedBytes, availableBytes;
+    Allocator.getMemoryStat(usedBytes, bufferedBytes, availableBytes);
+
     auto dateTimeInfoPtr = DateTime.toIsoSimpleString(SysTime.getDateUtc);
     scope (exit)
     {
         Allocator.free(dateTimeInfoPtr);
     }
+    
     auto lastCodeStr = Strings.toString(Shell.lastCode);
     scope (exit)
     {
         Allocator.free(lastCodeStr);
     }
 
-    string[4] osInfoArgs = [
+    auto usedMemPtr = Units.formatBytes(usedBytes);
+    scope (exit)
+    {
+        Allocator.free(usedMemPtr);
+    }
+
+    string[5] osInfoArgs = [
         Config.osName, Config.osVersion, Strings.toString(dateTimeInfoPtr),
-        Strings.toString(lastCodeStr)
+        Strings.toString(usedMemPtr), Strings.toString(lastCodeStr)
     ];
-    const osInfo = Strings.format("%s %s. %s. Code: %s. Press Tab for command help", osInfoArgs);
+    const osInfo = Strings.format(
+            "%s %s. %s. M:%s. RT:%s. Press Tab for help", osInfoArgs);
     scope (exit)
     {
         Allocator.free(osInfo);
@@ -154,6 +167,15 @@ void acceptInput(const ubyte keyCode)
 
             resetTextBuffer;
             Shell.resetResult;
+
+            auto oldX = Display.getX;
+            auto oldY = Display.getY;
+
+            Display.setX(0);
+            Display.setY(0);
+            printHeader;
+            Display.setX(oldX);
+            Display.setY(oldY);
             //Check memory leak in terminal header after destroying buffers
             // alias free = os.sys.system.free;
             // char* a, b;
