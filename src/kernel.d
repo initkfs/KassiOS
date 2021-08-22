@@ -15,6 +15,7 @@ private
     alias Multiboot = os.core.boot.multiboot2;
     alias MultibootSpec = os.core.boot.multiboot2spec;
     alias CPU = os.core.cpu.x86_64;
+    alias ACPI = os.core.acpi.acpi;
     alias Ports = os.core.io.ports;
     alias TextDisplay = os.core.graphic.text_display;
     alias Keyboard = os.core.io.keyboard;
