@@ -17,9 +17,11 @@ private
     alias Kstdio = os.std.io.kstdio;
 
     alias Exit = os.sys.system.exit;
+    alias Clear = os.sys.system.clear;
+    alias Free = os.sys.system.free;
 
     //TODO replace with List
-    public __gshared ShellCommand[1] shellCommands;
+    public __gshared ShellCommand[3] shellCommands;
 }
 
 alias ShellCommandAction = int function(string args, ref char* outResult, ref char* inResult);
@@ -44,6 +46,12 @@ struct ShellCommand
 void init()
 {
     shellCommands[0] = ShellCommand("exit", "Immediate shutdown", &Exit.run);
+    shellCommands[1] = ShellCommand("clear", "Clear screen", &Clear.run);
+    shellCommands[2] = ShellCommand("free", "Print memory info", &Free.run);
+}
+
+int lastCode(){
+    return KashExecutor.lastResult;
 }
 
 int run(string input, ref char* outResult, ref char* errResult)

@@ -46,6 +46,13 @@ void printPrompt()
     Kstdio.kprint(promptText, promptColor);
 }
 
+void clearScreen()
+{
+    Display.disableCursor;
+    Display.clearScreen;
+    printHeader;
+}
+
 void printHeader()
 {
     const ubyte uiInfoColor = Display.CGAInfoColors.COLOR_INFO;
@@ -54,10 +61,16 @@ void printHeader()
     {
         Allocator.free(dateTimeInfoPtr);
     }
-    string[3] osInfoArgs = [
-        Config.osName, Config.osVersion, Strings.toString(dateTimeInfoPtr)
+    auto lastCodeStr = Strings.toString(Shell.lastCode);
+    scope (exit)
+    {
+        Allocator.free(lastCodeStr);
+    }
+
+    string[4] osInfoArgs = [
+        Config.osName, Config.osVersion, Strings.toString(dateTimeInfoPtr), Strings.toString(lastCodeStr)
     ];
-    const osInfo = Strings.format("%s %s. %s. Press Tab for command help", osInfoArgs);
+    const osInfo = Strings.format("%s %s. %s. Code: %s. Press Tab for command help", osInfoArgs);
     scope (exit)
     {
         Allocator.free(osInfo);
@@ -135,7 +148,8 @@ void acceptInput(const ubyte keyCode)
 
             if (errResult && Strings.strlength(errResult) > 0)
             {
-                if(outResult){
+                if (outResult)
+                {
                     Kstdio.kprintln;
                 }
                 Kstdio.kprintz(errResult, errorColor);

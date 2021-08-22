@@ -42,6 +42,7 @@ private
     alias MathRandom = os.std.math.math_random;
     alias Datetime = os.std.date.datetime;
     alias SysTime = os.std.date.systime;
+    alias Units = os.std.util.units;
 
     //System
     alias KashLexer = os.sys.kash.lexer;
@@ -156,6 +157,7 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
     Tests.runTest!(KashLexer);
     Tests.runTest!(KashParser);
     Tests.runTest!(KashExecutor);
+    Tests.runTest!(Units);
 
     CoreConfig.setLogGeneratedErrors(true);
 
