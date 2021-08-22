@@ -75,6 +75,7 @@ char* formatBytes(size_t bytes, UnitType type = UnitType.SI)
 	auto valuePtr = Strings.toString(Math.round(sizeValue, 3), 3);
 	string[2] formatArgs = [Strings.toString(valuePtr), postfix];
 	auto result = Strings.format("%s%s", formatArgs);
+	Allocator.free(valuePtr);
 	return result;
 }
 

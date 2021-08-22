@@ -59,7 +59,7 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
 
     auto memoryStart = cast(ubyte*)(&KERNEL_END + 0x400);
     //TODO parse page tables, 0x6400000 (512 * 50 * 4096)
-    auto memoryEnd = cast(ubyte*)(0x6400000 - 0x400);
+    auto memoryEnd = cast(ubyte*)(0x6400000 - 0x800);
 
     Allocator.setMemoryStart(memoryStart);
     Allocator.setMemoryEnd(memoryEnd);
@@ -161,11 +161,6 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
 
     CoreConfig.setLogGeneratedErrors(true);
 
-    // size_t usedBytes;
-    // size_t bufferedBytes;
-    // size_t availableBytes;
-    // Allocator.getMemoryStat(usedBytes, bufferedBytes, availableBytes);
-    // Kstdio.kprint(Strings.toString(usedBytes));
     KashShell.init;
     Terminal.enable;
     Terminal.start;

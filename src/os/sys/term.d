@@ -68,7 +68,8 @@ void printHeader()
     }
 
     string[4] osInfoArgs = [
-        Config.osName, Config.osVersion, Strings.toString(dateTimeInfoPtr), Strings.toString(lastCodeStr)
+        Config.osName, Config.osVersion, Strings.toString(dateTimeInfoPtr),
+        Strings.toString(lastCodeStr)
     ];
     const osInfo = Strings.format("%s %s. %s. Code: %s. Press Tab for command help", osInfoArgs);
     scope (exit)
@@ -131,10 +132,6 @@ void acceptInput(const ubyte keyCode)
             string cmd = cast(string)(cast(ubyte*) textBuffer.data.ptr)[0 .. textBuffer.length];
             char* outResult;
             char* errResult;
-            scope (exit)
-            {
-                Shell.resetResult;
-            }
             int returnCode = Shell.run(cmd, outResult, errResult);
             if (outResult || errResult)
             {
@@ -156,6 +153,11 @@ void acceptInput(const ubyte keyCode)
             }
 
             resetTextBuffer;
+            Shell.resetResult;
+            //Check memory leak in terminal header after destroying buffers
+            // alias free = os.sys.system.free;
+            // char* a, b;
+            // free.run("", a, b);
         }
 
         Display.newLine;

@@ -39,10 +39,14 @@ int run(string args, ref char* outResult, ref char* errResult)
     auto usedPtr = Units.formatBytes(usedBytes);
     Kstdio.kprintz(usedPtr);
     Allocator.free(usedPtr);
+
+    Allocator.getMemoryStat(usedBytes, bufferedBytes, availableBytes);
     Kstdio.kprint(" Buffered: ");
     auto buffPtr = Units.formatBytes(bufferedBytes);
     Kstdio.kprintz(buffPtr);
     Allocator.free(buffPtr);
+
+    Allocator.getMemoryStat(usedBytes, bufferedBytes, availableBytes);
     Kstdio.kprint(" Free: ");
     auto freePtr = Units.formatBytes(availableBytes);
     Kstdio.kprintlnz(freePtr);
