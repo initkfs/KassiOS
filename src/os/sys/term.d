@@ -120,14 +120,7 @@ void acceptInput(const ubyte keyCode)
             char* errResult;
             scope (exit)
             {
-                if (outResult)
-                {
-                    Allocator.free(outResult);
-                }
-                if (errResult)
-                {
-                    Allocator.free(errResult);
-                }
+                Shell.resetResult;
             }
             int returnCode = Shell.run(cmd, outResult, errResult);
             if (outResult || errResult)

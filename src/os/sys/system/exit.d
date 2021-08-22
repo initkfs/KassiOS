@@ -3,8 +3,15 @@
  */
 module os.sys.system.exit;
 
-void run(string args){
-    import os.std.io.kstdio;
+private {
+    alias Strings = os.std.text.strings;
+}
 
-    kprintln("Exit!");
+int run(string args, ref char* outResult, ref char* errResult){
+    import os.std.io.kstdio;
+    import os.std.text.strings;
+    outResult = Strings.toStringz("Exit!");
+    errResult = null;
+
+    return 0;
 }

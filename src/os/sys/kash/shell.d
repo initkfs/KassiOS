@@ -9,12 +9,20 @@ import std.traits;
 
 private
 {
-    alias Exit = os.sys.system.exit;
+    alias Allocator = os.core.mem.allocator;
+    alias KashLexer = os.sys.kash.lexer;
+    alias KashParser = os.sys.kash.parser;
+    alias KashExecutor = os.sys.kash.executor;
+    alias Strings = os.std.text.strings;
+    alias Kstdio = os.std.io.kstdio;
 
+    alias Exit = os.sys.system.exit;
 
     //TODO replace with List
     public __gshared ShellCommand[1] shellCommands;
 }
+
+alias ShellCommandAction = int function(string args, ref char* outResult, ref char* inResult);
 
 struct ShellCommand
 {
@@ -22,10 +30,10 @@ struct ShellCommand
     {
         string name;
         string desctiption;
-        void function(string args) action;
+        ShellCommandAction action;
     }
 
-    this(string name, string desctiption, void function(string args) action)
+    this(string name, string desctiption, ShellCommandAction action)
     {
         this.name = name;
         this.desctiption = desctiption;
@@ -38,14 +46,49 @@ void init()
     shellCommands[0] = ShellCommand("exit", "Immediate shutdown", &Exit.run);
 }
 
-int run(string input, ref char* outResult, ref char* errResult){
-    auto com = shellCommands[0];
-    com.action(input);
+int run(string input, ref char* outResult, ref char* errResult)
+{
+    auto lexer = cast(KashLexer.Lexer*) Allocator.alloc(KashLexer.Lexer.sizeof);
+    scope (exit)
+    {
+        KashLexer.deleteLexer(lexer);
+    }
+
+    KashLexer.runLexer(input, lexer);
+
+    auto node = KashParser.runParser(lexer);
+    scope (exit)
+    {
+        KashParser.deleteAstNode(node);
+    }
+
+    if (node is null)
+    {
+        errResult = Strings.toStringz("Invalid command received");
+    }
+
+    KashExecutor.execute(node, &onCommandExecute);
+    outResult = KashExecutor.outResult;
+    errResult = KashExecutor.errResult;
+
     return 0;
 }
 
-private void exitCommand(string args)
+void resetResult()
 {
-    import os.std.io.kstdio;
-    kprintln("Exit");
+    KashExecutor.resetResult;
+}
+
+int onCommandExecute(string commandName, ref char* outResult, ref char* errResult)
+{
+    foreach (command; shellCommands)
+    {
+        if (Strings.isEqual(command.name, commandName))
+        {
+            //TODO args
+            auto result = command.action("", outResult, errResult);
+            return result;
+        }
+    }
+    return -1;
 }

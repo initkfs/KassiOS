@@ -124,7 +124,7 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
                         == MultibootSpec.MULTIBOOT_MEMORY_AVAILABLE)
                 {
                     const maxAddr = startAddr + cast(size_t)(entry.len) - 0x400;
-                    if (maxAddr > 0)
+                    if (maxAddr > 0 && maxAddr <= cast(size_t) memoryEnd)
                     {
                         Allocator.setMemoryPhysicalEnd(cast(ubyte*) maxAddr);
                         if (Syslog.isTraceLevel)

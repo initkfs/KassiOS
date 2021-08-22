@@ -38,14 +38,21 @@ struct AstNodeValue
     ubyte[0] data;
 }
 
-AstNode* createAstNode(Token* token, AstNodeType type)
+AstNode* createEmptyNode(AstNodeType type)
 {
     auto node = cast(AstNode*) Allocator.alloc(AstNode.sizeof);
-    node.token = token;
+    node.token = null;
     node.type = type;
     node.value = null;
     node.left = null;
     node.right = null;
+    return node;
+}
+
+AstNode* createAstNode(Token* token, AstNodeType type)
+{
+    auto node = createEmptyNode(type);
+    node.token = token;
 
     if (type == AstNodeType.CONSTANT)
     {
@@ -58,6 +65,11 @@ AstNode* createAstNode(Token* token, AstNodeType type)
             double value = parseDouble(tokenValue);
             setNodeValue(token.type, node, value);
         }
+        else if (token.type == TokenType.ID)
+        {
+            string tokenValue = getTokenData(token);
+            setNodeValue(token.type, node, tokenValue);
+        }
     }
 
     return node;
@@ -65,11 +77,27 @@ AstNode* createAstNode(Token* token, AstNodeType type)
 
 AstNode* setNodeValue(T)(TokenType type, AstNode* node, T value)
 {
-    const valueSize = value.sizeof;
+    auto valueSize = value.sizeof;
+    static if (is(T == string))
+    {
+        valueSize = value.length;
+    }
     auto nodeValue = cast(AstNodeValue*) Allocator.alloc(AstNodeValue.sizeof + valueSize);
     nodeValue.type = type;
-    T* valuePtr = cast(T*) nodeValue.data.ptr;
-    Allocator.set(valuePtr, value, cast(size_t*) nodeValue);
+    static if (is(T == string))
+    {
+        ubyte* valuePtr = nodeValue.data.ptr;
+        foreach (i, ubyte ch; value)
+        {
+            Allocator.set(valuePtr, ch, cast(size_t*) nodeValue, i);
+        }
+    }
+    else
+    {
+        T* valuePtr = cast(T*) nodeValue.data.ptr;
+        Allocator.set(valuePtr, value, cast(size_t*) nodeValue);
+    }
+
     nodeValue.length = valueSize;
     node.value = nodeValue;
     return node;
@@ -92,9 +120,29 @@ bool isNumberOperation(Token* token)
 
 T getNodeValue(T)(AstNode* node)
 {
-    T* valuePtr = cast(T*) node.value.data.ptr;
-    T value = cast(T)*valuePtr;
-    return value;
+    if (!node.value || !node.value.data.ptr)
+    {
+        return T.init;
+    }
+
+    size_t length = node.value.length;
+    if (length == 0)
+    {
+        return T.init;
+    }
+
+    ubyte* dataPtr = node.value.data.ptr;
+
+    static if (is(T == string))
+    {
+        return cast(string) dataPtr[0 .. length];
+    }
+    else
+    {
+        T* valuePtr = cast(T*) dataPtr;
+        T value = cast(T)*valuePtr;
+        return value;
+    }
 }
 
 AstNode* runParser(Lexer* lexer)
@@ -108,6 +156,10 @@ AstNode* runParser(Lexer* lexer)
     if (token.type == TokenType.NUMBER && isNext(token) && isNumberOperation(token.next))
     {
         return parseNumberOperationExpression(token);
+    }
+    else if (token.type == TokenType.ID && token.next is null)
+    {
+        return parseCommandExecuteExpression(token);
     }
     return null;
 }
@@ -142,6 +194,15 @@ AstNode* parseNumberOperationExpression(Token* token)
     operatorNode.left = leftNode;
     operatorNode.right = rightNode;
     return operatorNode;
+}
+
+AstNode* parseCommandExecuteExpression(Token* token)
+{
+    auto execNode = createEmptyNode(AstNodeType.COMMAND_EXECUTE);
+    auto leftNode = createAstNode(token, AstNodeType.CONSTANT);
+    execNode.left = leftNode;
+    //TODO args
+    return execNode;
 }
 
 unittest
