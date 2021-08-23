@@ -430,3 +430,8 @@ double round(double value, size_t precision)
 {
     return pow(10, precision) * value / pow(10, precision);
 }
+
+T positiveOrZero(T)(T x) if (isIntegral!(T))
+{
+    return x < 0 ? 0 : x;
+}

@@ -38,25 +38,44 @@ private
 
 void start()
 {
+    Display.clearScreen;
+    
+    Display.setStartX(0);
+    Display.setStartY(0);
+
     printHeader;
+    
+    int x, y;
+    x = Display.getX;
+    y = Display.getY;
+
+    Display.setStartX(x);
+    Display.setStartY(y);
+
+    Display.setTextBufferEnabled(false);
+    Display.enableCursor;
+
     printPrompt;
 }
 
 void printPrompt()
 {
-    Display.enableCursor;
     Kstdio.kprint(promptText, promptColor);
+    Display.enableCursor;
 }
 
 void clearScreen()
 {
-    Display.disableCursor;
     Display.clearScreen;
-    printHeader;
 }
 
 void printHeader()
 {
+    const bool isBuffer = Display.isTextBufferEnabled;
+    if(isBuffer){
+        Display.setTextBufferEnabled(false);
+    }
+
     const ubyte uiInfoColor = Display.CGAInfoColors.COLOR_INFO;
 
     size_t usedBytes, bufferedBytes, availableBytes;
@@ -86,13 +105,16 @@ void printHeader()
         Config.osName, Config.osVersion, Strings.toString(dateTimeInfoPtr),
         statusInfo, Strings.toString(usedMemPtr), Strings.toString(lastCodeStr)
     ];
-    const osInfo = Strings.format("%s %s %s. %s. M:%s. RT:%s. Press Tab for help",
-            osInfoArgs);
+    const osInfo = Strings.format("%s %s %s. %s. M:%s. RT:%s. Press Tab for help", osInfoArgs);
     scope (exit)
     {
         Allocator.free(osInfo);
     }
     GuiTextBox.simpleBox(Strings.toString(osInfo), uiInfoColor);
+
+    if(isBuffer){
+        Display.setTextBufferEnabled(true);
+    }
 }
 
 private void resetTextBuffer()
@@ -106,12 +128,32 @@ private void resetTextBuffer()
 
 void acceptInput(const ubyte keyCode)
 {
+    if (keyCode == 0x48)
+    {
+        Display.scrollToUp;
+        return;
+    }
+
+    if (keyCode == 0x50)
+    {
+        Display.scrollToDown;
+        return;
+    }
+
     if (!isActive || Keyboard.isSpecial(keyCode))
     {
         return;
     }
 
     const char keyChar = Keyboard.getKeyByCode(keyCode);
+
+    if ((keyChar == 'c' || keyChar == 'C') && Keyboard.isControlPress)
+    {
+        Display.clearScreen;
+        printPrompt;
+        return;
+    }
+
     if (Keyboard.isUnrelated(keyChar))
     {
         return;
@@ -179,6 +221,7 @@ void acceptInput(const ubyte keyCode)
             printHeader;
             Display.setX(oldX);
             Display.setY(oldY);
+
             //Check memory leak in terminal header after destroying buffers
             // alias free = os.sys.system.free;
             // char* a, b;

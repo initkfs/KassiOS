@@ -70,14 +70,13 @@ public enum SCANCODES
 	CAPSLOCK = 0x3a,
 	LSHIFT = 0x2a,
 	RSHIFT = 0x36,
-	ESC = 0x01
+	ESC = 0x01,
+	LCONTROL = 0x1D
 }
 
-private
-{
-	__gshared bool isShiftPress = false;
-	__gshared bool isCapsLockPress = false;
-}
+__gshared bool isShiftPress = false;
+__gshared bool isCapsLockPress = false;
+__gshared bool isControlPress = false;
 
 bool isReleased(const ubyte code) @safe pure
 {
@@ -123,6 +122,9 @@ ubyte scanKeyCode()
 		case SCANCODES.RSHIFT:
 			isShiftPress = false;
 			break;
+		case SCANCODES.LCONTROL:
+			isControlPress = false;
+			break;
 		default:
 		}
 	}
@@ -138,6 +140,9 @@ ubyte scanKeyCode()
 			break;
 		case SCANCODES.CAPSLOCK:
 			isCapsLockPress = !isCapsLockPress;
+			break;
+		case SCANCODES.LCONTROL:
+			isControlPress = true;
 			break;
 		default:
 		}

@@ -271,6 +271,14 @@ err removeAt(T)(LinearList* list, size_t index)
 	return null;
 }
 
+size_t orMaxIndex(LinearList* list, size_t value){
+	if(list.length == 0){
+		return 0;
+	}
+
+	return value < list.length ? value : list.length - 1;
+}
+
 void clear(LinearList* list){
 	list.length = 0;
 }

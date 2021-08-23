@@ -7,6 +7,10 @@ private
 {
     alias Ascii = os.std.text.ascii;
     alias Ports = os.core.io.ports;
+    alias List = os.std.container.linear_list;
+    alias Syslog = os.core.logger.syslog;
+    alias Strings = os.std.text.strings;
+    alias Math = os.std.math.math_core;
 }
 
 enum DISPLAY_COLUMNS = 80;
@@ -48,8 +52,25 @@ private
     __gshared ubyte* textVideoMemoryPtr = cast(ubyte*) 0xB8000;
     __gshared bool cursorEnabled = false;
 
-    __gshared int displayIndexX = 0;
-    __gshared int displayIndexY = 0;
+    __gshared int displayIndexX;
+    __gshared int displayIndexY;
+
+    __gshared int displayStartIndexX;
+    __gshared int displayStartIndexY;
+
+    __gshared bool textBufferEnabled = false;
+
+    __gshared List.LinearList* textBuffer;
+    __gshared TextBufferWindowStatus textBufferStatus = TextBufferWindowStatus.MIN;
+    __gshared long textBufferStartIndex;
+    __gshared long textBufferEndIndex;
+}
+
+enum TextBufferWindowStatus
+{
+    MIN,
+    SLIDING,
+    MAX
 }
 
 bool isCursorEnabled()
@@ -117,25 +138,39 @@ private size_t updateCoordinates()
 
 private void resetCoordinates()
 {
-    displayIndexX = 0;
-    displayIndexY = 0;
+    displayIndexX = displayStartIndexX;
+    displayIndexY = displayStartIndexY;
 }
 
 void backspace(const size_t border = 0, const char emptyChar = ' ',
         const ubyte color = CGAColors.DEFAULT_TEXT_COLOR)
 {
-    if (displayIndexX > border)
+    if (displayIndexX <= border)
     {
-        displayIndexX--;
+        return;
     }
+
+    if (textBufferEnabled && textBuffer !is null && !List.isEmpty(textBuffer))
+    {
+        ubyte removed;
+        List.pop(textBuffer, removed);
+        updateTextBufferIndices;
+    }
+
+    auto isBuffer = textBufferEnabled;
+    if (isBuffer)
+    {
+        textBufferEnabled = false;
+    }
+
+    displayIndexX--;
     writeToTextVideoMemory(updateCoordinates, emptyChar, color);
     updateCursor;
-}
 
-void newLine()
-{
-    displayIndexY++;
-    displayIndexX = 0;
+    if (isBuffer)
+    {
+        textBufferEnabled = true;
+    }
 }
 
 void skipColumn()
@@ -144,9 +179,258 @@ void skipColumn()
     updateCoordinates;
 }
 
+void newLine()
+{
+    displayIndexY++;
+    displayIndexX = 0;
+
+    if (textBufferEnabled && textBuffer !is null)
+    {
+        if (!List.isEmpty(textBuffer))
+        {
+            ubyte last;
+            List.last(textBuffer, last);
+            if (last == Ascii.LF)
+            {
+                return;
+            }
+        }
+        writeToTextBuffer(Ascii.LF);
+    }
+}
+
+private void updateTextBufferIndices()
+{
+    if (!textBufferEnabled || textBuffer is null)
+    {
+        return;
+    }
+    const length = textBuffer.length;
+    textBufferStartIndex = length == 0 ? 0 : length - 1;
+    textBufferEndIndex = textBufferStartIndex;
+}
+
+private void writeToTextBuffer(ubyte value)
+{
+    if (!textBufferEnabled || textBuffer is null)
+    {
+        return;
+    }
+
+    List.push!ubyte(textBuffer, value);
+
+    updateTextBufferIndices;
+}
+
+private long findBufferLineOffsetLeft(size_t startIndex)
+{
+    return findBufferLineOffset(startIndex, true);
+}
+
+private long findBufferLineOffsetRight(size_t startIndex)
+{
+    return findBufferLineOffset(startIndex, false);
+}
+
+private long findBufferLineOffset(size_t startIndex, bool isReverse = false)
+{
+    if (textBuffer is null || textBuffer.length == 0)
+    {
+        return 0;
+    }
+
+    long i = startIndex;
+    ubyte currentValue;
+    List.get!ubyte(textBuffer, i, currentValue);
+    if (currentValue == Ascii.LF)
+    {
+        if (isReverse)
+        {
+            i--;
+        }
+        else
+        {
+            if (i == textBuffer.length - 1)
+            {
+                return 0;
+            }
+            i++;
+        }
+    }
+
+    long pos = startIndex;
+    while ((!isReverse && i < textBuffer.length) || (isReverse && i >= 0))
+    {
+        ubyte ch;
+        List.get!ubyte(textBuffer, i, ch);
+        if (ch == Ascii.LF)
+        {
+            pos = i;
+            break;
+        }
+        if (isReverse)
+            i--;
+        else
+            i++;
+    }
+    long offset = !isReverse ? pos - startIndex : startIndex - pos;
+    if (offset < 0)
+    {
+        offset = -offset;
+    }
+
+    return offset;
+}
+
+void scrollToUp()
+{
+    if (!textBufferEnabled || textBuffer is null)
+    {
+        return;
+    }
+
+    if (isCursorEnabled)
+    {
+        disableCursor;
+    }
+
+    if (!List.isEmpty(textBuffer))
+    {
+        ubyte lastValue;
+        List.last(textBuffer, lastValue);
+        if (lastValue != Ascii.LF)
+        {
+            writeToTextBuffer(Ascii.LF);
+        }
+    }
+
+    clearScreen(false);
+
+    textBufferStartIndex -= findBufferLineOffsetLeft(textBufferStartIndex);
+    textBufferStartIndex = Math.positiveOrZero(textBufferStartIndex);
+
+    if (textBufferStatus == TextBufferWindowStatus.MAX)
+    {
+        textBufferEndIndex -= findBufferLineOffsetLeft(textBufferEndIndex);
+        textBufferEndIndex = Math.positiveOrZero(textBufferEndIndex);
+    }
+
+    if (textBufferStartIndex == textBufferEndIndex)
+    {
+        //TODO preventing window collapse
+    }
+
+    renderTextBuffer;
+}
+
+void scrollToDown()
+{
+    if (!textBufferEnabled || textBuffer is null)
+    {
+        return;
+    }
+
+    if (textBufferStatus == TextBufferWindowStatus.MIN)
+    {
+        if (!cursorEnabled)
+        {
+            enableCursor;
+        }
+        return;
+    }
+
+    if (textBufferEndIndex < textBuffer.length - 1)
+    {
+        const offset = findBufferLineOffsetRight(textBufferEndIndex);
+        textBufferEndIndex += offset;
+        textBufferEndIndex = List.orMaxIndex(textBuffer, textBufferEndIndex);
+    }
+
+    textBufferStartIndex += findBufferLineOffsetRight(textBufferStartIndex);
+    textBufferStartIndex = List.orMaxIndex(textBuffer, textBufferStartIndex);
+
+    disableCursor;
+    clearScreen(false);
+
+    if (textBufferStartIndex == textBufferEndIndex)
+    {
+        //TODO preventing window collapse
+    }
+
+    renderTextBuffer;
+}
+
+private void renderTextBuffer(long start, long end)
+{
+    if (!textBufferEnabled || textBuffer is null)
+    {
+        return;
+    }
+
+    const startIndex = List.orMaxIndex(textBuffer, start);
+    const endIndex = List.orMaxIndex(textBuffer, end);
+
+    textBufferEnabled = false;
+
+    size_t lineCount;
+    foreach (i; startIndex .. endIndex + 1)
+    {
+        ubyte value;
+        List.get!ubyte(textBuffer, i, value);
+        if (value == Ascii.LF)
+        {
+            if (lineCount == 0 || i == end)
+            {
+                lineCount++;
+                continue;
+            }
+
+            newLine;
+            lineCount++;
+        }
+        else
+        {
+            printChar(value);
+        }
+
+        if (displayIndexY >= DISPLAY_LINES - 2)
+        {
+            textBufferStatus = TextBufferWindowStatus.MAX;
+        }
+        else if ((displayStartIndexY == 0 && displayIndexY == 0)
+                || (displayStartIndexY > 0 && (displayIndexY - displayStartIndexY) == 1))
+        {
+            textBufferStatus = TextBufferWindowStatus.MIN;
+        }
+        else
+        {
+            textBufferStatus = TextBufferWindowStatus.SLIDING;
+        }
+    }
+
+    textBufferEnabled = true;
+}
+
+private void renderTextBuffer()
+{
+    renderTextBuffer(textBufferStartIndex, textBufferEndIndex);
+}
+
 private void writeToTextVideoMemory(size_t position, const ubyte value,
         const ubyte color = CGAColors.DEFAULT_TEXT_COLOR)
 {
+    if (textBufferEnabled)
+    {
+        if (!textBuffer)
+        {
+            textBuffer = List.initList!ubyte(DISPLAY_LINES * DISPLAY_COLUMNS * 2 * 5);
+            List.push!ubyte(textBuffer, Ascii.LF);
+            textBufferStartIndex = 0;
+            textBufferEndIndex = textBufferStartIndex;
+        }
+        writeToTextBuffer(value);
+    }
+
     textVideoMemoryPtr[position] = value;
     textVideoMemoryPtr[position + 1] = color;
 }
@@ -164,9 +448,7 @@ private void printToTextVideoMemory(const ubyte value,
 
 void scroll(uint lines = 1)
 {
-    //TODO text buffer
     clearScreen;
-    resetCoordinates;
 }
 
 void printCharRepeat(const char symbol, const size_t repeatCount = 1,
@@ -254,16 +536,21 @@ void printSpace(const size_t count = 1, const char spaceChar = ' ')
     printCharRepeat(spaceChar, count);
 }
 
-void clearScreen()
+void clearScreen(bool resetTextBuffer = true)
 {
-    bool isCursorDisabled = false;
-    if (cursorEnabled)
+    bool isCursor = isCursorEnabled;
+    if (isCursor)
     {
         disableCursor;
-        isCursorDisabled = true;
     }
 
     resetCoordinates;
+
+    const isBuffer = textBufferEnabled;
+    if (isBuffer)
+    {
+        textBufferEnabled = false;
+    }
 
     immutable charCount = DISPLAY_COLUMNS * DISPLAY_LINES;
     foreach (index; 0 .. charCount)
@@ -274,7 +561,18 @@ void clearScreen()
 
     resetCoordinates;
 
-    if (isCursorDisabled)
+    if (isBuffer)
+    {
+        textBufferEnabled = true;
+        if (resetTextBuffer)
+        {
+            textBufferStartIndex = textBuffer.length == 0 ? 0 : textBuffer.length - 1;
+            textBufferEndIndex = textBufferStartIndex;
+            textBufferStatus = TextBufferWindowStatus.MIN;
+        }
+    }
+
+    if (isCursor)
     {
         enableCursor;
     }
@@ -299,4 +597,24 @@ void setX(int value)
 void setY(int value)
 {
     displayIndexY = value;
+}
+
+void setStartX(int value)
+{
+    displayStartIndexX = value;
+}
+
+void setStartY(int value)
+{
+    displayStartIndexY = value;
+}
+
+void setTextBufferEnabled(bool value)
+{
+    textBufferEnabled = value;
+}
+
+bool isTextBufferEnabled()
+{
+    return textBufferEnabled;
 }
