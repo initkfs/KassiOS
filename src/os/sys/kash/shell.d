@@ -91,7 +91,7 @@ int onCommandExecute(string commandName, ref char* outResult, ref char* errResul
 {
     foreach (command; shellCommands)
     {
-        if (Strings.isEqual(command.name, commandName))
+        if (Strings.isEquals(command.name, commandName))
         {
             //TODO args
             auto result = command.action("", outResult, errResult);

@@ -23,7 +23,7 @@ unittest
 {
     import os.std.asserts : kassert;
 
-    kassert(MathCore.isEqual(toRadians(10), 0.17453292519943293));
+    kassert(MathCore.isEquals(toRadians(10), 0.17453292519943293));
 }
 
 double toDegrees(double angleValueRad)
@@ -35,7 +35,7 @@ unittest
 {
     import os.std.asserts : kassert;
 
-    kassert(MathCore.isEqual(toDegrees(0.15), 8.59436692696234769));
+    kassert(MathCore.isEquals(toDegrees(0.15), 8.59436692696234769));
 }
 
 //TODO check bounds
@@ -56,8 +56,8 @@ unittest
 {
     import os.std.asserts : kassert;
 
-    kassert(MathCore.isEqual(sin(-0.4), -0.3894183423086505));
-    kassert(MathCore.isEqual(sin(1), 0.8414709848078965));
+    kassert(MathCore.isEquals(sin(-0.4), -0.3894183423086505));
+    kassert(MathCore.isEquals(sin(1), 0.8414709848078965));
 }
 
 double cos(double radValue)
@@ -76,8 +76,8 @@ unittest
 {
     import os.std.asserts : kassert;
 
-    kassert(MathCore.isEqual(cos(10), -0.8390715290764524));
-    kassert(MathCore.isEqual(cos(1), 0.5403023058681398));
+    kassert(MathCore.isEquals(cos(10), -0.8390715290764524));
+    kassert(MathCore.isEquals(cos(1), 0.5403023058681398));
 }
 
 double tan(double radValue)
@@ -89,6 +89,6 @@ unittest
 {
     import os.std.asserts : kassert;
 
-    kassert(MathCore.isEqual(tan(1), 1.55740772465490205));
-    kassert(MathCore.isEqual(tan(2), -2.185039863261519));
+    kassert(MathCore.isEquals(tan(1), 1.55740772465490205));
+    kassert(MathCore.isEquals(tan(2), -2.185039863261519));
 }

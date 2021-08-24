@@ -14,10 +14,10 @@ private
 
 bool isEqualz(const char* s1, const char* s2)
 {
-    return isEqual(toString(s1), toString(s2));
+    return isEquals(toString(s1), toString(s2));
 }
 
-bool isEqual(const string s1, const string s2)
+bool isEquals(const string s1, const string s2)
 {
     if (s1 is null || s2 is null || (s1.length != s2.length))
     {
@@ -46,21 +46,21 @@ unittest
 {
     import os.std.asserts : kassert;
 
-    kassert(isEqual("", ""));
-    kassert(isEqual(" ", " "));
-    kassert(!isEqual("", " "));
-    kassert(!isEqual(" ", ""));
-    kassert(!isEqual(null, ""));
-    kassert(!isEqual("", null));
-    kassert(!isEqual(null, null));
+    kassert(isEquals("", ""));
+    kassert(isEquals(" ", " "));
+    kassert(!isEquals("", " "));
+    kassert(!isEquals(" ", ""));
+    kassert(!isEquals(null, ""));
+    kassert(!isEquals("", null));
+    kassert(!isEquals(null, null));
 
-    kassert(isEqual("a", "a"));
-    kassert(isEqual("foo bar", "foo bar"));
-    kassert(!isEqual("a", "A"));
+    kassert(isEquals("a", "a"));
+    kassert(isEquals("foo bar", "foo bar"));
+    kassert(!isEquals("a", "A"));
 
     const char[1] s1 = ['a'];
     const char[1] s2 = ['a'];
-    kassert(isEqual(cast(string) s1, cast(string) s2));
+    kassert(isEquals(cast(string) s1, cast(string) s2));
 }
 
 size_t strlength(const char* str)
@@ -116,9 +116,9 @@ unittest
 {
     import os.std.asserts : kassert;
 
-    kassert(isEqual(toString(cast(char*) ""), ""));
-    kassert(isEqual(toString(cast(char*) " "), " "));
-    kassert(isEqual(toString(cast(char*) "foo bar"), "foo bar"));
+    kassert(isEquals(toString(cast(char*) ""), ""));
+    kassert(isEquals(toString(cast(char*) " "), " "));
+    kassert(isEquals(toString(cast(char*) "foo bar"), "foo bar"));
 }
 
 char* toStringz(string str)
@@ -141,7 +141,7 @@ unittest
     import os.std.asserts : kassert;
 
     char* s = toStringz("foo bar ");
-    kassert(isEqual(toString(s), "foo bar "));
+    kassert(isEquals(toString(s), "foo bar "));
     Allocator.free(s);
 }
 
@@ -202,102 +202,102 @@ unittest
     import os.std.asserts : kassert;
 
     auto s1 = toString(1, 0);
-    kassert(isEqual(toString(s1), ""));
+    kassert(isEquals(toString(s1), ""));
     Allocator.free(s1);
 
     auto s2 = toString(1, 1);
-    kassert(isEqual(toString(s1), ""));
+    kassert(isEquals(toString(s1), ""));
     Allocator.free(s2);
 
     auto s3 = toString(1, 17);
-    kassert(isEqual(toString(s1), ""));
+    kassert(isEquals(toString(s1), ""));
     Allocator.free(s3);
 
     //Decimal
     auto sd = toString(0, 10);
-    kassert(isEqual(toString(sd), "0"));
+    kassert(isEquals(toString(sd), "0"));
     Allocator.free(sd);
 
     auto sd1 = toString(1, 10);
-    kassert(isEqual(toString(sd1), "1"));
+    kassert(isEquals(toString(sd1), "1"));
     Allocator.free(sd1);
 
     auto sdneg1 = toString(-1, 10);
-    kassert(isEqual(toString(sdneg1), "-1"));
+    kassert(isEquals(toString(sdneg1), "-1"));
     Allocator.free(sdneg1);
 
     auto sd101 = toString(101, 10);
-    kassert(isEqual(toString(sd101), "101"));
+    kassert(isEquals(toString(sd101), "101"));
     Allocator.free(sd101);
 
     auto sd101neg = toString(-101, 10);
-    kassert(isEqual(toString(sd101neg), "-101"));
+    kassert(isEquals(toString(sd101neg), "-101"));
     Allocator.free(sd101neg);
 
     auto sd100x = toString(10_000_000, 10);
-    kassert(isEqual(toString(sd100x), "10000000"));
+    kassert(isEquals(toString(sd100x), "10000000"));
     Allocator.free(sd100x);
 
     auto sd64x = toString(648_356, 10);
-    kassert(isEqual(toString(sd64x), "648356"));
+    kassert(isEquals(toString(sd64x), "648356"));
     Allocator.free(sd64x);
 
     auto sdmax = toString(long.max, 10);
-    kassert(isEqual(toString(sdmax), "9223372036854775807"));
+    kassert(isEquals(toString(sdmax), "9223372036854775807"));
     Allocator.free(sdmax);
 
     auto sdmaxNeg = toString(-(long.min - 1), 10);
-    kassert(isEqual(toString(sdmaxNeg), "-9223372036854775807"));
+    kassert(isEquals(toString(sdmaxNeg), "-9223372036854775807"));
     Allocator.free(sdmaxNeg);
 
     //Bin
     auto binZero = toString(0, 2);
-    kassert(isEqual(toString(binZero), "0"));
+    kassert(isEquals(toString(binZero), "0"));
     Allocator.free(binZero);
 
     auto binOne = toString(1, 2);
-    kassert(isEqual(toString(binOne), "1"));
+    kassert(isEquals(toString(binOne), "1"));
     Allocator.free(binOne);
 
     auto bin2 = toString(2, 2);
-    kassert(isEqual(toString(bin2), "10"));
+    kassert(isEquals(toString(bin2), "10"));
     Allocator.free(bin2);
 
     auto bin10 = toString(10, 2);
-    kassert(isEqual(toString(bin10), "1010"));
+    kassert(isEquals(toString(bin10), "1010"));
     Allocator.free(bin10);
 
     auto bin10neg = toString(-10, 2);
-    kassert(isEqual(toString(bin10neg), "-1010"));
+    kassert(isEquals(toString(bin10neg), "-1010"));
     Allocator.free(bin10neg);
 
     auto bin64x = toString(648356, 2);
-    kassert(isEqual(toString(bin64x), "10011110010010100100"));
+    kassert(isEquals(toString(bin64x), "10011110010010100100"));
     Allocator.free(bin64x);
 
     //Hex
     auto hZero = toString(0, 16);
-    kassert(isEqual(toString(hZero), "0"));
+    kassert(isEquals(toString(hZero), "0"));
     Allocator.free(hZero);
 
     auto hOne = toString(1, 16);
-    kassert(isEqual(toString(hOne), "1"));
+    kassert(isEquals(toString(hOne), "1"));
     Allocator.free(hOne);
 
     auto hOneNeg = toString(-1, 16);
-    kassert(isEqual(toString(hOneNeg), "-1"));
+    kassert(isEquals(toString(hOneNeg), "-1"));
     Allocator.free(hOneNeg);
 
     auto h10 = toString(10, 16);
-    kassert(isEqual(toString(h10), "A"));
+    kassert(isEquals(toString(h10), "A"));
     Allocator.free(h10);
 
     auto h4573 = toString(4573, 16);
-    kassert(isEqual(toString(h4573), "11DD"));
+    kassert(isEquals(toString(h4573), "11DD"));
     Allocator.free(h4573);
 
     auto h0x7f = toString(0x7FFFFFFFFFFFFFFF, 16);
-    kassert(isEqual(toString(h0x7f), "7FFFFFFFFFFFFFFF"));
+    kassert(isEquals(toString(h0x7f), "7FFFFFFFFFFFFFFF"));
     Allocator.free(h0x7f);
 }
 
@@ -460,12 +460,12 @@ unittest
 {
     import os.std.asserts : kassert;
 
-    kassert(isEqual(reverse(null), ""));
-    kassert(isEqual(reverse(""), ""));
-    kassert(isEqual(reverse(" "), " "));
-    kassert(isEqual(reverse("a"), "a"));
-    kassert(isEqual(reverse("ab"), "ba"));
-    kassert(isEqual(reverse("foobar"), "raboof"));
+    kassert(isEquals(reverse(null), ""));
+    kassert(isEquals(reverse(""), ""));
+    kassert(isEquals(reverse(" "), " "));
+    kassert(isEquals(reverse("a"), "a"));
+    kassert(isEquals(reverse("ab"), "ba"));
+    kassert(isEquals(reverse("foobar"), "raboof"));
 }
 
 long indexOf(const string str, const string pattern)
@@ -673,31 +673,31 @@ unittest
     const integralPattern = "hello %d world %l";
     ubyte[2] longArgs = [5, 10];
     char* intRes = format(integralPattern, longArgs);
-    kassert(isEqual(toString(intRes), "hello 5 world 10"));
+    kassert(isEquals(toString(intRes), "hello 5 world 10"));
     Allocator.free(intRes);
 
     ubyte[1] hexArgs = [10];
     char* hexRes = format("foo %x", hexArgs);
-    kassert(isEqual(toString(hexRes), "foo 0xA"));
+    kassert(isEquals(toString(hexRes), "foo 0xA"));
     Allocator.free(hexRes);
 
     ubyte[1] hexShortArgs = [10];
     char* hexShortRes = format("foo %X", hexShortArgs);
-    kassert(isEqual(toString(hexShortRes), "foo A"));
+    kassert(isEquals(toString(hexShortRes), "foo A"));
     Allocator.free(hexShortRes);
 
     ubyte[1] binArgs = [10];
     char* binRes = format("%b foo", binArgs);
-    kassert(isEqual(toString(binRes), "0b1010 foo"));
+    kassert(isEquals(toString(binRes), "0b1010 foo"));
     Allocator.free(binRes);
 
     string[2] strArgs = ["world", "hello"];
     char* strRes = format("%s %s", strArgs);
-    kassert(isEqual(toString(strRes), "world hello"));
+    kassert(isEquals(toString(strRes), "world hello"));
     Allocator.free(strRes);
 
     float[1] floatArgs = [4.5];
     char* flRes = format(" foo %f bar ", floatArgs);
-    kassert(isEqual(toString(flRes), " foo 4.5 bar "));
+    kassert(isEquals(toString(flRes), " foo 4.5 bar "));
     Allocator.free(flRes);
 }

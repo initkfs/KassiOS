@@ -31,7 +31,7 @@ string getDeviceName(const string deviceId)
 {
 	foreach (i, devId; deviceIds)
 	{
-		if (Strings.isEqual(devId, deviceId) && i < deviceNames.length)
+		if (Strings.isEquals(devId, deviceId) && i < deviceNames.length)
 		{
 			string deviceName = deviceNames[i];
 			return deviceName;

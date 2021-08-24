@@ -95,7 +95,7 @@ unittest
     execute(node);
     kassert(lastResult == 0);
     kassert(outResult !is null);
-    kassert(Strings.isEqual(Strings.toString(outResult), "11.0"));
+    kassert(Strings.isEquals(Strings.toString(outResult), "11.0"));
 
     resetResult;
     kassert(lastResult == 0);

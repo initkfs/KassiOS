@@ -82,7 +82,7 @@ char* formatBytes(size_t bytes, UnitType type = UnitType.SI)
 unittest
 {
 	import os.std.asserts : kassert;
-	import os.std.text.strings : isEqual;
+	import os.std.text.strings : isEquals;
 
 	auto zeroPtr = formatBytes(0);
 	auto onePtr = formatBytes(1);
@@ -91,9 +91,9 @@ unittest
 		Allocator.free(zeroPtr, onePtr, xPtr);
 	}
 
-	kassert(isEqual(Strings.toString(zeroPtr), "0B"));
-	kassert(isEqual(Strings.toString(onePtr), "1.0B"));
-	kassert(isEqual(Strings.toString(xPtr), "999.0B"));
+	kassert(isEquals(Strings.toString(zeroPtr), "0B"));
+	kassert(isEquals(Strings.toString(onePtr), "1.0B"));
+	kassert(isEquals(Strings.toString(xPtr), "999.0B"));
 
 	//TODO round double
 }

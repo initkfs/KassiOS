@@ -113,12 +113,12 @@ bool isEqualEps(T)(T x, T y, T epsilon) if (isFloatingPoint!(T))
     return false;
 }
 
-bool isEqual(float x, float y)
+bool isEquals(float x, float y)
 {
     return isEqualEps(x, y, Epsilon.FLOAT_EPSILON);
 }
 
-bool isEqual(double x, double y)
+bool isEquals(double x, double y)
 {
     return isEqualEps(x, y, Epsilon.DOUBLE_EPSILON);
 }
@@ -127,11 +127,11 @@ unittest
 {
     import os.std.asserts : kassert;
 
-    kassert(isEqual(0.0, 0.0));
-    kassert(!isEqual(0.0, 0.1));
-    kassert(isEqual(0.3, 0.3));
-    kassert(!isEqual(0.3, 0.3000000000000004));
-    kassert(isEqual(0.3, 0.30000000000000004));
+    kassert(isEquals(0.0, 0.0));
+    kassert(!isEquals(0.0, 0.1));
+    kassert(isEquals(0.3, 0.3));
+    kassert(!isEquals(0.3, 0.3000000000000004));
+    kassert(isEquals(0.3, 0.30000000000000004));
 }
 
 double sqrt(double value)
@@ -214,8 +214,8 @@ unittest
     kassert(pow(2, 3) == 8);
     kassert(pow(2.5, 3) == 15.625);
     kassert(pow(10, -1) == 0.1);
-    kassert(isEqual(pow(10, -2), 0.01));
-    kassert(isEqual(pow(10, -3), 0.001));
+    kassert(isEquals(pow(10, -2), 0.01));
+    kassert(isEquals(pow(10, -3), 0.001));
 }
 
 bool isPositiveInf(T)(T x) if (isFloatingPoint!(T))
@@ -321,7 +321,7 @@ unittest
 {
     import os.std.asserts : kassert;
 
-    kassert(isEqual(log(2.0), 0.6931471805599453));
+    kassert(isEquals(log(2.0), 0.6931471805599453));
 }
 
 //log10(x) = log2(x)/log2(10)
@@ -346,8 +346,8 @@ unittest
     kassert(isNaN(log10(0)));
     kassert(log10(0.5) == 0);
     kassert(log10(1) == 0);
-    kassert(isEqual(log10(2.0), 0.3010299956639812));
-    kassert(isEqual(log10(3.4), 0.5314789170422551));
+    kassert(isEquals(log10(2.0), 0.3010299956639812));
+    kassert(isEquals(log10(3.4), 0.5314789170422551));
 }
 
 double log2(double x)
@@ -376,8 +376,8 @@ unittest
     kassert(log2(0) == 0);
     kassert(log2(0.5) == 0);
     kassert(log2(1.0) == 0);
-    kassert(isEqual(log2(1.2), 0.26303440583379375));
-    kassert(isEqual(log2(3.0), 1.58496250072115628));
+    kassert(isEquals(log2(1.2), 0.26303440583379375));
+    kassert(isEquals(log2(3.0), 1.58496250072115628));
 }
 
 double floor(double x)
@@ -392,7 +392,7 @@ double floor(double x)
     }
 
     auto intValue = cast(int) x;
-    return (isEqual(cast(double) intValue, x)) ? intValue : intValue - 1;
+    return (isEquals(cast(double) intValue, x)) ? intValue : intValue - 1;
 }
 
 unittest
@@ -415,17 +415,17 @@ double parseDouble(string str, const char separator = '.')
         return double.nan;
     }
 
-    if (Strings.isEqual(str, "NaN"))
+    if (Strings.isEquals(str, "NaN"))
     {
         return double.nan;
     }
 
-    if (Strings.isEqual(str, "+Infinity"))
+    if (Strings.isEquals(str, "+Infinity"))
     {
         return double.infinity;
     }
 
-    if (Strings.isEqual(str, "-Infinity"))
+    if (Strings.isEquals(str, "-Infinity"))
     {
         return -double.infinity;
     }
@@ -489,9 +489,9 @@ unittest
     kassert(isNaN(parseDouble("NaN")));
     kassert(isPositiveInf(parseDouble("+Infinity")));
     kassert(isNegativeInf(parseDouble("-Infinity")));
-    kassert(isEqual(parseDouble("0.0"), 0.0));
-    kassert(isEqual(parseDouble("3.556"), 3.55600000000000048));
-    kassert(isEqual(parseDouble("564.63333"), 564.63333000000022811));
+    kassert(isEquals(parseDouble("0.0"), 0.0));
+    kassert(isEquals(parseDouble("3.556"), 3.55600000000000048));
+    kassert(isEquals(parseDouble("564.63333"), 564.63333000000022811));
 }
 
 //TODO unittest

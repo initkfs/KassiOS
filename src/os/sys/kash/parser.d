@@ -235,10 +235,10 @@ unittest
 
     auto leftValue = getNodeValue!double(node.left);
     //TODO check random panic
-    kassert(isEqual(leftValue, 5.0));
+    kassert(isEquals(leftValue, 5.0));
 
     kassert(node.right !is null);
     kassert(node.right.type == AstNodeType.CONSTANT);
     auto rightValue = getNodeValue!double(node.right);
-    kassert(isEqual(rightValue, 6.0));
+    kassert(isEquals(rightValue, 6.0));
 }

@@ -302,7 +302,7 @@ unittest
         if (index == 0)
         {
             kassert(token.type == TokenType.ID);
-            kassert(Strings.isEqual(getTokenData(token), "free"));
+            kassert(Strings.isEquals(getTokenData(token), "free"));
         }
         else if (index == 1)
         {
@@ -311,12 +311,12 @@ unittest
         else if (index == 2)
         {
             kassert(token.type == TokenType.ID);
-            kassert(Strings.isEqual(getTokenData(token), "h"));
+            kassert(Strings.isEquals(getTokenData(token), "h"));
         }
         else if (index == 3)
         {
             kassert(token.type == TokenType.NUMBER);
-            kassert(Strings.isEqual(getTokenData(token), "512"));
+            kassert(Strings.isEquals(getTokenData(token), "512"));
         }
         else if (index == 4)
         {
@@ -325,7 +325,7 @@ unittest
         else if (index == 5)
         {
             kassert(token.type == TokenType.ID);
-            kassert(Strings.isEqual(getTokenData(token), "n"));
+            kassert(Strings.isEquals(getTokenData(token), "n"));
         }
 
         index++;
@@ -351,7 +351,7 @@ unittest
         if (calcIndex == 0)
         {
             kassert(calcToken.type == TokenType.NUMBER);
-            kassert(Strings.isEqual(getTokenData(calcToken), "5"));
+            kassert(Strings.isEquals(getTokenData(calcToken), "5"));
         }
         else if (calcIndex == 1)
         {
@@ -360,7 +360,7 @@ unittest
         else if (calcIndex == 2)
         {
             kassert(calcToken.type == TokenType.NUMBER);
-            kassert(Strings.isEqual(getTokenData(calcToken), "6"));
+            kassert(Strings.isEquals(getTokenData(calcToken), "6"));
         }
 
         calcIndex++;
