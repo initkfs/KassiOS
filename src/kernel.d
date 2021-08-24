@@ -32,6 +32,7 @@ private
 
     //Std
     alias Tests = os.std.tests;
+    alias Bits = os.std.bits;
     alias Ascii = os.std.text.ascii;
     alias Strings = os.std.text.strings;
     alias Kstdio = os.std.io.kstdio;
@@ -162,6 +163,7 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
     Tests.runTest!(KashParser);
     Tests.runTest!(KashExecutor);
     Tests.runTest!(Units);
+    Tests.runTest!(Bits);
 
     CoreConfig.setLogGeneratedErrors(true);
 

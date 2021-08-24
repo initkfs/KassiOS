@@ -7,6 +7,7 @@ module os.core.io.keyboard;
 private
 {
 	alias Ports = os.core.io.ports;
+	alias Bits = os.std.bits;
 }
 
 const
@@ -81,7 +82,7 @@ __gshared bool isControlPress = false;
 bool isReleased(const ubyte code) @safe pure
 {
 	//7 bit set -> 10000000
-	return (code & 128) == 128;
+	return Bits.isBitSet(code, 7);
 }
 
 bool isPressed(const ubyte code) @safe pure
