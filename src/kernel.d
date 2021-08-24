@@ -40,6 +40,8 @@ private
     alias Collections = os.std.container.collections;
     alias MathCore = os.std.math.math_core;
     alias MathRandom = os.std.math.math_random;
+    alias MathStrict = os.std.math.math_strict;
+    alias MathGeometry = os.std.math.math_geometry;
     alias Datetime = os.std.date.datetime;
     alias SysTime = os.std.date.systime;
     alias Units = os.std.util.units;
@@ -154,6 +156,8 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
     Tests.runTest!(Collections);
     Tests.runTest!(MathCore);
     Tests.runTest!(MathRandom);
+    Tests.runTest!(MathStrict);
+    Tests.runTest!(MathGeometry);
     Tests.runTest!(KashLexer);
     Tests.runTest!(KashParser);
     Tests.runTest!(KashExecutor);

@@ -3,9 +3,11 @@
  */
 module os.std.math.math_random;
 
-import os.std.math.math_intervals;
+private {
+    alias MathCore = os.std.math.math_core;
 
-private __gshared ulong next = 11_111;
+    __gshared ulong next = 11_111;
+}
 
 uint randUnsafe(uint minInclusive = 0, uint maxInclusive = 0)
 {
@@ -20,7 +22,8 @@ uint randUnsafe(uint minInclusive = 0, uint maxInclusive = 0)
         return result;
     }
 
-    const uint inIntervalResult = toClosedInterval!uint(result, minInclusive, maxInclusive);
+    //TODO check bugs after deleting math intervals
+    const uint inIntervalResult = MathCore.clamp(result, minInclusive, maxInclusive);
     return inIntervalResult;
 }
 

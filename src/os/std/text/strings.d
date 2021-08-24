@@ -19,14 +19,14 @@ bool isEqualz(const char* s1, const char* s2)
 
 bool isEqual(const string s1, const string s2)
 {
-    if (s1 is null || s2 is null)
+    if (s1 is null || s2 is null || (s1.length != s2.length))
     {
         return false;
     }
 
-    if (s1.length != s2.length)
+    if (s1.length == 0 && s2.length == 0)
     {
-        return false;
+        return true;
     }
 
     for (int i = 0; i < s1.length; i++)

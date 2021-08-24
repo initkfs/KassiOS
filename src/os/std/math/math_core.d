@@ -12,20 +12,20 @@ private
 
 }
 
+enum E = 2.7182818284590452354;
+
 struct Epsilon
 {
-    static const float FLOAT_EPSILON = 1.19e-07;
-    static const double DOUBLE_EPSILON = 2.20e-16;
+    static const
+    {
+        float FLOAT_EPSILON = 1.19e-07;
+        double DOUBLE_EPSILON = 2.20e-16;
+    }
 }
 
 T abs(T)(T x) if (isFloatingPoint!(T) || isIntegral!(T))
 {
-    if (x < 0)
-    {
-        return -x;
-    }
-
-    return x;
+    return x < 0 ? -x : x;
 }
 
 unittest
@@ -36,6 +36,72 @@ unittest
     kassert(abs(-1) == 1);
     kassert(abs(-2345) == 2345);
     kassert(abs(-1.0) == 1.0);
+    kassert(abs(3 - 9) == 6);
+}
+
+T max(T)(T a, T b) if (isFloatingPoint!(T) || isIntegral!(T))
+{
+    static if (isFloatingPoint!(T))
+    {
+        if (isNaN(a) || isNan(b))
+        {
+            return T.nan;
+        }
+    }
+
+    return (a >= b) ? a : b;
+}
+
+unittest
+{
+    import os.std.asserts : kassert;
+
+    kassert(max(10, 1) == 10);
+    kassert(max(-10, 1) == 1);
+    kassert(max(-1, 0) == 0);
+    kassert(max(1, 0) == 1);
+    kassert(max(10, 5) == 10);
+}
+
+T min(T)(T a, T b) if (isFloatingPoint!(T) || isIntegral!(T))
+{
+    static if (isFloatingPoint!(T))
+    {
+        if (isNaN(a) || isNan(b))
+        {
+            return T.nan;
+        }
+    }
+
+    return (a <= b) ? a : b;
+}
+
+unittest
+{
+    import os.std.asserts : kassert;
+
+    kassert(min(1, 0) == 0);
+    kassert(min(-1, 0) == -1);
+    kassert(min(10, 5) == 5);
+    kassert(min(345, 400) == 345);
+}
+
+//[min..max]
+T clamp(T)(T value, T minValue, T maxValue)
+{
+    return max!T(minValue, min!T(maxValue, value));
+}
+
+unittest
+{
+    import os.std.asserts : kassert;
+
+    kassert(clamp(-2, -1, 2) == -1);
+    kassert(clamp(-1, -1, 2) == -1);
+    kassert(clamp(0, -1, 2) == 0);
+    kassert(clamp(1, -1, 2) == 1);
+    kassert(clamp(2, -1, 2) == 2);
+    kassert(clamp(3, -1, 2) == 2);
 }
 
 bool isEqualEps(T)(T x, T y, T epsilon) if (isFloatingPoint!(T))
@@ -230,17 +296,38 @@ unittest
 }
 
 //log_y(x) = log_a(x) / log_a(y)
-//log10(x) = log2(x)/log2(10)
-double log10(double x)
+double logbA(double a, double base)
 {
+    // if (a == 0)
+    // {
+    //     return -double.infinity;
+    // }
 
-    if (x <= 0 || !isFinite(x))
+    //x == 1.0
+    if (a <= 0 || !isFinite(a) || base <= 0 || !isFinite(base))
     {
         return double.nan;
     }
 
-    double result = log2(x) / log2(10);
-    return result;
+    return log2(a) / log2(base);
+}
+
+double log(double x)
+{
+    return logbA(x, E);
+}
+
+unittest
+{
+    import os.std.asserts : kassert;
+
+    kassert(isEqual(log(2.0), 0.6931471805599453));
+}
+
+//log10(x) = log2(x)/log2(10)
+double log10(double x)
+{
+    return logbA(x, 10);
     //asm
     // {
     //     fld1;
