@@ -63,12 +63,13 @@ unittest
     kassert(isEquals(cast(string) s1, cast(string) s2));
 }
 
-size_t strlength(const char* str)
+size_t lengthz(const char* str)
 {
     if (!str)
     {
         return 0;
     }
+
     char* ptr = cast(char*) str;
     size_t length;
     while (*ptr && *ptr != char.init)
@@ -78,6 +79,18 @@ size_t strlength(const char* str)
     }
 
     return length;
+}
+
+bool isEmptyz(const char* str)
+{
+    return !str || lengthz(str) == 0;
+}
+
+unittest
+{
+    import os.std.asserts : kassert;
+
+    kassert(isEmptyz("".ptr));
 }
 
 bool isEmpty(const string str)
@@ -99,17 +112,17 @@ unittest
 {
     import os.std.asserts : kassert;
 
-    kassert(strlength(null) == 0);
-    kassert(strlength(cast(char*) "") == 0);
-    kassert(strlength(cast(char*) " ") == 1);
-    kassert(strlength(cast(char*) "a") == 1);
-    kassert(strlength(cast(char*) "aaa") == 3);
-    kassert(strlength(cast(char*) "a b c") == 5);
+    kassert(lengthz(null) == 0);
+    kassert(lengthz(cast(char*) "") == 0);
+    kassert(lengthz(cast(char*) " ") == 1);
+    kassert(lengthz(cast(char*) "a") == 1);
+    kassert(lengthz(cast(char*) "aaa") == 3);
+    kassert(lengthz(cast(char*) "a b c") == 5);
 }
 
 string toString(const char* str)
 {
-    return cast(string) str[0 .. strlength(str)];
+    return cast(string) str[0 .. lengthz(str)];
 }
 
 unittest
@@ -133,7 +146,7 @@ char* toStringz(string str)
         index++;
     }
     Allocator.set(buff, char.init, buffPtr, index);
-    return cast(char*) buff[0 .. size];
+    return cast(char*) buff;
 }
 
 unittest
@@ -148,7 +161,7 @@ unittest
 /*
 * https://stackoverflow.com/questions/18858115/c-long-long-to-char-conversion-function-in-embedded-system
 */
-char* toString(const long longValue, const int base = 10)
+char* toStringz(const long longValue, const int base = 10)
 {
     if (base < 2 || base > 16)
     {
@@ -192,8 +205,8 @@ char* toString(const long longValue, const int base = 10)
         auto negCharIndex = i--;
         Allocator.set(buff, '-', ptr, negCharIndex);
     }
-
     string result = cast(string) buff[(i + 1) .. (size - 1)];
+    //TODO remove unnecessary copying into memory
     return toStringz(result);
 }
 
@@ -201,109 +214,109 @@ unittest
 {
     import os.std.asserts : kassert;
 
-    auto s1 = toString(1, 0);
+    auto s1 = toStringz(1, 0);
     kassert(isEquals(toString(s1), ""));
     Allocator.free(s1);
 
-    auto s2 = toString(1, 1);
+    auto s2 = toStringz(1, 1);
     kassert(isEquals(toString(s1), ""));
     Allocator.free(s2);
 
-    auto s3 = toString(1, 17);
+    auto s3 = toStringz(1, 17);
     kassert(isEquals(toString(s1), ""));
     Allocator.free(s3);
 
     //Decimal
-    auto sd = toString(0, 10);
+    auto sd = toStringz(0, 10);
     kassert(isEquals(toString(sd), "0"));
     Allocator.free(sd);
 
-    auto sd1 = toString(1, 10);
+    auto sd1 = toStringz(1, 10);
     kassert(isEquals(toString(sd1), "1"));
     Allocator.free(sd1);
 
-    auto sdneg1 = toString(-1, 10);
+    auto sdneg1 = toStringz(-1, 10);
     kassert(isEquals(toString(sdneg1), "-1"));
     Allocator.free(sdneg1);
 
-    auto sd101 = toString(101, 10);
+    auto sd101 = toStringz(101, 10);
     kassert(isEquals(toString(sd101), "101"));
     Allocator.free(sd101);
 
-    auto sd101neg = toString(-101, 10);
+    auto sd101neg = toStringz(-101, 10);
     kassert(isEquals(toString(sd101neg), "-101"));
     Allocator.free(sd101neg);
 
-    auto sd100x = toString(10_000_000, 10);
+    auto sd100x = toStringz(10_000_000, 10);
     kassert(isEquals(toString(sd100x), "10000000"));
     Allocator.free(sd100x);
 
-    auto sd64x = toString(648_356, 10);
+    auto sd64x = toStringz(648_356, 10);
     kassert(isEquals(toString(sd64x), "648356"));
     Allocator.free(sd64x);
 
-    auto sdmax = toString(long.max, 10);
+    auto sdmax = toStringz(long.max, 10);
     kassert(isEquals(toString(sdmax), "9223372036854775807"));
     Allocator.free(sdmax);
 
-    auto sdmaxNeg = toString(-(long.min - 1), 10);
+    auto sdmaxNeg = toStringz(-(long.min - 1), 10);
     kassert(isEquals(toString(sdmaxNeg), "-9223372036854775807"));
     Allocator.free(sdmaxNeg);
 
     //Bin
-    auto binZero = toString(0, 2);
+    auto binZero = toStringz(0, 2);
     kassert(isEquals(toString(binZero), "0"));
     Allocator.free(binZero);
 
-    auto binOne = toString(1, 2);
+    auto binOne = toStringz(1, 2);
     kassert(isEquals(toString(binOne), "1"));
     Allocator.free(binOne);
 
-    auto bin2 = toString(2, 2);
+    auto bin2 = toStringz(2, 2);
     kassert(isEquals(toString(bin2), "10"));
     Allocator.free(bin2);
 
-    auto bin10 = toString(10, 2);
+    auto bin10 = toStringz(10, 2);
     kassert(isEquals(toString(bin10), "1010"));
     Allocator.free(bin10);
 
-    auto bin10neg = toString(-10, 2);
+    auto bin10neg = toStringz(-10, 2);
     kassert(isEquals(toString(bin10neg), "-1010"));
     Allocator.free(bin10neg);
 
-    auto bin64x = toString(648356, 2);
+    auto bin64x = toStringz(648356, 2);
     kassert(isEquals(toString(bin64x), "10011110010010100100"));
     Allocator.free(bin64x);
 
     //Hex
-    auto hZero = toString(0, 16);
+    auto hZero = toStringz(0, 16);
     kassert(isEquals(toString(hZero), "0"));
     Allocator.free(hZero);
 
-    auto hOne = toString(1, 16);
+    auto hOne = toStringz(1, 16);
     kassert(isEquals(toString(hOne), "1"));
     Allocator.free(hOne);
 
-    auto hOneNeg = toString(-1, 16);
+    auto hOneNeg = toStringz(-1, 16);
     kassert(isEquals(toString(hOneNeg), "-1"));
     Allocator.free(hOneNeg);
 
-    auto h10 = toString(10, 16);
+    auto h10 = toStringz(10, 16);
     kassert(isEquals(toString(h10), "A"));
     Allocator.free(h10);
 
-    auto h4573 = toString(4573, 16);
+    auto h4573 = toStringz(4573, 16);
     kassert(isEquals(toString(h4573), "11DD"));
     Allocator.free(h4573);
 
-    auto h0x7f = toString(0x7FFFFFFFFFFFFFFF, 16);
+    auto h0x7f = toStringz(0x7FFFFFFFFFFFFFFF, 16);
     kassert(isEquals(toString(h0x7f), "7FFFFFFFFFFFFFFF"));
     Allocator.free(h0x7f);
 }
 
 //TODO 1e-9 -> :e-10
 // https://stackoverflow.com/questions/2302969/convert-a-float-to-a-string
-char* toString(const double x, const size_t maxDigitsAfterPoint = 0,
+char* toStringz(const double x, const size_t maxDigitsAfterPoint = 0,
         const double precision = 0.00000000000000001, const char sep = '.')
 {
     import os.std.math.math_core : isNaN, isPositiveInf, isNegativeInf, log10, pow, floor, abs;
@@ -387,51 +400,51 @@ char* toString(const double x, const size_t maxDigitsAfterPoint = 0,
         }
     }
     Allocator.set(buffer, char.init, bufferPtr, indexExlude++);
-    auto result = cast(char*) buffer[0 .. indexExlude];
-    return result;
+    //auto result = cast(char*) buffer[0 .. indexExlude];
+    return buffer;
 }
 
 unittest
 {
     import os.std.asserts : kassert;
 
-    auto zeroPtr = toString(0.0);
+    auto zeroPtr = toStringz(0.0);
     kassert(isEqualz(zeroPtr, "0.0"));
     Allocator.free(zeroPtr);
 
-    auto infPtr = toString(double.infinity);
+    auto infPtr = toStringz(double.infinity);
     kassert(isEqualz(infPtr, "+Infinity"));
     Allocator.free(infPtr);
 
-    auto infNegPtr = toString(-double.infinity);
+    auto infNegPtr = toStringz(-double.infinity);
     kassert(isEqualz(infNegPtr, "-Infinity"));
     Allocator.free(infNegPtr);
 
-    auto nanPtr = toString(double.nan);
+    auto nanPtr = toStringz(double.nan);
     kassert(isEqualz(nanPtr, "NaN"));
     Allocator.free(nanPtr);
 
-    auto nanNegPtr = toString(-double.nan);
+    auto nanNegPtr = toStringz(-double.nan);
     kassert(isEqualz(nanNegPtr, "NaN"));
     Allocator.free(nanNegPtr);
 
-    auto onePtr = toString(1.0);
+    auto onePtr = toStringz(1.0);
     kassert(isEqualz(onePtr, "1.0"));
     Allocator.free(onePtr);
 
-    auto oneNegPtr = toString(-1.0);
+    auto oneNegPtr = toStringz(-1.0);
     kassert(isEqualz(oneNegPtr, "-1.0"));
     Allocator.free(oneNegPtr);
 
-    auto d1 = toString(0.02);
+    auto d1 = toStringz(0.02);
     kassert(isEqualz(d1, "0.01999999999999999"));
     Allocator.free(d1);
 
-    auto d2 = toString(3.56);
+    auto d2 = toStringz(3.56);
     kassert(isEqualz(d2, "3.56000000000000004"));
     Allocator.free(d2);
 
-    auto d3 = toString(-4.12);
+    auto d3 = toStringz(-4.12);
     kassert(isEqualz(d3, "-4.12000000000000009"));
     Allocator.free(d3);
 }
@@ -442,10 +455,11 @@ string reverse(const string s)
     {
         return "";
     }
-    if (s.length < 2)
+    if (s.length <= 1)
     {
         return s;
     }
+
     auto chars = cast(char[]) s;
     for (auto i = 0, j = chars.length - 1; i < j; i++, j--)
     {
@@ -477,15 +491,15 @@ long indexOf(const string str, const string pattern)
     }
 
     const patternLength = pattern.length;
-    const strLength = str.length;
+    const length = str.length;
 
-    if (strLength == 0 || patternLength == 0 || patternLength > strLength)
+    if (length == 0 || patternLength == 0 || patternLength > length)
     {
         return notFoundResult;
     }
 
     size_t i = 0;
-    while ((i + patternLength <= strLength))
+    while ((i + patternLength <= length))
     {
         size_t j = 0;
         while (str[i + j] == pattern[j])
@@ -521,7 +535,7 @@ unittest
 
 char* format(T)(const string pattern, const T[] args, const char placeholder = '%')
 {
-    import os.std.container.array_list;
+    import os.std.container.array_list: ArrayList;
 
     alias Collections = os.std.container.collections;
     //TODO very inaccurate buffer size
@@ -588,7 +602,7 @@ char* format(T)(const string pattern, const T[] args, const char placeholder = '
                             isZeroPadParse = false;
                         }
 
-                        char* longStr = toString(longValue, 10);
+                        char* longStr = toStringz(longValue, 10);
                         Collections.append(buffer, longStr);
                         Allocator.free(longStr);
                     }
@@ -600,7 +614,7 @@ char* format(T)(const string pattern, const T[] args, const char placeholder = '
                     {
                         buffer.push('0');
                         buffer.push('x');
-                        char* hexStr = toString(cast(long) formatArg, 16);
+                        char* hexStr = toStringz(cast(long) formatArg, 16);
                         Collections.append(buffer, hexStr);
                         Allocator.free(hexStr);
                     }
@@ -611,7 +625,7 @@ char* format(T)(const string pattern, const T[] args, const char placeholder = '
                     static if (isIntegral!(typeof(formatArg)))
                     {
                         //TODO duplicate
-                        char* hexStr = toString(cast(long) formatArg, 16);
+                        char* hexStr = toStringz(cast(long) formatArg, 16);
                         Collections.append(buffer, hexStr);
                         Allocator.free(hexStr);
                     }
@@ -623,7 +637,7 @@ char* format(T)(const string pattern, const T[] args, const char placeholder = '
                     {
                         buffer.push('0');
                         buffer.push('b');
-                        char* binStr = toString(cast(long) formatArg, 2);
+                        char* binStr = toStringz(cast(long) formatArg, 2);
                         Collections.append(buffer, binStr);
                         Allocator.free(binStr);
                     }
@@ -643,7 +657,7 @@ char* format(T)(const string pattern, const T[] args, const char placeholder = '
                     {
                         //TODO real?
                         double value = cast(double) formatArg;
-                        char* doublePtr = toString(value);
+                        char* doublePtr = toStringz(value);
                         Collections.append(buffer, doublePtr);
                         Allocator.free(doublePtr);
                     }

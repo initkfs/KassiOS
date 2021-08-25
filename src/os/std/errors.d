@@ -19,7 +19,7 @@ err error(const string message, const string file = __FILE__, const int line = _
 
   if (CoreConfig.isLogGeneratedErrors && Syslog.isErrorLevel)
   {
-    auto lineStr = Strings.toString(line);
+    auto lineStr = Strings.toStringz(line);
     scope (exit)
     {
       Allocator.free(lineStr);
@@ -33,7 +33,7 @@ err error(const string message, const string file = __FILE__, const int line = _
 
 void panic(const string message, const string file = __FILE__, const int line = __LINE__)
 {
-  auto lineStrPtr = Strings.toString(line);
+  auto lineStrPtr = Strings.toStringz(line);
   string lineStr = Strings.toString(lineStrPtr);
  
   if (Syslog.isErrorLevel)

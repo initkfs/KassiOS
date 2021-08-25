@@ -107,7 +107,7 @@ private void writeLogRecord(ref LogRecord record)
     Serial.write(record.file);
     Serial.write(':');
 
-    auto lineInfo = Strings.toString(record.line);
+    auto lineInfo = Strings.toStringz(record.line);
     scope (exit)
     {
         Allocator.free(lineInfo);

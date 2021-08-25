@@ -47,7 +47,7 @@ void execute(AstNode* node, int function(string, ref char* outR,
         default:
         }
 
-        outResult = Strings.toString(result);
+        outResult = Strings.toStringz(result);
         lastResult = 0;
         return;
         //return Strings.toString(result);

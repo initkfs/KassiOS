@@ -72,7 +72,7 @@ char* formatBytes(size_t bytes, UnitType type = UnitType.SI)
 		postfix = cast(string) postfixData.ptr[0 .. postfixData.sizeof];
 	}
 	//TODO Strings.concat
-	auto valuePtr = Strings.toString(Math.round(sizeValue, 3), 3);
+	auto valuePtr = Strings.toStringz(Math.round(sizeValue, 3), 3);
 	string[2] formatArgs = [Strings.toString(valuePtr), postfix];
 	auto result = Strings.format("%s%s", formatArgs);
 	Allocator.free(valuePtr);

@@ -87,7 +87,7 @@ void printHeader()
         Allocator.free(dateTimeInfoPtr);
     }
 
-    auto lastCodeStr = Strings.toString(Shell.lastCode);
+    auto lastCodeStr = Strings.toStringz(Shell.lastCode);
     scope (exit)
     {
         Allocator.free(lastCodeStr);
@@ -196,12 +196,12 @@ void acceptInput(const ubyte keyCode)
                 Kstdio.kprintln;
             }
 
-            if (outResult && Strings.strlength(outResult) > 0)
+            if (outResult && Strings.lengthz(outResult) > 0)
             {
                 Kstdio.kprintz(outResult);
             }
 
-            if (errResult && Strings.strlength(errResult) > 0)
+            if (errResult && Strings.lengthz(errResult) > 0)
             {
                 if (outResult)
                 {
