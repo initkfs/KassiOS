@@ -6,6 +6,7 @@ module os.std.text.strings;
 import std.traits;
 
 const string FORMAT_ERROR = "_formaterror_";
+const char NULL_BYTE = '\0';
 
 private
 {
@@ -72,7 +73,7 @@ size_t lengthz(const char* str)
 
     char* ptr = cast(char*) str;
     size_t length;
-    while (*ptr && *ptr != char.init)
+    while (*ptr && *ptr != NULL_BYTE)
     {
         length++;
         ptr++;
@@ -145,7 +146,7 @@ char* toStringz(string str)
         Allocator.set(buff, ch, buffPtr, index);
         index++;
     }
-    Allocator.set(buff, char.init, buffPtr, index);
+    Allocator.set(buff, NULL_BYTE, buffPtr, index);
     return cast(char*) buff;
 }
 
@@ -399,7 +400,7 @@ char* toStringz(const double x, const size_t maxDigitsAfterPoint = 0,
             indexExlude = newIndex;
         }
     }
-    Allocator.set(buffer, char.init, bufferPtr, indexExlude++);
+    Allocator.set(buffer, NULL_BYTE, bufferPtr, indexExlude++);
     //auto result = cast(char*) buffer[0 .. indexExlude];
     return buffer;
 }
