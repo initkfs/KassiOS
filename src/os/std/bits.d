@@ -45,6 +45,7 @@ unittest
 {
   import os.std.asserts : kassert;
 
+  //TODO check random panic
   kassert(unsetBit(3, 0) == 2);
   kassert(unsetBit(15, 2) == 11);
 }

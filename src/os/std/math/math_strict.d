@@ -61,7 +61,11 @@ err subtractExact(T)(T a, T b, ref T sub) if (isIntegral!T)
 {
     static if (isUnsigned!T)
     {
-        return a < b ? error("Overflow occurred during unsigned subtraction") : (a - b);
+        if(a < b){
+            return error("Overflow occurred during unsigned subtraction");
+        }
+        sub = a - b;
+        return null;
     }
     else
     {
@@ -116,7 +120,7 @@ err castExact(T, C)(T n, ref C result) if (isIntegral!T && isIntegral!C)
     return null;
 }
 
-err incrementExact(T)(T n, T result) if (isIntegral!T)
+err incrementExact(T)(T n, ref T result) if (isIntegral!T)
 {
     if (n == T.max)
     {
@@ -126,7 +130,7 @@ err incrementExact(T)(T n, T result) if (isIntegral!T)
     return null;
 }
 
-err decrementExact(T)(T n, T result) if (isIntegral!T)
+err decrementExact(T)(T n, ref T result) if (isIntegral!T)
 {
     if (n == T.min)
     {

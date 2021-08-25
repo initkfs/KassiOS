@@ -7,15 +7,39 @@ import std.traits;
 
 const string FORMAT_ERROR = "_formaterror_";
 const char NULL_BYTE = '\0';
+const string EMPTY = "";
+enum NOT_FOUND = -1;
 
 private
 {
     alias Allocator = os.core.mem.allocator;
+    alias Ascii = os.std.text.ascii;
+    alias MathStrict = os.std.math.math_strict;
 }
 
 bool isEqualz(const char* s1, const char* s2)
 {
     return isEquals(toString(s1), toString(s2));
+}
+
+bool isEqualsIgnoreCase(const string s1, const string s2)
+{
+    auto s1ptr = toLower(s1);
+    auto s2ptr = toLower(s2);
+    scope (exit)
+    {
+        Allocator.free(s1ptr, s2ptr);
+    }
+    return isEqualz(s1ptr, s2ptr);
+}
+
+unittest
+{
+    import os.std.asserts : kassert;
+
+    kassert(isEqualsIgnoreCase("BAZ", "baz"));
+    kassert(isEqualsIgnoreCase("foo", "Foo"));
+    kassert(!isEqualsIgnoreCase("foo", "f0o"));
 }
 
 bool isEquals(const string s1, const string s2)
@@ -82,6 +106,93 @@ size_t lengthz(const char* str)
     return length;
 }
 
+unittest
+{
+    import os.std.asserts : kassert;
+
+    kassert(lengthz(null) == 0);
+    kassert(lengthz("".ptr) == 0);
+    kassert(lengthz(" ".ptr) == 1);
+    kassert(lengthz("a".ptr) == 1);
+    kassert(lengthz("aaa".ptr) == 3);
+    kassert(lengthz("a b c".ptr) == 5);
+}
+
+char* transform(string s, char delegate(char) onChar)
+{
+    if (s.length == 0)
+    {
+        return toStringz(EMPTY);
+    }
+
+    auto buffPtr = Allocator.alloc(s.length + 1);
+    auto buff = cast(char*) buffPtr;
+    foreach (i, ch; s)
+    {
+        const char newChar = onChar(ch);
+        Allocator.set(buff, newChar, buffPtr, i);
+    }
+
+    Allocator.set(buff, NULL_BYTE, buffPtr, s.length);
+    return buff;
+}
+
+char* toLower(string s)
+{
+    return transform(s, (char ch) {
+        if (ch >= 'A' && ch <= 'Z')
+        {
+            return cast(char)(ch + 32);
+        }
+        return ch;
+    });
+}
+
+unittest
+{
+    import os.std.asserts : kassert;
+
+    auto s1 = toLower("foobar");
+    kassert(isEqualz(s1, "foobar".ptr));
+    Allocator.free(s1);
+
+    auto s2 = toLower("FooBar");
+    kassert(isEqualz(s2, "foobar".ptr));
+    Allocator.free(s2);
+
+    auto s3 = toLower("FOOBAR");
+    kassert(isEqualz(s3, "foobar".ptr));
+    Allocator.free(s3);
+}
+
+char* toUpper(string s)
+{
+    return transform(s, (char ch) {
+        if (ch >= 'a' && ch <= 'z')
+        {
+            return cast(char)(ch - 32);
+        }
+        return ch;
+    });
+}
+
+unittest
+{
+    import os.std.asserts : kassert;
+
+    auto s1 = toUpper("foobar");
+    kassert(isEqualz(s1, "FOOBAR".ptr));
+    Allocator.free(s1);
+
+    auto s2 = toUpper("FooBar");
+    kassert(isEqualz(s2, "FOOBAR".ptr));
+    Allocator.free(s2);
+
+    auto s3 = toUpper("FOOBAR");
+    kassert(isEqualz(s3, "FOOBAR".ptr));
+    Allocator.free(s3);
+}
+
 bool isEmptyz(const char* str)
 {
     return !str || lengthz(str) == 0;
@@ -109,16 +220,33 @@ unittest
     kassert(!isEmpty("a"));
 }
 
+bool isBlank(const string str)
+{
+    if (!str || str.length == 0)
+    {
+        return true;
+    }
+
+    foreach (ch; str)
+    {
+        if (!Ascii.isSpace(ch))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 unittest
 {
     import os.std.asserts : kassert;
 
-    kassert(lengthz(null) == 0);
-    kassert(lengthz(cast(char*) "") == 0);
-    kassert(lengthz(cast(char*) " ") == 1);
-    kassert(lengthz(cast(char*) "a") == 1);
-    kassert(lengthz(cast(char*) "aaa") == 3);
-    kassert(lengthz(cast(char*) "a b c") == 5);
+    kassert(isBlank(null));
+    kassert(isBlank(""));
+    kassert(isBlank(" "));
+    kassert(isBlank(" \n \t  \t "));
+    kassert(!isBlank("  a  "));
 }
 
 string toString(const char* str)
@@ -130,14 +258,20 @@ unittest
 {
     import os.std.asserts : kassert;
 
-    kassert(isEquals(toString(cast(char*) ""), ""));
-    kassert(isEquals(toString(cast(char*) " "), " "));
-    kassert(isEquals(toString(cast(char*) "foo bar"), "foo bar"));
+    kassert(isEquals(toString("".ptr), ""));
+    kassert(isEquals(toString(" ".ptr), " "));
+    kassert(isEquals(toString("foo bar".ptr), "foo bar"));
 }
 
 char* toStringz(string str)
 {
-    const size = str.length + 1;
+    size_t size;
+    const incErr = MathStrict.incrementExact(str.length, size);
+    if (incErr)
+    {
+        return toStringz(EMPTY);
+    }
+
     auto buffPtr = Allocator.alloc(size);
     auto buff = cast(ubyte*) buffPtr;
     size_t index;
@@ -146,7 +280,9 @@ char* toStringz(string str)
         Allocator.set(buff, ch, buffPtr, index);
         index++;
     }
+
     Allocator.set(buff, NULL_BYTE, buffPtr, index);
+
     return cast(char*) buff;
 }
 
@@ -166,7 +302,7 @@ char* toStringz(const long longValue, const int base = 10)
 {
     if (base < 2 || base > 16)
     {
-        return toStringz("");
+        return toStringz(EMPTY);
     }
 
     if (longValue == 0)
@@ -206,8 +342,9 @@ char* toStringz(const long longValue, const int base = 10)
         auto negCharIndex = i--;
         Allocator.set(buff, '-', ptr, negCharIndex);
     }
+
     string result = cast(string) buff[(i + 1) .. (size - 1)];
-    //TODO remove unnecessary copying into memory
+    //TODO check i < buffer length, remove unnecessary copying into memory
     return toStringz(result);
 }
 
@@ -454,7 +591,7 @@ string reverse(const string s)
 {
     if (s is null)
     {
-        return "";
+        return EMPTY;
     }
     if (s.length <= 1)
     {
@@ -483,12 +620,22 @@ unittest
     kassert(isEquals(reverse("foobar"), "raboof"));
 }
 
+long lastIndexOf(const string str, const string pattern)
+{
+    return indexOfAny(str, pattern, true);
+}
+
 long indexOf(const string str, const string pattern)
 {
-    enum notFoundResult = -1;
+    return indexOfAny(str, pattern);
+}
+
+private long indexOfAny(const string str, const string pattern,
+        bool isLastIndexOf = false, size_t index = 0)
+{
     if (!str || !pattern)
     {
-        return notFoundResult;
+        return NOT_FOUND;
     }
 
     const patternLength = pattern.length;
@@ -496,11 +643,17 @@ long indexOf(const string str, const string pattern)
 
     if (length == 0 || patternLength == 0 || patternLength > length)
     {
-        return notFoundResult;
+        return NOT_FOUND;
     }
 
-    size_t i = 0;
-    while ((i + patternLength <= length))
+    size_t i = index;
+    if (isLastIndexOf)
+    {
+        i = index > 0 && index < str.length ? index : str.length;
+    }
+    //TODO overflow?
+    while ((!isLastIndexOf && (i + patternLength <= length)) || (isLastIndexOf
+            && (i - patternLength >= 0)))
     {
         size_t j = 0;
         while (str[i + j] == pattern[j])
@@ -511,32 +664,436 @@ long indexOf(const string str, const string pattern)
                 return i;
             }
         }
-        i++;
+        if (!isLastIndexOf)
+            i++;
+        else
+            i--;
     }
-    return notFoundResult;
+    return NOT_FOUND;
 }
 
 unittest
 {
     import os.std.asserts : kassert;
 
-    kassert(indexOf(null, "foo") == -1);
-    kassert(indexOf("foo", null) == -1);
-    kassert(indexOf("", "") == -1);
-    kassert(indexOf(" ", "") == -1);
-    kassert(indexOf("", " ") == -1);
+    kassert(indexOfAny(null, "foo") == -1);
+    kassert(indexOfAny("foo", null) == -1);
+    kassert(indexOfAny("", "") == -1);
+    kassert(indexOfAny(" ", "") == -1);
+    kassert(indexOfAny("", " ") == -1);
 
-    kassert(indexOf("a", "a") == 0);
-    kassert(indexOf("a", "A") == -1);
-    kassert(indexOf("hello", "hel") == 0);
-    kassert(indexOf("hello", "lo") == 3);
-    kassert(indexOf("aaaab", "aaab") == 1);
-    kassert(indexOf("AAAAB", "AAAB") == 1);
+    kassert(indexOfAny("a", "a") == 0);
+    kassert(indexOfAny("a", "A") == -1);
+    kassert(indexOfAny("hello", "hel") == 0);
+    kassert(indexOfAny("hello", "lo") == 3);
+    kassert(indexOfAny("aaaab", "aaab") == 1);
+    kassert(indexOfAny("AAAAB", "AAAB") == 1);
+
+    kassert(indexOfAny("aabaab", "aab", true) == 3);
+    kassert(indexOfAny("AAAAB", "AA", true) == 2);
+}
+
+bool startsWith(string str, string pattern)
+{
+    return indexOf(str, pattern) == 0;
+}
+
+unittest
+{
+    import os.std.asserts : kassert;
+
+    kassert(!startsWith("foo", "fob"));
+    kassert(startsWith("foo", "f"));
+    kassert(startsWith("foo", "fo"));
+    kassert(startsWith("foo", "foo"));
+    kassert(!startsWith("foo", "fooo"));
+}
+
+bool endsWith(string str, string pattern)
+{
+    import os.std.math.math_strict : subtractExact;
+
+    size_t lastIndex;
+    const err = subtractExact(str.length, pattern.length, lastIndex);
+    if (err)
+    {
+        return false;
+    }
+    return lastIndexOf(str, pattern) == lastIndex;
+}
+
+unittest
+{
+    import os.std.asserts : kassert;
+
+    kassert(endsWith("foo", "o"));
+    kassert(endsWith("foo", "oo"));
+    kassert(endsWith("foo", "foo"));
+    kassert(!endsWith("foo", "fooo"));
+}
+
+char* replace(string s, string searchFor, string replaceWith)
+{
+    alias List = os.std.container.linear_list;
+
+    if (s.length == 0 || searchFor.length == 0 || replaceWith.length == 0)
+    {
+        return toStringz(EMPTY);
+    }
+
+    if (searchFor.length > s.length)
+    {
+        return toStringz(s);
+    }
+
+    List.LinearList* appender;
+    size_t index = 0;
+    size_t startIndex = 0;
+    while ((index = indexOfAny(s, searchFor, false, index)) != NOT_FOUND)
+    {
+        if (appender is null)
+        {
+            appender = List.initList!char(s.length + replaceWith.length);
+        }
+
+        foreach (i; startIndex .. index)
+        {
+            const ch = s[i];
+            List.push!char(appender, ch);
+        }
+
+        foreach (ch; replaceWith)
+        {
+            List.push!char(appender, ch);
+        }
+
+        index += searchFor.length;
+        startIndex = index;
+    }
+
+    if (index == 0 || appender is null)
+    {
+        return toStringz(s);
+    }
+
+    auto rest = s[startIndex .. $];
+    foreach (ch; rest)
+    {
+        List.push!char(appender, ch);
+    }
+
+    const string resultStr = cast(string) appender.data.ptr[0 .. appender.length];
+    char* result = toStringz(resultStr);
+
+    Allocator.free(appender);
+
+    return result;
+}
+
+unittest
+{
+    import os.std.asserts : kassert;
+
+    auto s1 = replace(" ", " ", " ");
+    kassert(isEqualz(s1, " ".ptr));
+    Allocator.free(s1);
+
+    auto s2 = replace("foo", "o", "b");
+    kassert(isEqualz(s2, "fbb".ptr));
+    Allocator.free(s2);
+
+    auto s3 = replace("helloworld", "hello", "nothello");
+    kassert(isEqualz(s3, "nothelloworld".ptr));
+    Allocator.free(s3);
+
+    auto s4 = replace("hello %s", "%s", "world");
+    kassert(isEqualz(s4, "hello world".ptr));
+    Allocator.free(s4);
+
+    auto s5 = replace("foo", "bar", "baz");
+    kassert(isEqualz(s5, "foo".ptr));
+    Allocator.free(s5);
+}
+
+string take(string str, long num, bool isDropChars = false)
+{
+
+    alias MathCore = os.std.math.math_core;
+
+    if (!str)
+    {
+        return EMPTY;
+    }
+
+    if (str.length == 0 || num == 0)
+    {
+        return str;
+    }
+
+    const size = MathCore.min(MathCore.abs(num), str.length);
+
+    if (!isDropChars)
+    {
+        return num > 0 ? str[0 .. size] : str[($ - size) .. $];
+    }
+
+    return num > 0 ? str[size .. $] : str[0 .. $ - size];
+}
+
+unittest
+{
+    import os.std.asserts : kassert;
+
+    kassert(isEquals(take("foo", 0), "foo"));
+    kassert(isEquals(take("foo", 1), "f"));
+    kassert(isEquals(take("foo", 2), "fo"));
+    kassert(isEquals(take("foo", 3), "foo"));
+    kassert(isEquals(take("foo", 4), "foo"));
+    kassert(isEquals(take("foo", 100), "foo"));
+
+    kassert(isEquals(take("foo", -1), "o"));
+    kassert(isEquals(take("foo", -2), "oo"));
+    kassert(isEquals(take("foo", -3), "foo"));
+    kassert(isEquals(take("foo", -4), "foo"));
+    kassert(isEquals(take("foo", -100), "foo"));
+}
+
+string drop(string str, long num)
+{
+    return take(str, num, true);
+}
+
+unittest
+{
+    import os.std.asserts : kassert;
+
+    kassert(isEquals(drop("foo", 0), "foo"));
+    kassert(isEquals(drop("foo", 1), "oo"));
+    kassert(isEquals(drop("foo", 2), "o"));
+    kassert(isEquals(drop("foo", 3), ""));
+    kassert(isEquals(drop("foo", 100), ""));
+
+    kassert(isEquals(drop("foo", -1), "fo"));
+    kassert(isEquals(drop("foo", -2), "f"));
+    kassert(isEquals(drop("foo", -3), ""));
+    kassert(isEquals(drop("foo", -100), ""));
+}
+
+char* repeat(string s, size_t num)
+{
+    if (!s || s.length == 0 || num == 0)
+    {
+        return toStringz(EMPTY);
+    }
+    const buffSize = s.length * num + 1;
+    auto buffPtr = Allocator.alloc(buffSize);
+    char* buff = cast(char*) buffPtr;
+
+    foreach (i; 0 .. num)
+    {
+        foreach (j, ch; s)
+        {
+            Allocator.set(buff, ch, buffPtr, (i * s.length + j));
+        }
+    }
+
+    Allocator.set(buff, NULL_BYTE, buffPtr, buffSize - 1);
+
+    return buff;
+}
+
+unittest
+{
+    import os.std.asserts : kassert;
+
+    auto foofooPtr = repeat("foo", 2);
+    kassert(isEqualz(foofooPtr, "foofoo".ptr));
+    Allocator.free(foofooPtr);
+
+    auto bar5Ptr = repeat("bar", 5);
+    kassert(isEqualz(bar5Ptr, "barbarbarbarbar".ptr));
+    Allocator.free(bar5Ptr);
+}
+
+private char* pad(string s, size_t numberOfChars, char padChar = ' ',
+        bool isLeft = true, bool isRight = true)
+{
+    if (numberOfChars <= s.length || s.length == 0 || (!isLeft && !isRight))
+    {
+        return toStringz(s);
+    }
+
+    auto buffPtr = Allocator.alloc(numberOfChars + 1);
+    auto buff = cast(char*) buffPtr;
+
+    auto charsToAdd = numberOfChars - s.length;
+    auto leftBorderSize = charsToAdd;
+    if (isLeft && isRight)
+    {
+        leftBorderSize = charsToAdd >= 2 ? charsToAdd / 2 : charsToAdd;
+    }
+
+    size_t currentCharIndex;
+
+    if (isLeft)
+    {
+        foreach (i; 0 .. leftBorderSize)
+        {
+            Allocator.set(buff, padChar, buffPtr, currentCharIndex);
+            currentCharIndex++;
+        }
+    }
+
+    foreach (ch; s)
+    {
+        Allocator.set(buff, ch, buffPtr, currentCharIndex);
+        currentCharIndex++;
+    }
+
+    if (isRight)
+    {
+        foreach (i; currentCharIndex .. numberOfChars)
+        {
+            Allocator.set(buff, padChar, buffPtr, currentCharIndex);
+            currentCharIndex++;
+        }
+    }
+
+    return buff;
+}
+
+char* center(string s, size_t numberOfChars, char padChar = ' ')
+{
+    return pad(s, numberOfChars, padChar);
+}
+
+unittest
+{
+    import os.std.asserts : kassert;
+
+    auto c1 = center("foo", 2);
+    kassert(isEqualz(c1, "foo".ptr));
+    Allocator.free(c1);
+
+    auto c2 = center("foo", 4, '#');
+    kassert(isEqualz(c2, "#foo".ptr));
+    Allocator.free(c2);
+
+    auto c3 = center("foo", 5, '#');
+    kassert(isEqualz(c3, "#foo#".ptr));
+    Allocator.free(c3);
+
+    auto c4 = center("foo", 10, '#');
+    kassert(isEqualz(c4, "###foo####".ptr));
+    Allocator.free(c4);
+}
+
+char* padLeft(string s, size_t numberOfChars, char padChar = ' ')
+{
+    return pad(s, numberOfChars, padChar, true, false);
+}
+
+unittest
+{
+    import os.std.asserts : kassert;
+
+    auto c1 = padLeft("foo", 2);
+    kassert(isEqualz(c1, "foo".ptr));
+    Allocator.free(c1);
+
+    auto c2 = padLeft("foo", 4, '#');
+    kassert(isEqualz(c2, "#foo".ptr));
+    Allocator.free(c2);
+
+    auto c3 = padLeft("foo", 5, '#');
+    kassert(isEqualz(c3, "##foo".ptr));
+    Allocator.free(c3);
+
+    auto c4 = padLeft("foo", 10, '#');
+    kassert(isEqualz(c4, "#######foo".ptr));
+    Allocator.free(c4);
+}
+
+char* padRight(string s, size_t numberOfChars, char padChar = ' ')
+{
+    return pad(s, numberOfChars, padChar, false, true);
+}
+
+unittest
+{
+    import os.std.asserts : kassert;
+
+    auto c1 = padRight("foo", 2);
+    kassert(isEqualz(c1, "foo".ptr));
+    Allocator.free(c1);
+
+    auto c2 = padRight("foo", 4, '#');
+    kassert(isEqualz(c2, "foo#".ptr));
+    Allocator.free(c2);
+
+    auto c3 = padRight("foo", 5, '#');
+    kassert(isEqualz(c3, "foo##".ptr));
+    Allocator.free(c3);
+
+    auto c4 = padRight("foo", 10, '#');
+    kassert(isEqualz(c4, "foo#######".ptr));
+    Allocator.free(c4);
+}
+
+string trim(string s)
+{
+    if (s.length == 0)
+    {
+        return s;
+    }
+
+    if (isBlank(s))
+    {
+        return EMPTY;
+    }
+
+    size_t indexLeft;
+    size_t indexRight = s.length - 1;
+    foreach (ch; s)
+    {
+        if (!Ascii.isSpace(ch))
+        {
+            break;
+        }
+        indexLeft++;
+    }
+
+    foreach_reverse (ch; s)
+    {
+        if (!Ascii.isSpace(ch))
+        {
+            break;
+        }
+        indexRight--;
+    }
+
+    string result = s[indexLeft .. indexRight + 1];
+    return result;
+}
+
+unittest
+{
+    import os.std.asserts : kassert;
+
+    kassert(isEquals(trim(" "), ""));
+    kassert(isEquals(trim("  "), ""));
+    kassert(isEquals(trim(" a"), "a"));
+    kassert(isEquals(trim("a "), "a"));
+    kassert(isEquals(trim("foobar"), "foobar"));
+    kassert(isEquals(trim(" foo"), "foo"));
+    kassert(isEquals(trim("foo "), "foo"));
+    kassert(isEquals(trim("  foo   "), "foo"));
+    kassert(isEquals(trim(" \n\tfoo \n"), "foo"));
 }
 
 char* format(T)(const string pattern, const T[] args, const char placeholder = '%')
 {
-    import os.std.container.array_list: ArrayList;
+    import os.std.container.array_list : ArrayList;
 
     alias Collections = os.std.container.collections;
     //TODO very inaccurate buffer size
