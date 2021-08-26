@@ -38,6 +38,7 @@ private
     alias Kstdio = os.std.io.kstdio;
     alias LinearList = os.std.container.linear_list;
     alias ArrayList = os.std.container.array_list;
+    alias HashMap = os.std.container.hash_map;
     alias Collections = os.std.container.collections;
     alias MathCore = os.std.math.math_core;
     alias MathRandom = os.std.math.math_random;
@@ -154,6 +155,7 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
     Tests.runTest!(Strings);
     Tests.runTest!(LinearList);
     Tests.runTest!(ArrayList);
+    Tests.runTest!(HashMap);
     Tests.runTest!(Collections);
     Tests.runTest!(MathCore);
     Tests.runTest!(MathRandom);
