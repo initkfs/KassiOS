@@ -283,7 +283,7 @@ void clear(LinearList* list){
 	list.length = 0;
 }
 
-void iteratelist(T)(LinearList* list, void function(size_t, T, err) onIndexElement)
+void iteratelist(T)(LinearList* list, void delegate(size_t, T, err) onIndexElement)
 {
 	foreach (i; 0 .. list.length)
 	{

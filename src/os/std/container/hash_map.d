@@ -156,8 +156,7 @@ private MapNode* findMapNode(MapNodeList* list, string key)
 	}
 
 	MapNode* current = list.first;
-	while (current !is null && (Strings.isEquals(getMapNodeKey(current), key)
-			|| Strings.compare(getMapNodeKey(current), key) == -1))
+	while (current !is null && (Strings.compare(getMapNodeKey(current), key) <= 0))
 	{
 		if (Strings.isEquals(getMapNodeKey(current), key) && getMapNodeKey(current).length != 0)
 		{
@@ -171,6 +170,7 @@ private MapNode* findMapNode(MapNodeList* list, string key)
 HashMap* initHashMap(size_t initCapacity = 16)
 {
 	auto map = cast(HashMap*) Allocator.alloc(HashMap.sizeof);
+	map.size = 0;
 
 	map.nodes = List.initList!MapNodeList(initCapacity);
 
