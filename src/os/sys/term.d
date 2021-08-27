@@ -101,11 +101,13 @@ void printHeader()
 
     string statusInfo = Inspector.isErrors ? "Err" : "Ok";
 
-    string[6] osInfoArgs = [
+    string bufferStatus = Display.isTextBufferEnabled ? "On" : "Off";
+
+    string[7] osInfoArgs = [
         Config.osName, Config.osVersion, Strings.toString(dateTimeInfoPtr),
-        statusInfo, Strings.toString(usedMemPtr), Strings.toString(lastCodeStr)
+        statusInfo, Strings.toString(usedMemPtr), Strings.toString(lastCodeStr), bufferStatus
     ];
-    const osInfo = Strings.format("%s %s %s. %s. M:%s. RT:%s. Press Tab for help", osInfoArgs);
+    const osInfo = Strings.format("%s %s %s. Stat:%s, Mem:%s, Ret:%s, Tbuff:%s.", osInfoArgs);
     scope (exit)
     {
         Allocator.free(osInfo);
