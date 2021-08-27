@@ -1,10 +1,10 @@
 /**
  * Authors: initkfs
  */
-module os.sys.kash.executor;
+module os.sys.kash.executor.executor_core;
 
 import os.sys.kash.lexer;
-import os.sys.kash.parser;
+import os.sys.kash.parser.parser_core;
 
 __gshared int lastResult;
 __gshared char* outResult;
@@ -16,6 +16,7 @@ private
     alias Allocator = os.core.mem.allocator;
     alias Ascii = os.std.text.ascii;
     alias Kstdio = os.std.io.kstdio;
+    alias NumberExpressionExecutor = os.sys.kash.executor.number_expression_executor;
 }
 
 void execute(AstNode* node, int function(string, ref char* outR,
@@ -35,16 +36,12 @@ void execute(AstNode* node, int function(string, ref char* outR,
     if (node.type == AstNodeType.NUMBER_OPERATION)
     {
         //TODO integer
-
         double result;
-        double leftValue = getNodeValue!double(node.left);
-        double rigthValue = getNodeValue!double(node.right);
-        switch (node.token.type)
-        {
-        case TokenType.PLUS:
-            result = leftValue + rigthValue;
-            break;
-        default:
+        const numberErr = NumberExpressionExecutor.execute(node, result);
+        if(numberErr){
+            lastResult = -1;
+            errResult = Strings.toStringz(numberErr);
+            return;
         }
 
         outResult = Strings.toStringz(result);
@@ -86,12 +83,13 @@ unittest
 
     runLexer(input, lexer);
 
-    auto node = runParser(lexer);
+    AstNode* node;
+    const parserErr = runParser(lexer, node);
     scope (exit)
     {
         deleteAstNode(node);
     }
-
+    kassert(parserErr is null);
     execute(node);
     kassert(lastResult == 0);
     kassert(outResult !is null);

@@ -11,8 +11,8 @@ private
 {
     alias Allocator = os.core.mem.allocator;
     alias KashLexer = os.sys.kash.lexer;
-    alias KashParser = os.sys.kash.parser;
-    alias KashExecutor = os.sys.kash.executor;
+    alias KashParser = os.sys.kash.parser.parser_core;
+    alias KashExecutor = os.sys.kash.executor.executor_core;
     alias Strings = os.std.text.strings;
     alias Kstdio = os.std.io.kstdio;
 
@@ -64,10 +64,15 @@ int run(string input, ref char* outResult, ref char* errResult)
 
     KashLexer.runLexer(input, lexer);
 
-    auto node = KashParser.runParser(lexer);
+    KashParser.AstNode* node;
+    const parserErr = KashParser.runParser(lexer, node);
     scope (exit)
     {
         KashParser.deleteAstNode(node);
+    }
+
+    if(parserErr){
+        errResult = Strings.toStringz(parserErr);
     }
 
     if (node is null)

@@ -50,8 +50,8 @@ private
 
     //System
     alias KashLexer = os.sys.kash.lexer;
-    alias KashParser = os.sys.kash.parser;
-    alias KashExecutor = os.sys.kash.executor;
+    alias KashParser = os.sys.kash.parser.parser_core;
+    alias KashExecutor = os.sys.kash.executor.executor_core;
     alias KashShell = os.sys.kash.shell;
     alias Terminal = os.sys.term;
 }

@@ -20,19 +20,24 @@ enum TokenType
     NULL,
     WHITESPACE,
     NEWLINE,
-    ID,
-    NUMBER,
-    PLUS,
-    MINUS,
-    TIMES,
-    LPAREN,
-    RPAREN,
     SEMICILON,
     COMMA,
+    LPAREN,
+    RPAREN,
+    //math
+    STAR,
+    CARET,
+    SLASH,
+    PERCENT,
+    PLUS,
+    MINUS,
+    //
     EQL,
-    NEQ,
     LSS,
     GTR,
+    ID,
+    NUMBER,
+    NEQ,
     LEQ,
     GEQ,
 }
@@ -49,6 +54,16 @@ struct Token
 struct Lexer
 {
     Token* root;
+}
+
+private bool isTypeBufferNeeded(TokenType type)
+{
+    return type >= TokenType.ID;
+}
+
+private bool isBufferNeed(Token* token)
+{
+    return token && isTypeBufferNeeded(token.type);
 }
 
 TokenType getTokenTypeByChar(const char c)
@@ -75,7 +90,7 @@ TokenType getTokenTypeByChar(const char c)
     case '-':
         return TokenType.MINUS;
     case '*':
-        return TokenType.TIMES;
+        return TokenType.STAR;
     case '(':
         return TokenType.LPAREN;
     case ')':
@@ -90,6 +105,12 @@ TokenType getTokenTypeByChar(const char c)
         return TokenType.LSS;
     case '>':
         return TokenType.GTR;
+    case '/':
+        return TokenType.SLASH;
+    case '%':
+        return TokenType.PERCENT;
+    case '^':
+        return TokenType.CARET;
     case '\0':
         return TokenType.NULL;
     default:
@@ -214,15 +235,6 @@ private void flushTokenBuffer(Token* token, ref ArrayList!char tokenBuffer)
     tokenBuffer.clear;
 }
 
-private bool isTypeBufferNeeded(TokenType type){
-    return type == TokenType.ID || type == TokenType.NUMBER;
-}
-
-private bool isBufferNeed(Token* token)
-{
-    return token && isTypeBufferNeeded(token.type);
-}
-
 void runLexer(string input, Lexer* lexer)
 {
     if (lexer is null)
@@ -246,7 +258,8 @@ void runLexer(string input, Lexer* lexer)
     {
         const type = getTokenTypeByChar(ch);
 
-        if(isPartParsed && isBufferNeed(token) && !isTypeBufferNeeded(type)){
+        if (isPartParsed && isBufferNeed(token) && !isTypeBufferNeeded(type))
+        {
             flushTokenBuffer(token, tokenBuffer);
             isPartParsed = false;
         }
@@ -265,11 +278,32 @@ void runLexer(string input, Lexer* lexer)
             break;
         case TokenType.WHITESPACE:
             break;
-        case TokenType.MINUS:
-            token = createToken(TokenType.MINUS, token);
+        case TokenType.STAR:
+            token = createToken(TokenType.STAR, token);
+            break;
+        case TokenType.CARET:
+            token = createToken(TokenType.CARET, token);
+            break;
+        case TokenType.SLASH:
+            token = createToken(TokenType.SLASH, token);
+            break;
+        case TokenType.PERCENT:
+            token = createToken(TokenType.PERCENT, token);
             break;
         case TokenType.PLUS:
             token = createToken(TokenType.PLUS, token);
+            break;
+        case TokenType.MINUS:
+            token = createToken(TokenType.MINUS, token);
+            break;
+        case TokenType.EQL:
+            token = createToken(TokenType.EQL, token);
+            break;
+        case TokenType.LPAREN:
+            token = createToken(TokenType.LPAREN, token);
+            break;
+        case TokenType.RPAREN:
+            token = createToken(TokenType.RPAREN, token);
             break;
         default:
         }

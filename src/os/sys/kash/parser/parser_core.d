@@ -1,24 +1,28 @@
 /**
  * Authors: initkfs
  */
-module os.sys.kash.parser;
+module os.sys.kash.parser.parser_core;
 
 import os.sys.kash.lexer;
 
 import std.traits;
+import os.std.errors;
 
 private
 {
     alias Strings = os.std.text.strings;
     alias Allocator = os.core.mem.allocator;
     alias Ascii = os.std.text.ascii;
+    alias NumberOperationParser = os.sys.kash.parser.number_operation_parser;
 }
 
 enum AstNodeType
 {
+    VARIABLE_ASSIGNMENT,
     COMMAND_EXECUTE,
     NUMBER_OPERATION,
     CONSTANT,
+    VARIABLE,
 }
 
 struct AstNode
@@ -36,6 +40,26 @@ struct AstNodeValue
     TokenType type;
     size_t length;
     ubyte[0] data;
+}
+
+err runParser(Lexer* lexer, ref AstNode* resultNode)
+{
+    if (!lexer.root)
+    {
+        return error("Lexer root node is null");
+    }
+
+    auto token = lexer.root;
+    err operationErr;
+    if (NumberOperationParser.isNumberOperation(token))
+    {
+        operationErr = NumberOperationParser.parseNumberOperationExpression(token, resultNode);
+    }
+    else if (token.type == TokenType.ID && token.next is null)
+    {
+        operationErr = parseCommandExecuteExpression(token, resultNode);
+    }
+    return operationErr;
 }
 
 AstNode* createEmptyNode(AstNodeType type)
@@ -108,16 +132,6 @@ bool isNext(Token* token)
     return token && token.next;
 }
 
-bool isNumberOperation(Token* token)
-{
-    if (!token)
-    {
-        return false;
-    }
-
-    return token.type == TokenType.PLUS;
-}
-
 T getNodeValue(T)(AstNode* node)
 {
     if (!node.value || !node.value.data.ptr)
@@ -145,25 +159,6 @@ T getNodeValue(T)(AstNode* node)
     }
 }
 
-AstNode* runParser(Lexer* lexer)
-{
-    if (!lexer.root)
-    {
-        return null;
-    }
-
-    auto token = lexer.root;
-    if (token.type == TokenType.NUMBER && isNext(token) && isNumberOperation(token.next))
-    {
-        return parseNumberOperationExpression(token);
-    }
-    else if (token.type == TokenType.ID && token.next is null)
-    {
-        return parseCommandExecuteExpression(token);
-    }
-    return null;
-}
-
 void deleteAstNode(AstNode* node)
 {
     if (node is null)
@@ -182,27 +177,14 @@ void deleteAstNode(AstNode* node)
     Allocator.free(cast(size_t*) node);
 }
 
-AstNode* parseNumberOperationExpression(Token* token)
-{
-    auto leftNode = createAstNode(token, AstNodeType.CONSTANT);
-
-    auto operatorToken = token.next;
-    auto operatorNode = createAstNode(operatorToken, AstNodeType.NUMBER_OPERATION);
-
-    auto rightNode = createAstNode(operatorToken.next, AstNodeType.CONSTANT);
-
-    operatorNode.left = leftNode;
-    operatorNode.right = rightNode;
-    return operatorNode;
-}
-
-AstNode* parseCommandExecuteExpression(Token* token)
+err parseCommandExecuteExpression(Token* token, ref AstNode* node)
 {
     auto execNode = createEmptyNode(AstNodeType.COMMAND_EXECUTE);
     auto leftNode = createAstNode(token, AstNodeType.CONSTANT);
     execNode.left = leftNode;
     //TODO args
-    return execNode;
+    node = execNode;
+    return null;
 }
 
 unittest
@@ -221,11 +203,13 @@ unittest
 
     runLexer(input, lexer);
 
-    auto node = runParser(lexer);
+    AstNode* node;
+    const parserErr = runParser(lexer, node);
     scope (exit)
     {
         deleteAstNode(node);
     }
+    kassert(parserErr is null);
     kassert(node !is null);
     kassert(node.type == AstNodeType.NUMBER_OPERATION);
     kassert(node.token.type == TokenType.PLUS);
