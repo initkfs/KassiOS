@@ -27,7 +27,6 @@ private struct MapNodeList
 
 private struct MapNode
 {
-	size_t key;
 	MapNode* next;
 	MapNodeData* data;
 	size_t length;
@@ -40,12 +39,31 @@ private struct MapNodeData
 	size_t[0] data;
 }
 
-void insertMapNode(MapNodeList* list, MapNode* node)
+private string getMapNodeKey(MapNode* node)
 {
-	const size_t key = node.key;
+	if (node is null || node.length == 0)
+	{
+		return "";
+	}
+	return cast(string) node.name[0 .. node.length];
+}
+
+private err insertMapNode(MapNodeList* list, MapNode* node)
+{
+	if (node is null)
+	{
+		return error("Unable to insert hashmap node: node is null");
+	}
+
+	const string key = getMapNodeKey(node);
+	if (Strings.isBlank(key))
+	{
+		return error("Unable to insert hashmap node: node key is empty or null");
+	}
+
 	MapNode* previous = null;
 	MapNode* current = list.first;
-	while (current !is null && key > current.key)
+	while (current !is null && Strings.compare(key, getMapNodeKey(current)) == 1)
 	{
 		previous = current;
 		current = current.next;
@@ -61,6 +79,7 @@ void insertMapNode(MapNodeList* list, MapNode* node)
 	}
 
 	node.next = current;
+	return null;
 }
 
 private void freeMapNode(MapNode* node)
@@ -88,11 +107,16 @@ private void freeMapNodes(MapNodeList* list)
 	}
 }
 
-void deleteMapNode(MapNodeList* list, size_t key)
+private err removeMapNode(MapNodeList* list, string key)
 {
+	if (Strings.isBlank(key))
+	{
+		return error("Unable to remove hashmap node: key is empty or null");
+	}
+
 	MapNode* previous = null;
 	MapNode* current = list.first;
-	while (current !is null && key != current.key)
+	while (current !is null && !Strings.isEquals(key, getMapNodeKey(current)))
 	{
 		previous = current;
 		current = current.next;
@@ -110,18 +134,32 @@ void deleteMapNode(MapNodeList* list, size_t key)
 		forDelete = current;
 	}
 
-	if (forDelete && forDelete.key == key)
+	if (forDelete is null)
 	{
-		freeMapNode(forDelete);
+		return error("Unable to remove hashmap node: node is null");
 	}
+
+	if (!Strings.isEquals(getMapNodeKey(forDelete), key))
+	{
+		return error("Unable to remove hashmap node: node keys are not equal");
+	}
+
+	freeMapNode(forDelete);
+	return null;
 }
 
-MapNode* findMapNode(MapNodeList* list, size_t key)
+private MapNode* findMapNode(MapNodeList* list, string key)
 {
-	MapNode* current = list.first;
-	while (current !is null && current.key <= key)
+	if (Strings.isBlank(key))
 	{
-		if (current.key == key)
+		return null;
+	}
+
+	MapNode* current = list.first;
+	while (current !is null && (Strings.isEquals(getMapNodeKey(current), key)
+			|| Strings.compare(getMapNodeKey(current), key) == -1))
+	{
+		if (Strings.isEquals(getMapNodeKey(current), key) && getMapNodeKey(current).length != 0)
 		{
 			return current;
 		}
@@ -130,13 +168,13 @@ MapNode* findMapNode(MapNodeList* list, size_t key)
 	return null;
 }
 
-HashMap* initHashMap(size_t size = 16)
+HashMap* initHashMap(size_t initCapacity = 16)
 {
 	auto map = cast(HashMap*) Allocator.alloc(HashMap.sizeof);
 
-	map.nodes = List.initList!MapNodeList(size);
+	map.nodes = List.initList!MapNodeList(initCapacity);
 
-	foreach (i; 0 .. size)
+	foreach (i; 0 .. initCapacity)
 	{
 		auto s = cast(MapNodeList*) Allocator.alloc(MapNodeList.sizeof);
 		s.first = null;
@@ -174,8 +212,29 @@ private size_t hashKey(HashMap* map, string key)
 	return hash;
 }
 
-void put(T)(HashMap* map, const string key, T value)
+err put(T)(HashMap* map, const string key, T value)
 {
+	if (Strings.isBlank(key))
+	{
+		return error("Unable to insert into map: key must not be empty");
+	}
+
+	static if (isPointer!T)
+	{
+		if (value is null)
+		{
+			return error("Unable to insert into map: value pointer must not be null");
+		}
+	}
+
+	static if (is(T == string))
+	{
+		if (value is null)
+		{
+			return error("Unable to insert into map: string value must not be null");
+		}
+	}
+
 	auto node = cast(MapNode*) Allocator.alloc(MapNode.sizeof + key.length);
 	node.next = null;
 	node.data = null;
@@ -213,55 +272,76 @@ void put(T)(HashMap* map, const string key, T value)
 	node.data = dataNode;
 
 	const size_t hash = hashKey(map, key);
-	node.key = hash;
 
 	MapNodeList* nodeList;
 	List.get!(MapNodeList*)(map.nodes, hash, nodeList);
-	if (nodeList !is null)
+	if (nodeList is null)
 	{
-		insertMapNode(nodeList, node);
-		map.size++;
+		return error("Unable to insert into map: not found node list by key hash");
 	}
 
+	const insertErr = insertMapNode(nodeList, node);
+	if (insertErr)
+	{
+		return insertErr;
+	}
+	map.size++;
+	return null;
 }
 
-void remove(HashMap* map, string key)
+err remove(HashMap* map, string key)
 {
+	if (Strings.isBlank(key))
+	{
+		return error("Unable to remove from map: key must not be empty");
+	}
+
 	const hash = hashKey(map, key);
 	MapNodeList* nodeList;
 	List.get!(MapNodeList*)(map.nodes, hash, nodeList);
 	if (nodeList is null)
 	{
-		return;
+		return error("Unable to remove from map: not found node list by key hash");
 	}
-	deleteMapNode(nodeList, hash);
+
+	const removeErr = removeMapNode(nodeList, key);
+	return removeErr;
 }
 
-bool containsKey(HashMap* map, string key){
-	const hash = hashKey(map, key);
-	MapNodeList* nodeList;
-	List.get!(MapNodeList*)(map.nodes, hash, nodeList);
-	return nodeList !is null;
-}
-
-MapNode* get(T)(HashMap* map, string key, ref T value)
+bool containsKey(HashMap* map, string key)
 {
 	const hash = hashKey(map, key);
-
+	if (hash >= map.nodes.length)
+	{
+		return false;
+	}
 	MapNodeList* nodeList;
 	List.get!(MapNodeList*)(map.nodes, hash, nodeList);
-	if (!nodeList)
+	if (nodeList is null)
 	{
-		return null;
+		return false;
+	}
+	auto node = findMapNode(nodeList, key);
+	return node !is null;
+}
+
+private err getNodeValue(T)(MapNode* node, ref T value)
+{
+	if (node is null)
+	{
+		return error("Unable to get value from node: node is null");
 	}
 
-	MapNode* node = findMapNode(nodeList, hash);
 	MapNodeData* dataNode = node.data;
+	if (!dataNode)
+	{
+		return error("Unable to get value from node: data is null");
+	}
 
 	static if (is(T == char*))
 	{
 		auto dataPtr = cast(char*) dataNode.data;
-		string s = cast(string) dataPtr[0..dataNode.length];
+		string s = cast(string) dataPtr[0 .. dataNode.length];
 		value = Strings.toStringz(s);
 	}
 	else
@@ -269,26 +349,119 @@ MapNode* get(T)(HashMap* map, string key, ref T value)
 		T data = cast(T)*dataNode.data.ptr;
 		value = data;
 	}
+	return null;
+}
 
-	return node;
+err get(T)(HashMap* map, string key, ref T value)
+{
+	if (Strings.isBlank(key))
+	{
+		return error("Unable to get value from map: key must not be empty");
+	}
+
+	const hash = hashKey(map, key);
+
+	MapNodeList* nodeList;
+	List.get!(MapNodeList*)(map.nodes, hash, nodeList);
+	if (!nodeList)
+	{
+		return error("Unable to get value from map: not found node list by key");
+	}
+
+	MapNode* node = findMapNode(nodeList, key);
+	if (node is null)
+	{
+		return error("Unable to get value from map: not found node by key");
+	}
+
+	T nodeValue;
+	const valueErr = getNodeValue!T(node, nodeValue);
+	if (valueErr)
+	{
+		return valueErr;
+	}
+
+	value = nodeValue;
+
+	return null;
+}
+
+//TODO iterator
+err byKeyValue(T)(HashMap* map, void delegate(string key, T value) onValue)
+{
+	foreach (i; 0 .. map.nodes.length)
+	{
+		MapNodeList* nodeList;
+		const getErr = List.get!(MapNodeList*)(map.nodes, i, nodeList);
+		if (getErr)
+		{
+			return getErr;
+		}
+
+		if (nodeList is null)
+		{
+			return error("Unable to iterate map: node list is null");
+		}
+
+		MapNode* current = list.first;
+		while (current !is null)
+		{
+			string key = getMapNodeKey(current);
+			T value;
+			const valueErr = getNodeValue(current);
+			if (valueErr)
+			{
+				return valueErr;
+			}
+			onValue(key, value);
+			current = current.next;
+		}
+	}
 }
 
 unittest
 {
-
 	import os.std.asserts : kassert;
-	import os.std.io.kstdio;
-	import os.std.text.strings;
 
-	auto map = initHashMap;
+	auto map = initHashMap(2);
 	const string key1 = "foo";
-	const string value1 = "hello world";
-	put!string(map, key1, value1);
+	const string value1 = "bar";
+	const putErr1 = put!string(map, key1, value1);
+	kassert(putErr1 is null);
+	kassert(containsKey(map, key1));
+	kassert(map.size == 1);
 
-	char* val;
-	get!(char*)(map, key1, val);
-	kassert(Strings.isEqualz(value1.ptr, val));
-	Allocator.free(val);
+	char* val1;
+	const getErr1 = get!(char*)(map, key1, val1);
+	kassert(getErr1 is null);
+	kassert(Strings.isEqualz(value1.ptr, val1));
+	Allocator.free(val1);
+
+	const string key2 = "bar";
+	const string value2 = "baz";
+	const putErr2 = put!string(map, key2, value2);
+	kassert(putErr2 is null);
+	kassert(containsKey(map, key2));
+	kassert(map.size == 2);
+
+	char* val2;
+	const getErr2 = get!(char*)(map, key2, val2);
+	kassert(getErr2 is null);
+	kassert(Strings.isEqualz(value2.ptr, val2));
+	Allocator.free(val2);
+
+	const string key3 = "fob";
+	const string value3 = "bab";
+	const putErr3 = put!string(map, key3, value3);
+	kassert(putErr3 is null);
+	kassert(containsKey(map, key3));
+	kassert(map.size == 3);
+
+	char* val3;
+	const getErr3 = get!(char*)(map, key3, val3);
+	kassert(getErr3 is null);
+	kassert(Strings.isEqualz(value3.ptr, val3));
+	Allocator.free(val3);
 
 	free(map);
 }

@@ -14,6 +14,7 @@ private
 {
     alias Allocator = os.core.mem.allocator;
     alias Ascii = os.std.text.ascii;
+    alias MathCore = os.std.math.math_core;
     alias MathStrict = os.std.math.math_strict;
 }
 
@@ -1089,6 +1090,29 @@ unittest
     kassert(isEquals(trim("foo "), "foo"));
     kassert(isEquals(trim("  foo   "), "foo"));
     kassert(isEquals(trim(" \n\tfoo \n"), "foo"));
+}
+
+int compare(string s1, string s2)
+{
+    const size_t length = MathCore.min(s1.length, s2.length);
+    foreach (i; 0 .. length)
+    {
+        if (s1[i] != s2[i])
+        {
+            return s1[i] < s2[i] ? -1 : 1;
+        }
+    }
+    return 0;
+}
+
+unittest
+{
+    import os.std.asserts : kassert;
+
+    kassert(compare("aa", "aa") == 0);
+    kassert(compare("ab", "aa") == 1);
+    kassert(compare("aa", "ab") == -1);
+    kassert(compare("abaa", "aabb") == 1);
 }
 
 char* format(T)(const string pattern, const T[] args, const char placeholder = '%')
