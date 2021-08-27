@@ -14,14 +14,17 @@ private
     alias Allocator = os.core.mem.allocator;
     alias Ascii = os.std.text.ascii;
     alias NumberOperationParser = os.sys.kash.parser.number_operation_parser;
+    alias VariableOperationParser = os.sys.kash.parser.variable_operation_parser;
+
 }
 
 enum AstNodeType
 {
-    VARIABLE_ASSIGNMENT,
     COMMAND_EXECUTE,
     NUMBER_OPERATION,
     CONSTANT,
+    NUMBER_CONSTANT,
+    VARIABLE_ASSIGNMENT,
     VARIABLE,
 }
 
@@ -54,6 +57,10 @@ err runParser(Lexer* lexer, ref AstNode* resultNode)
     if (NumberOperationParser.isNumberOperation(token))
     {
         operationErr = NumberOperationParser.parseNumberOperationExpression(token, resultNode);
+    }
+    else if (VariableOperationParser.isVarOperation(token))
+    {
+        operationErr = VariableOperationParser.parseVarOperationExpression(token, resultNode);
     }
     else if (token.type == TokenType.ID && token.next is null)
     {
@@ -185,44 +192,4 @@ err parseCommandExecuteExpression(Token* token, ref AstNode* node)
     //TODO args
     node = execNode;
     return null;
-}
-
-unittest
-{
-    import os.std.asserts : kassert;
-    import os.std.io.kstdio;
-    import os.std.text.strings;
-    import os.std.math.math_core;
-
-    const input = "5 + 6";
-    auto lexer = cast(Lexer*) Allocator.alloc(Lexer.sizeof);
-    scope (exit)
-    {
-        deleteLexer(lexer);
-    }
-
-    runLexer(input, lexer);
-
-    AstNode* node;
-    const parserErr = runParser(lexer, node);
-    scope (exit)
-    {
-        deleteAstNode(node);
-    }
-    kassert(parserErr is null);
-    kassert(node !is null);
-    kassert(node.type == AstNodeType.NUMBER_OPERATION);
-    kassert(node.token.type == TokenType.PLUS);
-
-    kassert(node.left !is null);
-    kassert(node.left.type == AstNodeType.CONSTANT);
-
-    auto leftValue = getNodeValue!double(node.left);
-    //TODO check random panic
-    kassert(isEquals(leftValue, 5.0));
-
-    kassert(node.right !is null);
-    kassert(node.right.type == AstNodeType.CONSTANT);
-    auto rightValue = getNodeValue!double(node.right);
-    kassert(isEquals(rightValue, 6.0));
 }

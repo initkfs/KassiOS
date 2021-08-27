@@ -44,11 +44,11 @@ enum TokenType
 
 struct Token
 {
-    char* data;
+    Token* next;
     size_t length;
     TokenType type;
     bool isInit;
-    Token* next;
+    char* data;
 }
 
 struct Lexer
@@ -135,6 +135,14 @@ Token* createToken(TokenType type, Token* prev)
 {
     auto token = createToken(type);
     prev.next = token;
+    return token;
+}
+
+Token* createToken(TokenType type, Token* prev, char value)
+{
+    auto token = createToken(type, prev);
+    initToken(token, 1);
+    *token.data = value;
     return token;
 }
 
@@ -264,6 +272,7 @@ void runLexer(string input, Lexer* lexer)
             isPartParsed = false;
         }
 
+        //TODO remove code duplication
         switch (type)
         {
         case TokenType.ID:
@@ -279,31 +288,31 @@ void runLexer(string input, Lexer* lexer)
         case TokenType.WHITESPACE:
             break;
         case TokenType.STAR:
-            token = createToken(TokenType.STAR, token);
+            token = createToken(TokenType.STAR, token, ch);
             break;
         case TokenType.CARET:
-            token = createToken(TokenType.CARET, token);
+            token = createToken(TokenType.CARET, token, ch);
             break;
         case TokenType.SLASH:
-            token = createToken(TokenType.SLASH, token);
+            token = createToken(TokenType.SLASH, token, ch);
             break;
         case TokenType.PERCENT:
-            token = createToken(TokenType.PERCENT, token);
+            token = createToken(TokenType.PERCENT, token, ch);
             break;
         case TokenType.PLUS:
-            token = createToken(TokenType.PLUS, token);
+            token = createToken(TokenType.PLUS, token, ch);
             break;
         case TokenType.MINUS:
-            token = createToken(TokenType.MINUS, token);
+            token = createToken(TokenType.MINUS, token, ch);
             break;
         case TokenType.EQL:
-            token = createToken(TokenType.EQL, token);
+            token = createToken(TokenType.EQL, token, ch);
             break;
         case TokenType.LPAREN:
-            token = createToken(TokenType.LPAREN, token);
+            token = createToken(TokenType.LPAREN, token, ch);
             break;
         case TokenType.RPAREN:
-            token = createToken(TokenType.RPAREN, token);
+            token = createToken(TokenType.RPAREN, token, ch);
             break;
         default:
         }

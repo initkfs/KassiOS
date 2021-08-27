@@ -346,7 +346,8 @@ private err getNodeValue(T)(MapNode* node, ref T value)
 	}
 	else
 	{
-		T data = cast(T)*dataNode.data.ptr;
+		T* dataPtr = cast(T*) dataNode.data.ptr;
+		T data = cast(T)*dataPtr;
 		value = data;
 	}
 	return null;
@@ -422,6 +423,7 @@ err byKeyValue(T)(HashMap* map, void delegate(string key, T value) onValue)
 unittest
 {
 	import os.std.asserts : kassert;
+	import os.std.math.math_core : isEquals;
 
 	auto map = initHashMap(2);
 	const string key1 = "foo";
@@ -451,17 +453,16 @@ unittest
 	Allocator.free(val2);
 
 	const string key3 = "fob";
-	const string value3 = "bab";
-	const putErr3 = put!string(map, key3, value3);
+	const double value3 = 4.55;
+	const putErr3 = put!double(map, key3, value3);
 	kassert(putErr3 is null);
 	kassert(containsKey(map, key3));
 	kassert(map.size == 3);
 
-	char* val3;
-	const getErr3 = get!(char*)(map, key3, val3);
+	double val3;
+	const getErr3 = get!(double)(map, key3, val3);
 	kassert(getErr3 is null);
-	kassert(Strings.isEqualz(value3.ptr, val3));
-	Allocator.free(val3);
+	kassert(isEquals(value3, val3));
 
 	free(map);
 }

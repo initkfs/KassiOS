@@ -52,6 +52,7 @@ private
     alias KashLexer = os.sys.kash.lexer;
     alias KashParser = os.sys.kash.parser.parser_core;
     alias KashExecutor = os.sys.kash.executor.executor_core;
+    alias KashNumberExecutor = os.sys.kash.executor.number_expression_executor;
     alias KashShell = os.sys.kash.shell;
     alias Terminal = os.sys.term;
 }
@@ -166,6 +167,7 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
     Tests.runTest!(KashExecutor);
     Tests.runTest!(Units);
     Tests.runTest!(Bits);
+    Tests.runTest!(KashNumberExecutor);
 
     CoreConfig.setLogGeneratedErrors(true);
 

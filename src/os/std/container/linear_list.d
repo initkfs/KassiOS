@@ -98,7 +98,7 @@ err pop(T)(LinearList* list, ref T value)
 {
 	if (isEmpty(list))
 	{
-		return error("Cannot pop from list. Stack is empty");
+		return error("Cannot pop from list. List is empty");
 	}
 
 	size_t last;
@@ -114,12 +114,7 @@ err pop(T)(LinearList* list, ref T value)
 		return valueError;
 	}
 
-	auto removeError = removeAt!T(list, last);
-	if (removeError)
-	{
-		return removeError;
-	}
-
+	list.length--;
 	return null;
 }
 
