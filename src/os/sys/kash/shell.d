@@ -19,9 +19,13 @@ private
     alias Exit = os.sys.system.exit;
     alias Clear = os.sys.system.clear;
     alias Free = os.sys.system.free;
+    alias Mount = os.sys.fs.mount;
+    alias Unmount = os.sys.fs.unmount;
+    alias Mkfile = os.sys.fs.mkfile;
+    alias Ls = os.sys.fs.ls;
 
     //TODO replace with List
-    public __gshared ShellCommand[3] shellCommands;
+    public __gshared ShellCommand[7] shellCommands;
 }
 
 alias ShellCommandAction = int function(string args, ref char* outResult, ref char* inResult);
@@ -48,9 +52,14 @@ void init()
     shellCommands[0] = ShellCommand("exit", "Immediate shutdown", &Exit.run);
     shellCommands[1] = ShellCommand("clear", "Clear screen", &Clear.run);
     shellCommands[2] = ShellCommand("free", "Print memory info", &Free.run);
+    shellCommands[3] = ShellCommand("mount", "Mount root filesystem", &Mount.run);
+    shellCommands[4] = ShellCommand("unmount", "Unmount filesystem and delete all files", &Unmount.run);
+    shellCommands[5] = ShellCommand("mkfile", "Create empty file", &Mkfile.run);
+    shellCommands[6] = ShellCommand("ls", "Print list files", &Ls.run);
 }
 
-int lastCode(){
+int lastCode()
+{
     return KashExecutor.lastResult;
 }
 
@@ -71,7 +80,8 @@ int run(string input, ref char* outResult, ref char* errResult)
         KashParser.deleteAstNode(node);
     }
 
-    if(parserErr){
+    if (parserErr)
+    {
         errResult = Strings.toStringz(parserErr);
     }
 
