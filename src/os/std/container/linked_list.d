@@ -71,7 +71,7 @@ void freeListItem(ListItem* item)
 private void freeItems(ListItem* startItem)
 {
 	ListItem* item = startItem;
-	while (item !is null)
+	while (item)
 	{
 		auto forDelete = item;
 		item = item.next;
@@ -323,6 +323,22 @@ ListItem* peekFirst(LinkedList* list)
 ListItem* peekLast(LinkedList* list)
 {
 	return list.last;
+}
+
+ListItem* findItem(LinkedList* list, string key){
+	if(!list || isEmpty(list)){
+		return null;
+	}
+	ListItem* current = list.first;
+	while (current)
+    {
+        if (Strings.isEquals(getItemKey(current), key))
+        {
+            return current;
+        }
+        current = current.next;
+    }
+	return null;
 }
 
 unittest

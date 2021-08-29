@@ -11,30 +11,30 @@ private
 {
     alias Strings = os.std.text.strings;
     alias MathCore = os.std.math.math_core;
-    alias Map = os.std.container.hash_map;
+    alias List = os.std.container.linked_list;
 
-    __gshared Map.HashMap* varMap;
+    __gshared List.LinkedList* varList;
 }
 
 bool hasVar(string varName)
 {
-    if (!varMap)
+    if (!varList)
     {
         return false;
     }
-    return Map.containsKey(varMap, varName);
+
+    return List.findItem(varList, varName) !is null;
 }
 
 T getVarValue(T)(string varName)
 {
-    if (!hasVar(varName))
+    auto item = List.findItem(varList, varName);
+    if (!item)
     {
         return T.init;
     }
-    //TODO check errors
-    T value;
-    Map.get!double(varMap, varName, value);
-
+    //TODO check invalid types
+    T value = cast(T) List.getItemData!T(item);
     return value;
 }
 
@@ -48,13 +48,14 @@ err execute(AstNode* node, ref char* result)
         if (valueNode.type == AstNodeType.NUMBER_CONSTANT)
         {
             string valueStr = getTokenData(valueNode.token);
-            double value = MathCore.parseDouble(valueStr);
+            const double value = MathCore.parseDouble(valueStr);
 
-            if (!varMap)
+            if (!varList)
             {
-                varMap = Map.initHashMap(10);
+                varList = List.createList;
             }
-            Map.put!double(varMap, varName, value);
+
+            List.addLast!double(varList, value, varName);
             string[2] varArgs = [varName, valueStr];
             result = Strings.format("%s = %s", varArgs);
         }
