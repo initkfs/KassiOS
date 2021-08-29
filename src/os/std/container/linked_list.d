@@ -22,10 +22,17 @@ enum ListItemType
 	BYTE
 }
 
+struct ListItemKey
+{
+	size_t length;
+	char[0] name;
+}
+
 struct ListItem
 {
 	ListItem* next;
 	ListItem* previous;
+	ListItemKey* key;
 	ListItemType type;
 	size_t length;
 	size_t[0] data;
@@ -52,14 +59,23 @@ LinkedList* createList()
 	return list;
 }
 
-void freeItems(ListItem* startItem)
+void freeListItem(ListItem* item)
+{
+	if (item.key)
+	{
+		Allocator.free(item.key);
+	}
+	Allocator.free(item);
+}
+
+private void freeItems(ListItem* startItem)
 {
 	ListItem* item = startItem;
 	while (item !is null)
 	{
 		auto forDelete = item;
 		item = item.next;
-		Allocator.free(forDelete);
+		freeListItem(forDelete);
 	}
 }
 
@@ -75,6 +91,17 @@ void clear(LinkedList* list)
 	list.size = 0;
 	list.first = null;
 	list.last = null;
+}
+
+string getItemKey(ListItem* item)
+{
+	if (!item.key || item.key.length == 0)
+	{
+		return "";
+	}
+
+	string key = cast(string) item.key.name.ptr[0 .. (item.key.length)];
+	return key;
 }
 
 T getItemData(T)(ListItem* item)
@@ -103,7 +130,7 @@ T getItemData(T)(ListItem* item)
 
 }
 
-private ListItem* createItem(T)(T data)
+private ListItem* createItem(T)(T data, string key = null)
 {
 	auto type = ListItemType.UNDEFINED;
 	auto size = data.sizeof;
@@ -129,6 +156,7 @@ private ListItem* createItem(T)(T data)
 	auto item = cast(ListItem*) Allocator.alloc(ListItem.sizeof + size);
 	item.next = null;
 	item.previous = null;
+	item.key = null;
 	item.type = type;
 	item.length = size;
 
@@ -145,12 +173,26 @@ private ListItem* createItem(T)(T data)
 		T* ptr = cast(T*) item.data.ptr;
 		*ptr = data;
 	}
+
+	if (!Strings.isBlank(key))
+	{
+		const keyLength = key.length;
+		auto itemKey = cast(ListItemKey*) Allocator.alloc(ListItemKey.sizeof + keyLength);
+		itemKey.length = keyLength;
+		foreach (i, ch; key)
+		{
+			Allocator.set(itemKey.name.ptr, ch, cast(size_t*) itemKey, i);
+		}
+
+		item.key = itemKey;
+	}
+
 	return item;
 }
 
-ListItem* addFirst(T)(LinkedList* list, T data)
+ListItem* addFirst(T)(LinkedList* list, T data, string key = null)
 {
-	auto item = createItem!T(data);
+	auto item = createItem!T(data, key);
 
 	if (isEmpty(list))
 	{
@@ -167,9 +209,9 @@ ListItem* addFirst(T)(LinkedList* list, T data)
 	return item;
 }
 
-ListItem* addLast(T)(LinkedList* list, T data)
+ListItem* addLast(T)(LinkedList* list, T data, string key = null)
 {
-	auto item = createItem!T(data);
+	auto item = createItem!T(data, key);
 
 	if (isEmpty(list))
 	{
@@ -186,6 +228,49 @@ ListItem* addLast(T)(LinkedList* list, T data)
 	}
 
 	list.last = item;
+	list.size++;
+	return item;
+}
+
+ListItem* add(T)(LinkedList* list, T data, size_t index, string key = null)
+{
+	if (index > list.size)
+	{
+		return null;
+	}
+
+	if (index == 0)
+	{
+		return addFirst!T(list, data);
+	}
+
+	if (index == list.size)
+	{
+		return addLast!T(list, data);
+	}
+
+	ListItem* item = createItem!T(data, key);
+	ListItem* previous = list.first;
+	size_t currentIndex = 1;
+	while (previous !is null && currentIndex < index)
+	{
+		currentIndex++;
+		previous = previous.next;
+	}
+
+	if (previous is null)
+	{
+		return null;
+	}
+
+	if (previous.next)
+	{
+		previous.next.previous = item;
+	}
+
+	item.next = previous.next;
+	item.previous = previous;
+	previous.next = item;
 	list.size++;
 	return item;
 }
@@ -240,50 +325,6 @@ ListItem* peekLast(LinkedList* list)
 	return list.last;
 }
 
-ListItem* addByIndex(T)(LinkedList* list, size_t index, T data)
-{
-
-	if (index > list.size)
-	{
-		return null;
-	}
-
-	if (index == 0)
-	{
-		return addFirst!T(list, data);
-	}
-
-	if (index == list.size)
-	{
-		return addLast!T(list, data);
-	}
-
-	ListItem* item = createItem!T(data);
-	ListItem* previous = list.first;
-	size_t currentIndex = 1;
-	while (previous !is null && currentIndex < index)
-	{
-		currentIndex++;
-		previous = previous.next;
-	}
-
-	if (previous is null)
-	{
-		return null;
-	}
-
-	if (previous.next)
-	{
-		previous.next.previous = item;
-	}
-
-	item.next = previous.next;
-	item.previous = previous;
-	previous.next = item;
-	list.size++;
-	return item;
-}
-
 unittest
 {
 	import os.std.asserts : kassert;
@@ -291,16 +332,18 @@ unittest
 	auto list = createList;
 
 	string s1 = "foo";
-	auto item = addFirst!string(list, s1);
+	string s1Key = "fooKey";
+	auto item = addFirst!string(list, s1, s1Key);
 	kassert(item !is null);
 	kassert(list.size == 1);
 	kassert(item.type == ListItemType.STRING);
 	kassert(Strings.isEquals(getItemData!string(item), s1));
+	kassert(Strings.isEquals(getItemKey(item), s1Key));
 
 	auto removeItem1 = removeFirst(list);
 	kassert(list.size == 0);
 	kassert(removeItem1 is item);
-	Allocator.free(removeItem1);
+	freeListItem(removeItem1);
 
 	string s2 = "bar";
 	addFirst!string(list, s2);
@@ -320,7 +363,7 @@ unittest
 	kassert(list.last is secondItem);
 
 	string s3 = "baz";
-	auto itemIndex1 = addByIndex!string(list, 1, s3);
+	auto itemIndex1 = add!string(list, s3, 1);
 	kassert(itemIndex1 !is null);
 	kassert(list.size == 3);
 	kassert(itemIndex1.previous is firstItem);
