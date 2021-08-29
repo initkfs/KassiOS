@@ -16,14 +16,20 @@ private
     __gshared List.LinkedList* varList;
 }
 
-bool hasVar(string varName)
+List.ListItem* hasVar(string varName)
 {
     if (!varList)
     {
-        return false;
+        return null;
     }
 
-    return List.findItem(varList, varName) !is null;
+    auto item = List.findItem(varList, varName);
+    return item;
+}
+
+bool hasVarDouble(string varName){
+    auto item = hasVar(varName);
+    return item !is null && item.type == List.ListItemType.FLOATING;
 }
 
 T getVarValue(T)(string varName)

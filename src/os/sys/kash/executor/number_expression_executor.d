@@ -6,12 +6,12 @@ module os.sys.kash.executor.number_expression_executor;
 import os.sys.kash.lexer;
 import os.sys.kash.parser.parser_core;
 import os.std.errors;
-import os.std.container.array_list;
 
 private
 {
     alias Strings = os.std.text.strings;
     alias Allocator = os.core.mem.allocator;
+    alias List = os.std.container.linked_list;
     alias Ascii = os.std.text.ascii;
     alias Kstdio = os.std.io.kstdio;
     alias MathCore = os.std.math.math_core;
@@ -38,12 +38,12 @@ private
 //TODO ingeter
 err execute(AstNode* node, ref double result)
 {
-    auto digitsStack = ArrayList!double(8);
-    auto operatorsStack = ArrayList!char(8);
+    List.LinkedList* digitsStack = List.createList;
+    List.LinkedList* operatorsStack = List.createList;
     scope (exit)
     {
-        digitsStack.free;
-        operatorsStack.free;
+        List.free(digitsStack);
+        List.free(operatorsStack);
     }
 
     Token* currentToken = node.token;
@@ -56,99 +56,91 @@ err execute(AstNode* node, ref double result)
 
             if (expressionChar == Operators.leftParenthesis)
             {
-                auto pushError = operatorsStack.push(Operators.leftParenthesis);
-                if (pushError)
-                {
-                    return pushError;
-                }
+                List.addLast!char(operatorsStack, Operators.leftParenthesis);
             }
             else if (expressionChar == Operators.rightParenthesis)
             {
                 char last;
-                if (!operatorsStack.isEmpty)
+                auto lastItem = List.peekLast(operatorsStack);
+                if (lastItem)
                 {
-                    operatorsStack.last(last);
+                    last = List.getItemData!char(lastItem);
                 }
-
                 while (last != Operators.leftParenthesis)
                 {
                     calculateOperation(digitsStack, operatorsStack);
-                    if (!operatorsStack.isEmpty)
+                    lastItem = List.peekLast(operatorsStack);
+                    if (lastItem)
                     {
-                        operatorsStack.last(last);
+                        last = List.getItemData!char(lastItem);
                     }
                 }
 
-                char popValue;
-                if (!operatorsStack.isEmpty)
+                if (!List.isEmpty(operatorsStack))
                 {
-                    operatorsStack.pop(popValue);
+                    auto item = List.removeLast(operatorsStack);
+                    List.freeListItem(item);
                 }
-
             }
             else if (isOperator(expressionChar))
             {
                 const char currentOperator = expressionChar;
                 char last;
-                if (!operatorsStack.isEmpty)
+                auto lastItem = List.peekLast(operatorsStack);
+                if (lastItem)
                 {
-                    operatorsStack.last(last);
+                    last = List.getItemData!char(lastItem);
                 }
 
-                while (!operatorsStack.isEmpty
+                while (!List.isEmpty(operatorsStack)
                         && operatorPriority(last) >= operatorPriority(expressionChar))
                 {
                     calculateOperation(digitsStack, operatorsStack);
-                    if (!operatorsStack.isEmpty)
+                    lastItem = List.peekLast(operatorsStack);
+                    if (lastItem)
                     {
-                        operatorsStack.last(last);
+                        last = List.getItemData!char(lastItem);
                     }
                 }
-                operatorsStack.push(currentOperator);
+                List.addLast!char(operatorsStack, currentOperator);
             }
         }
         else if (currentToken.type == TokenType.ID)
         {
             string varName = getTokenData(currentToken);
-            if (!VarExecutor.hasVar(varName))
+            if (!VarExecutor.hasVarDouble(varName))
             {
-                return error("Not found variable for number operation");
+                return error("Not found numeric variable for number operation");
             }
-
-            //TODO check type
-            double value = VarExecutor.getVarValue!double(varName);
-            auto digitPushErr = digitsStack.push(value);
-            if (digitPushErr)
-            {
-                return digitPushErr;
-            }
+            
+            const double value = VarExecutor.getVarValue!double(varName);
+            List.addLast!double(digitsStack, value);
         }
         else
         {
             const string valueStr = getTokenData(currentToken);
-            double value = MathCore.parseDouble(valueStr);
-            auto digitPushErr = digitsStack.push(value);
-            if (digitPushErr)
-            {
-                return digitPushErr;
-            }
+            const double value = MathCore.parseDouble(valueStr);
+            List.addLast!double(digitsStack, value);
         }
 
         currentToken = currentToken.next;
     }
 
-    while (!operatorsStack.isEmpty)
+    while (!List.isEmpty(operatorsStack))
     {
         calculateOperation(digitsStack, operatorsStack);
     }
 
-    double resultValue;
-    auto resultErr = digitsStack.pop(resultValue);
-    if (resultErr)
+    auto lastItem = List.removeLast(digitsStack);
+    if (!lastItem)
     {
-        return resultErr;
+        return error("Not found result");
     }
-
+    scope (exit)
+    {
+        List.freeListItem(lastItem);
+    }
+    const double resultValue = List.getItemData!double(lastItem);
     result = resultValue;
     return null;
 }
@@ -182,58 +174,74 @@ private int operatorPriority(char operator) @safe pure nothrow
     return 0;
 }
 
-private err calculateOperation(ref ArrayList!double digitsStack, ref ArrayList!char operatorStack)
+private err calculateOperation(List.LinkedList* digitsStack, List.LinkedList* operatorStack)
 {
-    if (digitsStack.isEmpty)
+    if (List.isEmpty(digitsStack))
     {
         return null;
     }
 
-    char operator;
-    auto operatorErr = operatorStack.pop(operator);
-    if (operatorErr)
+    auto operatorItem = List.removeLast(operatorStack);
+    if (!operatorItem)
     {
-        return operatorErr;
+        return error("Operator not found for calculation");
     }
+    scope (exit)
+    {
+        List.freeListItem(operatorItem);
+    }
+    const char operator = List.getItemData!char(operatorItem);
 
     //first right
-    double rightDigit;
-    auto rError = digitsStack.pop(rightDigit);
-    if (rError)
+    auto rightNumber = List.removeLast(digitsStack);
+    if (!rightNumber)
     {
-        return rError;
+        return error("Right number not found for calculation");
     }
-    double leftDigit;
-    auto lError = digitsStack.pop(leftDigit);
-    if (lError)
+    scope (exit)
     {
-        return lError;
+        List.freeListItem(rightNumber);
     }
+    const double rightValue = List.getItemData!double(rightNumber);
 
+    auto leftNumber = List.removeLast(digitsStack);
+    if (!leftNumber)
+    {
+        return error("Left number not found for calculation");
+    }
+    scope (exit)
+    {
+        List.freeListItem(leftNumber);
+    }
+    const double leftValue = List.getItemData!double(leftNumber);
+
+    double result = double.nan;
     switch (operator)
     {
     case Operators.addition:
-        digitsStack.push(leftDigit + rightDigit);
+        result = leftValue + rightValue;
         break;
     case Operators.subtraction:
-        digitsStack.push(leftDigit - rightDigit);
+        result = leftValue - rightValue;
         break;
     case Operators.multiplication:
-        digitsStack.push(leftDigit * rightDigit);
+        result = leftValue * rightValue;
         break;
     case Operators.division:
-        digitsStack.push(leftDigit / rightDigit);
+        result = leftValue / rightValue;
         break;
     case Operators.divisionRemainder:
-        digitsStack.push(leftDigit % rightDigit);
+        result = leftValue % rightValue;
         break;
     case Operators.exponentiation:
-        long exp = cast(long) rightDigit;
-        digitsStack.push(MathCore.pow(leftDigit, exp));
+        //TODO validate exponent
+        long exp = cast(long) rightValue;
+        result = MathCore.pow(leftValue, exp);
         break;
     default:
-        return null;
     }
+
+    List.addLast!double(digitsStack, result);
 
     return null;
 }
@@ -246,22 +254,22 @@ unittest
     kassert(isOperator('*'));
     kassert(isOperator('%'));
 
-    auto digits = ArrayList!double(8);
-    auto operators = ArrayList!char(8);
+    auto digits = List.createList;
+    auto operators = List.createList;
     scope (exit)
     {
-        digits.free;
-        operators.free;
+        List.free(digits);
+        List.free(operators);
     }
 
-    digits.push(2.45);
-    digits.push(3.3);
-    operators.push('+');
+    List.addLast!double(digits, 2.45);
+    List.addLast!double(digits, 3.3);
+    List.addLast!char(operators, '+');
     auto opErr = calculateOperation(digits, operators);
     kassert(opErr is null);
 
-    double result;
-    auto plusErr = digits.last(result);
-    kassert(plusErr is null);
+    auto lastItem = List.peekLast(digits);
+    kassert(lastItem !is null);
+    const double result = List.getItemData!double(lastItem);
     kassert(MathCore.isEquals(result, 5.75));
 }
