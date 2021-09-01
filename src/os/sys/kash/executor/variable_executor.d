@@ -23,7 +23,7 @@ List.ListItem* hasVar(string varName)
         return null;
     }
 
-    auto item = List.findItem(varList, varName);
+    auto item = varList.findItem(varName);
     return item;
 }
 
@@ -34,13 +34,13 @@ bool hasVarDouble(string varName){
 
 T getVarValue(T)(string varName)
 {
-    auto item = List.findItem(varList, varName);
+    auto item = varList.findItem(varName);
     if (!item)
     {
         return T.init;
     }
     //TODO check invalid types
-    T value = cast(T) List.getItemData!T(item);
+    T value = cast(T) varList.getItemData!T(item);
     return value;
 }
 
@@ -61,7 +61,7 @@ err execute(AstNode* node, ref char* result)
                 varList = List.createList;
             }
 
-            List.addLast!double(varList, value, varName);
+            varList.addLast!double(value, varName);
             string[2] varArgs = [varName, valueStr];
             result = Strings.format("%s = %s", varArgs);
         }

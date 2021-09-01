@@ -56,53 +56,49 @@ err execute(AstNode* node, ref double result)
 
             if (expressionChar == Operators.leftParenthesis)
             {
-                List.addLast!char(operatorsStack, Operators.leftParenthesis);
+                operatorsStack.addLast!char(Operators.leftParenthesis);
             }
             else if (expressionChar == Operators.rightParenthesis)
             {
                 char last;
-                auto lastItem = List.peekLast(operatorsStack);
-                if (lastItem)
+                if (auto lastItem = operatorsStack.peekLast)
                 {
-                    last = List.getItemData!char(lastItem);
+                    last = operatorsStack.getItemData!char(lastItem);
                 }
                 while (last != Operators.leftParenthesis)
                 {
                     calculateOperation(digitsStack, operatorsStack);
-                    lastItem = List.peekLast(operatorsStack);
-                    if (lastItem)
+                    if (auto lastItem = operatorsStack.peekLast)
                     {
-                        last = List.getItemData!char(lastItem);
+                        last = operatorsStack.getItemData!char(lastItem);
                     }
                 }
 
-                if (!List.isEmpty(operatorsStack))
+                if (!operatorsStack.isEmpty)
                 {
-                    auto item = List.removeLast(operatorsStack);
-                    List.freeListItem(item);
+                    auto item = operatorsStack.removeLast;
+                    operatorsStack.freeListItem(item);
                 }
             }
             else if (isOperator(expressionChar))
             {
                 const char currentOperator = expressionChar;
                 char last;
-                auto lastItem = List.peekLast(operatorsStack);
-                if (lastItem)
+                if (auto lastItem = operatorsStack.peekLast)
                 {
-                    last = List.getItemData!char(lastItem);
+                    last = operatorsStack.getItemData!char(lastItem);
                 }
 
-                while (!List.isEmpty(operatorsStack)
+                while (!operatorsStack.isEmpty
                         && operatorPriority(last) >= operatorPriority(expressionChar))
                 {
                     calculateOperation(digitsStack, operatorsStack);
-                    lastItem = List.peekLast(operatorsStack);
-                    if (lastItem)
+                    if (auto lastItem = operatorsStack.peekLast)
                     {
-                        last = List.getItemData!char(lastItem);
+                        last = operatorsStack.getItemData!char(lastItem);
                     }
                 }
-                List.addLast!char(operatorsStack, currentOperator);
+                operatorsStack.addLast!char(currentOperator);
             }
         }
         else if (currentToken.type == TokenType.ID)
@@ -112,35 +108,35 @@ err execute(AstNode* node, ref double result)
             {
                 return error("Not found numeric variable for number operation");
             }
-            
+
             const double value = VarExecutor.getVarValue!double(varName);
-            List.addLast!double(digitsStack, value);
+            digitsStack.addLast!double(value);
         }
         else
         {
             const string valueStr = getTokenData(currentToken);
             const double value = MathCore.parseDouble(valueStr);
-            List.addLast!double(digitsStack, value);
+            digitsStack.addLast!double(value);
         }
 
         currentToken = currentToken.next;
     }
 
-    while (!List.isEmpty(operatorsStack))
+    while (!operatorsStack.isEmpty)
     {
         calculateOperation(digitsStack, operatorsStack);
     }
 
-    auto lastItem = List.removeLast(digitsStack);
+    auto lastItem = digitsStack.removeLast;
     if (!lastItem)
     {
         return error("Not found result");
     }
     scope (exit)
     {
-        List.freeListItem(lastItem);
+        digitsStack.freeListItem(lastItem);
     }
-    const double resultValue = List.getItemData!double(lastItem);
+    const double resultValue = digitsStack.getItemData!double(lastItem);
     result = resultValue;
     return null;
 }
@@ -176,44 +172,44 @@ private int operatorPriority(char operator) @safe pure nothrow
 
 private err calculateOperation(List.LinkedList* digitsStack, List.LinkedList* operatorStack)
 {
-    if (List.isEmpty(digitsStack))
+    if (digitsStack.isEmpty)
     {
         return null;
     }
 
-    auto operatorItem = List.removeLast(operatorStack);
+    auto operatorItem = operatorStack.removeLast;
     if (!operatorItem)
     {
         return error("Operator not found for calculation");
     }
     scope (exit)
     {
-        List.freeListItem(operatorItem);
+        operatorStack.freeListItem(operatorItem);
     }
-    const char operator = List.getItemData!char(operatorItem);
+    const char operator = operatorStack.getItemData!char(operatorItem);
 
     //first right
-    auto rightNumber = List.removeLast(digitsStack);
+    auto rightNumber = digitsStack.removeLast;
     if (!rightNumber)
     {
         return error("Right number not found for calculation");
     }
     scope (exit)
     {
-        List.freeListItem(rightNumber);
+        digitsStack.freeListItem(rightNumber);
     }
-    const double rightValue = List.getItemData!double(rightNumber);
+    const double rightValue = digitsStack.getItemData!double(rightNumber);
 
-    auto leftNumber = List.removeLast(digitsStack);
+    auto leftNumber = digitsStack.removeLast;
     if (!leftNumber)
     {
         return error("Left number not found for calculation");
     }
     scope (exit)
     {
-        List.freeListItem(leftNumber);
+        digitsStack.freeListItem(leftNumber);
     }
-    const double leftValue = List.getItemData!double(leftNumber);
+    const double leftValue = digitsStack.getItemData!double(leftNumber);
 
     double result = double.nan;
     switch (operator)
@@ -241,7 +237,7 @@ private err calculateOperation(List.LinkedList* digitsStack, List.LinkedList* op
     default:
     }
 
-    List.addLast!double(digitsStack, result);
+    digitsStack.addLast!double(result);
 
     return null;
 }
@@ -262,14 +258,14 @@ unittest
         List.free(operators);
     }
 
-    List.addLast!double(digits, 2.45);
-    List.addLast!double(digits, 3.3);
-    List.addLast!char(operators, '+');
+    digits.addLast!double(2.45);
+    digits.addLast!double(3.3);
+    operators.addLast!char('+');
     auto opErr = calculateOperation(digits, operators);
     kassert(opErr is null);
 
-    auto lastItem = List.peekLast(digits);
+    auto lastItem = digits.peekLast;
     kassert(lastItem !is null);
-    const double result = List.getItemData!double(lastItem);
+    const double result = digits.getItemData!double(lastItem);
     kassert(MathCore.isEquals(result, 5.75));
 }
