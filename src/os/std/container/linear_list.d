@@ -18,6 +18,8 @@ struct LinearList
 	size_t capacity;
 	size_t length;
 	size_t[0] data;
+
+	@disable this();
 }
 
 private size_t getListSize(T)(size_t initCapacity)
@@ -78,8 +80,7 @@ err push(T)(ref LinearList* list, T value, bool isFrozenCapacity = false,
 	size_t index;
 	if (list.length > 0)
 	{
-		const lastIndexError = lastIndex(list, index);
-		if (lastIndexError)
+		if (const lastIndexError = lastIndex(list, index))
 		{
 			return lastIndexError;
 		}
@@ -102,14 +103,12 @@ err pop(T)(LinearList* list, ref T value)
 	}
 
 	size_t last;
-	auto lastIndexError = lastIndex(list, last);
-	if (lastIndexError)
+	if (const lastIndexError = lastIndex(list, last))
 	{
 		return lastIndexError;
 	}
 
-	auto valueError = get(list, last, value);
-	if (valueError)
+	if (const valueError = get(list, last, value))
 	{
 		return valueError;
 	}
@@ -126,14 +125,12 @@ private err increaseCapacity(T)(LinearList* list, ref LinearList* newList, size_
 	foreach (i; 0 .. list.length)
 	{
 		T value;
-		const isGetValueError = get(list, i, value);
-		if (isGetValueError)
+		if (const isGetValueError = get(list, i, value))
 		{
 			return isGetValueError;
 		}
 
-		const isSetValueError = push(newList, value);
-		if (isSetValueError)
+		if (const isSetValueError = push(newList, value))
 		{
 			return isSetValueError;
 		}
@@ -197,8 +194,7 @@ err last(T)(LinearList* list, ref T value)
 	}
 
 	size_t index;
-	const lastIndexError = lastIndex(list, index);
-	if (lastIndexError)
+	if (const lastIndexError = lastIndex(list, index))
 	{
 		return lastIndexError;
 	}
@@ -234,47 +230,46 @@ err removeAt(T)(LinearList* list, size_t index)
 	foreach (i; index .. (list.length - 1))
 	{
 		T value;
-		const getNewValueError = get(list, i + 1, value);
-		if (getNewValueError)
+		if (const getNewValueError = get(list, i + 1, value))
 		{
 			return getNewValueError;
 		}
 
-		const setValueError = set(list, i, value);
-		if (setValueError)
+		if (const setValueError = set(list, i, value))
 		{
 			return setValueError;
 		}
 	}
 
 	size_t mustBeLastIndex;
-	
-	const lastIndexError = lastIndex(list, mustBeLastIndex);
-	if (lastIndexError)
+
+	if (const lastIndexError = lastIndex(list, mustBeLastIndex))
 	{
 		return lastIndexError;
 	}
-	
-	const setLastValueError = set(list, mustBeLastIndex, 0);
-	if (setLastValueError)
+
+	if (const setLastValueError = set(list, mustBeLastIndex, 0))
 	{
 		return setLastValueError;
 	}
-	
+
 	list.length--;
-	
+
 	return null;
 }
 
-size_t orMaxIndex(LinearList* list, size_t value){
-	if(list.length == 0){
+size_t orMaxIndex(LinearList* list, size_t value)
+{
+	if (list.length == 0)
+	{
 		return 0;
 	}
 
 	return value < list.length ? value : list.length - 1;
 }
 
-void clear(LinearList* list){
+void clear(LinearList* list)
+{
 	list.length = 0;
 }
 

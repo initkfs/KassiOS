@@ -17,6 +17,8 @@ private
 private struct MapNodeList
 {
 	MapNode* first;
+
+	@disable this();
 }
 
 private struct MapNode
@@ -25,18 +27,24 @@ private struct MapNode
 	MapNodeData* data;
 	size_t length;
 	char[0] name;
+
+	@disable this();
 }
 
 private struct MapNodeData
 {
 	size_t length;
 	size_t[0] data;
+
+	@disable this();
 }
 
 struct HashMap
 {
 	List.LinearList* nodes;
 	size_t size;
+
+	@disable this();
 
 	static HashMap* create(size_t initCapacity = 16)
 	{
@@ -389,8 +397,7 @@ struct HashMap
 		}
 
 		T nodeValue;
-		const valueErr = getNodeValue!T(node, nodeValue);
-		if (valueErr)
+		if (const valueErr = getNodeValue!T(node, nodeValue))
 		{
 			return valueErr;
 		}
@@ -406,8 +413,7 @@ struct HashMap
 		foreach (i; 0 .. nodes.length)
 		{
 			MapNodeList* nodeList;
-			const getErr = List.get!(MapNodeList*)(nodes, i, nodeList);
-			if (getErr)
+			if (const getErr = List.get!(MapNodeList*)(nodes, i, nodeList))
 			{
 				return getErr;
 			}
@@ -422,8 +428,7 @@ struct HashMap
 			{
 				string key = getMapNodeKey(current);
 				T value;
-				const valueErr = getNodeValue(current);
-				if (valueErr)
+				if (const valueErr = getNodeValue(current))
 				{
 					return valueErr;
 				}

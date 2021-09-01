@@ -73,7 +73,8 @@ struct ArrayList(T)
 		return List.removeAt!T(list, index);
 	}
 
-	void clear(){
+	void clear()
+	{
 		List.clear(list);
 	}
 
@@ -84,11 +85,11 @@ struct ArrayList(T)
 		foreach (i; 0 .. list.length)
 		{
 			T value;
-			const getValueError = List.get(list, i, value);
-			if (getValueError)
+			if (const getValueError = List.get(list, i, value))
 			{
 				break;
 			}
+
 			result = dg(value);
 			if (result)
 			{
@@ -152,7 +153,8 @@ unittest
 	kassert(list.length == newSize);
 
 	size_t index;
-	foreach(element; list){
+	foreach (element; list)
+	{
 		kassert(element == index);
 		index++;
 	}

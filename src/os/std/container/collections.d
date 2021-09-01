@@ -49,7 +49,8 @@ void append(ref ArrayList!char list, string str)
 
 void append(ref ArrayList!char list, char* str)
 {
-	import os.std.text.strings: toString;
+	import os.std.text.strings : toString;
+
 	append(list, toString(str));
 }
 
@@ -98,14 +99,12 @@ err copy(T)(ref ArrayList!T src, size_t srcPos, ref ArrayList!T dest, size_t des
 		foreach (i; srcPos .. endPosWithLength)
 		{
 			T value;
-			const srcGetError = src.get(i, value);
-			if (srcGetError)
+			if (const srcGetError = src.get(i, value))
 			{
 				return srcGetError;
 			}
 
-			const destSetError = dest.set(destIndex, value);
-			if (destSetError)
+			if (const destSetError = dest.set(destIndex, value))
 			{
 				return destSetError;
 			}
@@ -125,8 +124,7 @@ err copy(T)(ref ArrayList!T src, size_t srcPos, ref ArrayList!T dest, size_t des
 	foreach (i; srcPos .. endPosWithLength)
 	{
 		T value;
-		const isGetErr = src.get(i, value);
-		if (isGetErr)
+		if (const isGetErr = src.get(i, value))
 		{
 			return isGetErr;
 		}
@@ -137,14 +135,12 @@ err copy(T)(ref ArrayList!T src, size_t srcPos, ref ArrayList!T dest, size_t des
 	for (auto i = 0; i < temp.length; i++)
 	{
 		T value;
-		const tempGetError = temp.get(i, value);
-		if (tempGetError)
+		if (const tempGetError = temp.get(i, value))
 		{
 			return tempGetError;
 		}
 
-		const destSetError = dest.set(destIndex, value);
-		if (destSetError)
+		if (const destSetError = dest.set(destIndex, value))
 		{
 			return destSetError;
 		}

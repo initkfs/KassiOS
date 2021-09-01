@@ -26,6 +26,8 @@ struct ListItemKey
 {
 	size_t length;
 	char[0] name;
+
+	@disable this();
 }
 
 struct ListItem
@@ -36,6 +38,8 @@ struct ListItem
 	ListItemType type;
 	size_t length;
 	size_t[0] data;
+
+	@disable this();
 }
 
 struct LinkedList
@@ -43,6 +47,8 @@ struct LinkedList
 	ListItem* first;
 	ListItem* last;
 	size_t size;
+
+	@disable this();
 
 	static LinkedList* create()
 	{
