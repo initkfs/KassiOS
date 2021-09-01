@@ -25,7 +25,19 @@ struct ArrayList(T)
 
 	this(size_t capacity)
 	{
+		initList;
+	}
+
+	err initList(size_t capacity = 8, size_t initCapacityScaleFactor = 2, bool frozenCapacity = false)
+	{
+		if (list)
+		{
+			return error("Array list is already initialized");
+		}
 		list = List.initList!T(capacity);
+		capacityScalingFactor = initCapacityScaleFactor;
+		isFrozenCapacity = frozenCapacity;
+		return null;
 	}
 
 	err push(T value)
