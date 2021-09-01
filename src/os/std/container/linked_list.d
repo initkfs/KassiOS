@@ -224,7 +224,7 @@ struct LinkedList
 		}
 		else
 		{
-			if (last !is null)
+			if (last)
 			{
 				last.next = item;
 			}
@@ -257,13 +257,13 @@ struct LinkedList
 		ListItem* item = createItem!T(data, key);
 		ListItem* previous = first;
 		size_t currentIndex = 1;
-		while (previous !is null && currentIndex < index)
+		while (previous && currentIndex < index)
 		{
 			currentIndex++;
 			previous = previous.next;
 		}
 
-		if (previous is null)
+		if (!previous)
 		{
 			return null;
 		}
@@ -288,7 +288,7 @@ struct LinkedList
 		}
 
 		auto forDelete = first;
-		if (first.next is null)
+		if (!first.next)
 		{
 			last = null;
 		}
@@ -308,7 +308,7 @@ struct LinkedList
 			return null;
 		}
 		auto forDelete = last;
-		if (first.next is null)
+		if (!first.next)
 		{
 			first = null;
 		}

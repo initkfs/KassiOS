@@ -82,7 +82,7 @@ struct HashMap
 
 	private string getMapNodeKey(MapNode* node)
 	{
-		if (node is null || node.length == 0)
+		if (!node || node.length == 0)
 		{
 			return "";
 		}
@@ -104,13 +104,13 @@ struct HashMap
 
 		MapNode* previous = null;
 		MapNode* current = list.first;
-		while (current !is null && Strings.compare(key, getMapNodeKey(current)) == 1)
+		while (current && Strings.compare(key, getMapNodeKey(current)) == 1)
 		{
 			previous = current;
 			current = current.next;
 		}
 
-		if (previous is null)
+		if (!previous)
 		{
 			list.first = node;
 		}
@@ -125,7 +125,7 @@ struct HashMap
 
 	private void freeMapNode(MapNode* node)
 	{
-		if (node is null)
+		if (!node)
 		{
 			return;
 		}
@@ -140,7 +140,7 @@ struct HashMap
 	private void freeMapNodes(MapNodeList* list)
 	{
 		MapNode* current = list.first;
-		while (current !is null)
+		while (current)
 		{
 			auto forDelete = current;
 			current = current.next;
@@ -160,7 +160,7 @@ struct HashMap
 		{
 			MapNodeList* nodeList;
 			List.get!(MapNodeList*)(nodes, i, nodeList);
-			if (nodeList is null)
+			if (!nodeList)
 			{
 				continue;
 			}
@@ -182,14 +182,14 @@ struct HashMap
 
 		MapNode* previous = null;
 		MapNode* current = list.first;
-		while (current !is null && !Strings.isEquals(key, getMapNodeKey(current)))
+		while (current && !Strings.isEquals(key, getMapNodeKey(current)))
 		{
 			previous = current;
 			current = current.next;
 		}
 
 		MapNode* forDelete;
-		if (previous == null)
+		if (!previous)
 		{
 			list.first = list.first.next;
 			forDelete = list.first;
@@ -222,7 +222,7 @@ struct HashMap
 		}
 
 		MapNode* current = list.first;
-		while (current !is null && (Strings.compare(getMapNodeKey(current), key) <= 0))
+		while (current && (Strings.compare(getMapNodeKey(current), key) <= 0))
 		{
 			if (Strings.isEquals(getMapNodeKey(current), key) && getMapNodeKey(current).length != 0)
 			{
@@ -320,7 +320,7 @@ struct HashMap
 		const hash = hashKey(key);
 		MapNodeList* nodeList;
 		List.get!(MapNodeList*)(nodes, hash, nodeList);
-		if (nodeList is null)
+		if (!nodeList)
 		{
 			return error("Unable to remove from map: not found node list by key hash");
 		}
@@ -354,7 +354,7 @@ struct HashMap
 		}
 
 		MapNodeData* dataNode = node.data;
-		if (!dataNode)
+		if (dataNode is null)
 		{
 			return error("Unable to get value from node: data is null");
 		}
@@ -391,7 +391,7 @@ struct HashMap
 		}
 
 		MapNode* node = findMapNode(nodeList, key);
-		if (node is null)
+		if (!node)
 		{
 			return error("Unable to get value from map: not found node by key");
 		}
@@ -424,7 +424,7 @@ struct HashMap
 			}
 
 			MapNode* current = list.first;
-			while (current !is null)
+			while (current)
 			{
 				string key = getMapNodeKey(current);
 				T value;
