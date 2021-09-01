@@ -44,6 +44,21 @@ struct LinkedList
 	ListItem* last;
 	size_t size;
 
+	static LinkedList* create()
+	{
+		auto list = cast(LinkedList*) Allocator.alloc(LinkedList.sizeof);
+		list.first = null;
+		list.last = null;
+		list.size = 0;
+		return list;
+	}
+
+	static void free(LinkedList* list)
+	{
+		list.clear;
+		Allocator.free(list);
+	}
+
 	bool isEmpty()
 	{
 		return first is null && size == 0;
@@ -329,26 +344,11 @@ struct LinkedList
 	}
 }
 
-LinkedList* createList()
-{
-	auto list = cast(LinkedList*) Allocator.alloc(LinkedList.sizeof);
-	list.first = null;
-	list.last = null;
-	list.size = 0;
-	return list;
-}
-
-void free(LinkedList* list)
-{
-	list.clear;
-	Allocator.free(list);
-}
-
 unittest
 {
 	import os.std.asserts : kassert;
 
-	auto list = createList;
+	auto list = LinkedList.create;
 
 	string s1 = "foo";
 	string s1Key = "fooKey";
@@ -391,5 +391,5 @@ unittest
 
 	list.clear;
 	kassert(list.size == 0);
-	free(list);
+	LinkedList.free(list);
 }

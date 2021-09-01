@@ -38,12 +38,12 @@ private
 //TODO ingeter
 err execute(AstNode* node, ref double result)
 {
-    List.LinkedList* digitsStack = List.createList;
-    List.LinkedList* operatorsStack = List.createList;
+    List.LinkedList* digitsStack = List.LinkedList.create;
+    List.LinkedList* operatorsStack = List.LinkedList.create;
     scope (exit)
     {
-        List.free(digitsStack);
-        List.free(operatorsStack);
+        List.LinkedList.free(digitsStack);
+        List.LinkedList.free(operatorsStack);
     }
 
     Token* currentToken = node.token;
@@ -250,12 +250,12 @@ unittest
     kassert(isOperator('*'));
     kassert(isOperator('%'));
 
-    auto digits = List.createList;
-    auto operators = List.createList;
+    auto digits = List.LinkedList.create;
+    auto operators = List.LinkedList.create;
     scope (exit)
     {
-        List.free(digits);
-        List.free(operators);
+        List.LinkedList.free(digits);
+        List.LinkedList.free(operators);
     }
 
     digits.addLast!double(2.45);

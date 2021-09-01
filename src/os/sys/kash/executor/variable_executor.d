@@ -58,7 +58,7 @@ err execute(AstNode* node, ref char* result)
 
             if (!varList)
             {
-                varList = List.createList;
+                varList = List.LinkedList.create;
             }
 
             varList.addLast!double(value, varName);
