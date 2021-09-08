@@ -68,6 +68,22 @@ private bool isBufferNeed(Token* token)
     return token && isTypeBufferNeeded(token.type);
 }
 
+private bool isBufferFlushNeed(Token* token, TokenType nextType)
+{
+
+    if (!token)
+    {
+        return false;
+    }
+
+    if (token.type == TokenType.NUMBER && (nextType == TokenType.DOT || nextType == TokenType.COMMA))
+    {
+        return false;
+    }
+
+    return isBufferNeed(token) && !isTypeBufferNeeded(nextType);
+}
+
 TokenType getTokenTypeByChar(const char c)
 {
 
@@ -99,6 +115,8 @@ TokenType getTokenTypeByChar(const char c)
         return TokenType.RPAREN;
     case ';':
         return TokenType.SEMICILON;
+    case '.':
+        return TokenType.DOT;
     case ',':
         return TokenType.COMMA;
     case '=':
@@ -256,10 +274,10 @@ void runLexer(string input, Lexer* lexer)
         return;
     }
 
-    lexer.root = createToken;
+    lexer.root = null;
 
     // allocate the first token
-    Token* token = lexer.root;
+    Token* token;
     bool isPartParsed;
 
     auto tokenBuffer = ArrayList!char(input.length);
@@ -270,9 +288,14 @@ void runLexer(string input, Lexer* lexer)
 
     foreach (ch; input)
     {
+        if (!lexer.root && token)
+        {
+            lexer.root = token;
+        }
+
         const type = getTokenTypeByChar(ch);
 
-        if (isPartParsed && isBufferNeed(token) && !isTypeBufferNeeded(type))
+        if (isPartParsed && isBufferFlushNeed(token, type))
         {
             flushTokenBuffer(token, tokenBuffer);
             isPartParsed = false;
@@ -290,6 +313,27 @@ void runLexer(string input, Lexer* lexer)
             token = checkOrCreateToken(TokenType.NUMBER, isPartParsed, token);
             tokenBuffer.push(ch);
             isPartParsed = true;
+            break;
+        case TokenType.DOT:
+            if (isPartParsed && token && token.type == TokenType.NUMBER)
+            {
+                tokenBuffer.push('.');
+            }
+            else
+            {
+                token = createToken(TokenType.DOT, token, ch);
+            }
+            break;
+        case TokenType.COMMA:
+            if (isPartParsed && token && token.type == TokenType.NUMBER)
+            {
+                //',' => '.'
+                tokenBuffer.push('.');
+            }
+            else
+            {
+                token = createToken(TokenType.COMMA, token, ch);
+            }
             break;
         case TokenType.WHITESPACE:
             break;
@@ -397,7 +441,7 @@ unittest
 
     kassert(index == 6);
 
-    const operationInput = " 5+ 6  ";
+    const operationInput = " 5,3+ 6  ";
     auto lexerCalc = cast(Lexer*) Allocator.alloc(Lexer.sizeof);
     scope (exit)
     {
@@ -414,7 +458,7 @@ unittest
         if (calcIndex == 0)
         {
             kassert(calcToken.type == TokenType.NUMBER);
-            kassert(Strings.isEquals(getTokenData(calcToken), "5"));
+            kassert(Strings.isEquals(getTokenData(calcToken), "5.3"));
         }
         else if (calcIndex == 1)
         {
