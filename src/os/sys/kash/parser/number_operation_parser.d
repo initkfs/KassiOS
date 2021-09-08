@@ -13,11 +13,23 @@ private
     alias Strings = os.std.text.strings;
 }
 
+bool isNumberValue(Token* token){
+    return token && (token.type == TokenType.ID || token.type == TokenType.NUMBER);
+}
+
+bool isUnaryNumberOperation(Token* token){
+    return (!token.prev || isNumberOperationType(token.prev.type)) && (token.type == TokenType.MINUS || token.type == TokenType.PLUS) && isNext(token) && isNumberValue(token.next);
+}
+
 bool isNumberOperation(Token* token)
 {
     if (!token)
     {
         return false;
+    }
+
+    if(isUnaryNumberOperation(token)){
+        return true;
     }
 
     //TODO start at left parenthesis

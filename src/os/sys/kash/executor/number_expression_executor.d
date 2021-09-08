@@ -47,6 +47,7 @@ err execute(AstNode* node, ref double result)
     }
 
     Token* currentToken = node.token;
+    bool isNeg;
     while (currentToken !is null)
     {
         if (NumberOperationParser.isNumberOperationType(currentToken.type))
@@ -83,6 +84,14 @@ err execute(AstNode* node, ref double result)
             else if (isOperator(expressionChar))
             {
                 const char currentOperator = expressionChar;
+
+                if (NumberOperationParser.isUnaryNumberOperation(currentToken))
+                {
+                    isNeg = currentToken.type == TokenType.MINUS;
+                    currentToken = currentToken.next;
+                    continue;
+                }
+
                 char last;
                 if (auto lastItem = operatorsStack.peekLast)
                 {
@@ -109,14 +118,24 @@ err execute(AstNode* node, ref double result)
                 return error("Not found numeric variable for number operation");
             }
 
-            const double value = VarExecutor.getVarValue!double(varName);
+            double value = VarExecutor.getVarValue!double(varName);
+            if (isNeg)
+            {
+                value = -value;
+            }
             digitsStack.addLast!double(value);
+            isNeg = false;
         }
         else
         {
             const string valueStr = getTokenData(currentToken);
-            const double value = MathCore.parseDouble(valueStr);
+            double value = MathCore.parseDouble(valueStr);
+            if (isNeg)
+            {
+                value = -value;
+            }
             digitsStack.addLast!double(value);
+            isNeg = false;
         }
 
         currentToken = currentToken.next;
