@@ -21,6 +21,7 @@ enum TokenType
     WHITESPACE,
     NEWLINE,
     SEMICILON,
+    DOT,
     COMMA,
     LPAREN,
     RPAREN,
@@ -45,6 +46,7 @@ enum TokenType
 struct Token
 {
     Token* next;
+    Token* prev;
     size_t length;
     TokenType type;
     bool isInit;
@@ -134,7 +136,11 @@ unittest
 Token* createToken(TokenType type, Token* prev)
 {
     auto token = createToken(type);
-    prev.next = token;
+    if (prev)
+    {
+        prev.next = token;
+        token.prev = prev;
+    }
     return token;
 }
 
@@ -340,35 +346,49 @@ unittest
 
     size_t index;
     auto token = lexer.root;
+    kassert(token.prev is null);
+    kassert(token.next !is null);
     while (token)
     {
         if (index == 0)
         {
             kassert(token.type == TokenType.ID);
             kassert(Strings.isEquals(getTokenData(token), "free"));
+            kassert(token.prev is null);
+            kassert(token.next !is null && token.next.type == TokenType.MINUS);
         }
         else if (index == 1)
         {
             kassert(token.type == TokenType.MINUS);
+            kassert(token.prev && token.prev.type == TokenType.ID);
+            kassert(token.next !is null && token.next.type == TokenType.ID);
         }
         else if (index == 2)
         {
             kassert(token.type == TokenType.ID);
             kassert(Strings.isEquals(getTokenData(token), "h"));
+            kassert(token.prev && token.prev.type == TokenType.MINUS);
+            kassert(token.next !is null && token.next.type == TokenType.NUMBER);
         }
         else if (index == 3)
         {
             kassert(token.type == TokenType.NUMBER);
             kassert(Strings.isEquals(getTokenData(token), "512"));
+            kassert(token.prev && token.prev.type == TokenType.ID);
+            kassert(token.next !is null && token.next.type == TokenType.MINUS);
         }
         else if (index == 4)
         {
             kassert(token.type == TokenType.MINUS);
+            kassert(token.prev && token.prev.type == TokenType.NUMBER);
+            kassert(token.next !is null && token.next.type == TokenType.ID);
         }
         else if (index == 5)
         {
             kassert(token.type == TokenType.ID);
             kassert(Strings.isEquals(getTokenData(token), "n"));
+            kassert(token.prev && token.prev.type == TokenType.MINUS);
+            kassert(token.next is null);
         }
 
         index++;
