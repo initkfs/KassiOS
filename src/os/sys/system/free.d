@@ -3,6 +3,8 @@
  */
 module os.sys.system.free;
 
+import os.std.container.hash_map;
+
 private
 {
     alias Allocator = os.core.mem.allocator;
@@ -11,7 +13,7 @@ private
     alias Units = os.std.util.units;
 }
 
-int run(string args, ref char* outResult, ref char* errResult)
+int run(HashMap* args, ref char* outResult, ref char* errResult)
 {
     Kstdio.kprintln;
 

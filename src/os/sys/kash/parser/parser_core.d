@@ -45,7 +45,7 @@ struct AstNodeValue
     ubyte[0] data;
 }
 
-err runParser(Lexer* lexer, ref AstNode* resultNode)
+err runParser(Lexer* lexer, ref AstNode* resultNode, bool function(string) onCommandExists = null)
 {
     if (!lexer.root)
     {
@@ -53,7 +53,18 @@ err runParser(Lexer* lexer, ref AstNode* resultNode)
     }
 
     auto token = lexer.root;
+
+    if (token.type == TokenType.ID)
+    {
+        const string commandName = getTokenData(token);
+        if (onCommandExists && onCommandExists(commandName))
+        {
+            return parseCommandExecuteExpression(token, resultNode);
+        }
+    }
+
     err operationErr;
+
     if (NumberOperationParser.isNumberOperation(token))
     {
         operationErr = NumberOperationParser.parseNumberOperationExpression(token, resultNode);
@@ -61,10 +72,6 @@ err runParser(Lexer* lexer, ref AstNode* resultNode)
     else if (VariableOperationParser.isVarOperation(token))
     {
         operationErr = VariableOperationParser.parseVarOperationExpression(token, resultNode);
-    }
-    else if (token.type == TokenType.ID && token.next is null)
-    {
-        operationErr = parseCommandExecuteExpression(token, resultNode);
     }
     return operationErr;
 }

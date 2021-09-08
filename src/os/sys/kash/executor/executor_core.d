@@ -5,6 +5,7 @@ module os.sys.kash.executor.executor_core;
 
 import os.sys.kash.lexer;
 import os.sys.kash.parser.parser_core;
+import os.std.container.hash_map;
 
 __gshared int lastResult;
 __gshared char* outResult;
@@ -20,16 +21,73 @@ private
     alias VarExecutor = os.sys.kash.executor.variable_executor;
 }
 
-void execute(AstNode* node, int function(string, ref char* outR,
+void execute(AstNode* node, int function(string, HashMap*, ref char* outR,
         ref char* errR) onCommandExecute = null)
 {
     if (node.type == AstNodeType.COMMAND_EXECUTE)
     {
         auto commandNode = node.left;
         string commandName = getNodeValue!string(commandNode);
+
+        HashMap* argsMap = HashMap.create(5);
+        scope (exit)
+        {
+            HashMap.free(argsMap);
+        }
+        Token* currentToken = commandNode.token.next;
+        bool parseArg;
+        string argKey;
+        while (currentToken)
+        {
+            if (currentToken.type == TokenType.ID && !currentToken.next)
+            {
+                argsMap.put!string(getTokenData(currentToken), "");
+                break;
+            }
+
+            if (!parseArg)
+            {
+                if (currentToken.type == TokenType.MINUS && currentToken.next
+                        && currentToken.next.type == TokenType.ID)
+                {
+                    parseArg = true;
+                }
+            }
+            else
+            {
+                if (!argKey)
+                {
+                    argKey = getTokenData(currentToken);
+                    if (!currentToken.next)
+                    {
+                        putCommandArg(argsMap, argKey, "", errResult);
+                        break;
+                    }
+                    else
+                    {
+                        if (currentToken.next.type == TokenType.MINUS)
+                        {
+                            putCommandArg(argsMap, argKey, "", errResult);
+                            argKey = null;
+                            parseArg = false;
+                        }
+                    }
+                }
+                else
+                {
+                    string argValue = getTokenData(currentToken);
+                    putCommandArg(argsMap, argKey, argValue, errResult);
+                    argKey = null;
+                    parseArg = false;
+                }
+            }
+
+            currentToken = currentToken.next;
+        }
+
         if (onCommandExecute)
         {
-            lastResult = onCommandExecute(commandName, outResult, errResult);
+            lastResult = onCommandExecute(commandName, argsMap, outResult, errResult);
         }
         return;
     }
@@ -68,6 +126,19 @@ void execute(AstNode* node, int function(string, ref char* outR,
 
     lastResult = -1;
     return;
+}
+
+private void putCommandArg(HashMap* argsMap, string argKey, string value, ref char* err)
+{
+    if (argsMap.containsKey(argKey))
+    {
+        string[1] errArgs = [argKey];
+        err = Strings.format("Error. duplicate argument received '%s'", errArgs);
+    }
+    else
+    {
+        argsMap.put!string(argKey, value);
+    }
 }
 
 void resetResult()

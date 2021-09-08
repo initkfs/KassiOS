@@ -4,6 +4,7 @@
 module os.sys.kash.shell;
 
 import os.sys.kash.lexer;
+import os.std.container.hash_map;
 
 import std.traits;
 
@@ -28,7 +29,7 @@ private
     public __gshared ShellCommand[7] shellCommands;
 }
 
-alias ShellCommandAction = int function(string args, ref char* outResult, ref char* inResult);
+alias ShellCommandAction = int function(HashMap* args, ref char* outResult, ref char* inResult);
 
 struct ShellCommand
 {
@@ -53,7 +54,8 @@ void init()
     shellCommands[1] = ShellCommand("clear", "Clear screen", &Clear.run);
     shellCommands[2] = ShellCommand("free", "Print memory info", &Free.run);
     shellCommands[3] = ShellCommand("mount", "Mount root filesystem", &Mount.run);
-    shellCommands[4] = ShellCommand("unmount", "Unmount filesystem and delete all files", &Unmount.run);
+    shellCommands[4] = ShellCommand("unmount",
+            "Unmount filesystem and delete all files", &Unmount.run);
     shellCommands[5] = ShellCommand("mkfile", "Create empty file", &Mkfile.run);
     shellCommands[6] = ShellCommand("ls", "Print list files", &Ls.run);
 }
@@ -74,7 +76,16 @@ int run(string input, ref char* outResult, ref char* errResult)
     KashLexer.runLexer(input, lexer);
 
     KashParser.AstNode* node;
-    const parserErr = KashParser.runParser(lexer, node);
+    const parserErr = KashParser.runParser(lexer, node, (string commandName) {
+        foreach (command; shellCommands)
+        {
+            if (Strings.isEquals(command.name, commandName))
+            {
+                return true;
+            }
+        }
+        return false;
+    });
     scope (exit)
     {
         KashParser.deleteAstNode(node);
@@ -102,14 +113,14 @@ void resetResult()
     KashExecutor.resetResult;
 }
 
-int onCommandExecute(string commandName, ref char* outResult, ref char* errResult)
+int onCommandExecute(string commandName, HashMap* args, ref char* outResult, ref char* errResult)
 {
     foreach (command; shellCommands)
     {
         if (Strings.isEquals(command.name, commandName))
         {
             //TODO args
-            auto result = command.action("", outResult, errResult);
+            auto result = command.action(args, outResult, errResult);
             return result;
         }
     }

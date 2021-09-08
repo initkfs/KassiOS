@@ -361,9 +361,15 @@ struct HashMap
 
 		static if (is(T == char*))
 		{
+			//TODO extract toString method
 			auto dataPtr = cast(char*) dataNode.data;
 			string s = cast(string) dataPtr[0 .. dataNode.length];
 			value = Strings.toStringz(s);
+		}
+		else static if (is(T == string))
+		{
+			auto dataPtr = cast(char*) dataNode.data;
+			value = cast(string) dataPtr[0 .. dataNode.length];
 		}
 		else
 		{
@@ -423,12 +429,12 @@ struct HashMap
 				return error("Unable to iterate map: node list is null");
 			}
 
-			MapNode* current = list.first;
+			MapNode* current = nodeList.first;
 			while (current)
 			{
 				string key = getMapNodeKey(current);
 				T value;
-				if (const valueErr = getNodeValue(current))
+				if (const valueErr = getNodeValue!T(current, value))
 				{
 					return valueErr;
 				}
@@ -436,6 +442,8 @@ struct HashMap
 				current = current.next;
 			}
 		}
+
+		return null;
 	}
 }
 
