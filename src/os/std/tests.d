@@ -8,17 +8,23 @@ private
 	alias Syslog = os.core.logger.syslog;
 }
 
-void runTest(alias anyModule)()
+void runTest(alias testModule)()
 {
+	if (Syslog.isTraceLevel)
+	{
+		string[1] moduleNameArgs = [testModule.stringof];
+		Syslog.tracef("Start testing %s", moduleNameArgs);
+	}
+
 	//The -unittest flag needs to be passed to the compiler.
-	foreach (unitTestFunction; __traits(getUnitTests, anyModule))
+	foreach (unitTestFunction; __traits(getUnitTests, testModule))
 	{
 		unitTestFunction();
 	}
 
 	if (Syslog.isTraceLevel)
 	{
-		string[1] moduleNameArgs = [anyModule.stringof];
-		Syslog.tracef("Test module %s", moduleNameArgs);
+		string[1] moduleNameArgs = [testModule.stringof];
+		Syslog.tracef("Test %s", moduleNameArgs);
 	}
 }

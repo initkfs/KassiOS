@@ -60,96 +60,12 @@ private
 
 extern (C) __gshared ulong KERNEL_END;
 
-extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
+private void runTests()
 {
-
-    auto memoryStart = cast(ubyte*)(&KERNEL_END + 0x400);
-    //TODO parse page tables, 0x6400000 (512 * 50 * 4096)
-    auto memoryEnd = cast(ubyte*)(0x6400000 - 0x800);
-
-    Allocator.setMemoryStart(memoryStart);
-    Allocator.setMemoryEnd(memoryEnd);
-
-    enum MULTIBOOT_BOOTLOADER_MAGIC = 0x36d76289;
-    if (magic != MULTIBOOT_BOOTLOADER_MAGIC)
-    {
-        size_t[2] magicArgs = [MULTIBOOT_BOOTLOADER_MAGIC, magic];
-        Kstdio.kprintfln("Multiboot-compliant bootloader verification error: magic number expected %x, but received %x. See https://www.gnu.org/software/grub/manual/multiboot2/multiboot.html",
-                magicArgs);
-        return;
-    }
-
-    Isr.init;
-    Irq.init;
-    Idt.init;
-
-    //TODO check SSE
-    CPU.enableSSE;
-
-    Serial.initDefaultPort;
-    Serial.writeln("Serial port enabled");
-
-    Syslog.setLoggerLevel(LoggerCore.LogLevel.all);
     if (Syslog.isTraceLevel)
     {
-        string[1] levelArgs = [Syslog.getLoggerLevelName];
-        Syslog.tracef("Loaded logger with log level %s", levelArgs);
-
-        size_t[2] memArgs = [cast(size_t) memoryStart, cast(size_t) memoryEnd];
-        Syslog.tracef("Set allocator start %x, end %x", memArgs);
+        Syslog.trace("Start testing modules");
     }
-
-    foreach (Multiboot.multiboot_tag* tag; Multiboot.createTagIterator(multibootInfoAddress))
-    {
-        switch (tag.type)
-        {
-        case MultibootSpec.MULTIBOOT_TAG_TYPE_CMDLINE:
-            auto cmd = cast(Multiboot.multiboot_tag_string*) tag;
-            auto cmdLine = Strings.toString(cast(char*) cmd.string);
-            if (cmdLine.length > 0 && Syslog.isTraceLevel)
-            {
-                string[1] cmdArgs = [cmdLine];
-                Syslog.tracef("Multiboot2 found command line: %s", cmdArgs);
-            }
-            break;
-        case MultibootSpec.MULTIBOOT_TAG_TYPE_BASIC_MEMINFO:
-            auto memKb = cast(MultibootSpec.multiboot_tag_basic_meminfo*) tag;
-            const memUpper = (cast(uint) memKb.mem_upper) * 1000;
-            Allocator.setMemoryPhysicalUpper(memUpper);
-            if (Syslog.isTraceLevel)
-            {
-                size_t[1] memArgs = [memUpper];
-                Syslog.tracef("Multiboot2 found memory max upper: %l", memArgs);
-            }
-            break;
-        case MultibootSpec.MULTIBOOT_TAG_TYPE_MMAP:
-            auto mmapEntryIterator = Multiboot.createMapEntryIterator(
-                    cast(MultibootSpec.multiboot_tag_mmap*) tag);
-            enum startAddr = 0x100000;
-            foreach (entry; mmapEntryIterator)
-            {
-                if (entry.addr == startAddr && entry.type
-                        == MultibootSpec.MULTIBOOT_MEMORY_AVAILABLE)
-                {
-                    const maxAddr = startAddr + cast(size_t)(entry.len) - 0x400;
-                    if (maxAddr > 0 && maxAddr <= cast(size_t) memoryEnd)
-                    {
-                        Allocator.setMemoryPhysicalEnd(cast(ubyte*) maxAddr);
-                        if (Syslog.isTraceLevel)
-                        {
-                            size_t[1] memArgs = [cast(size_t) maxAddr];
-                            Syslog.tracef("Multiboot2 found physical memory end: %x", memArgs);
-                        }
-                    }
-                }
-            }
-            break;
-        default:
-            break;
-        }
-    }
-
-    TextDisplay.clearScreen;
 
     CoreConfig.setLogGeneratedErrors(false);
 
@@ -173,9 +89,162 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
 
     CoreConfig.setLogGeneratedErrors(true);
 
+    if (Syslog.isTraceLevel)
+    {
+        Syslog.trace("End of testing modules");
+    }
+}
+
+extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
+{
+    auto memoryStart = cast(ubyte*)(&KERNEL_END + 0x400);
+    //TODO parse page tables, 0x6400000 (512 * 50 * 4096)
+    auto memoryEnd = cast(ubyte*)(0x6400000 - 0x800);
+
+    Allocator.setMemoryStart(memoryStart);
+    Allocator.setMemoryEnd(memoryEnd);
+
+    enum MULTIBOOT_BOOTLOADER_MAGIC = 0x36d76289;
+    if (magic != MULTIBOOT_BOOTLOADER_MAGIC)
+    {
+        size_t[2] magicArgs = [MULTIBOOT_BOOTLOADER_MAGIC, magic];
+        Kstdio.kprintfln("Multiboot-compliant bootloader verification error: magic number expected %x, but received %x. See https://www.gnu.org/software/grub/manual/multiboot2/multiboot.html",
+                magicArgs);
+        return;
+    }
+
+    Kstdio.kprint("Hello. ");
+    Kstdio.kprint(CoreConfig.osName);
+    Kstdio.kprintln(" operating system initialization");
+
+    Kstdio.kprintln("Preparing for interrupt handling");
+    Isr.init;
+    Irq.init;
+    Idt.init;
+    Kstdio.kprintln("Interrupt handlers installed");
+
+    //TODO check SSE
+    CPU.enableSSE;
+    Kstdio.kprintln("SSE enabled");
+
+    Serial.initDefaultPort;
+    Serial.writeln("Serial port enabled");
+
+    Syslog.setLoggerLevel(LoggerCore.LogLevel.all);
+    if (Syslog.isTraceLevel)
+    {
+        string[1] levelArgs = [Syslog.getLoggerLevelName];
+        Syslog.tracef("Loaded logger with log level %s", levelArgs);
+
+        size_t[2] memArgs = [cast(size_t) memoryStart, cast(size_t) memoryEnd];
+        Syslog.tracef("Set allocator start %x, end %x", memArgs);
+    }
+
+    if (Syslog.isTraceLevel)
+    {
+        Syslog.trace("Preparing for parsing multiboot data");
+    }
+
+    foreach (Multiboot.multiboot_tag* tag; Multiboot.createTagIterator(multibootInfoAddress))
+    {
+        switch (tag.type)
+        {
+        case MultibootSpec.MULTIBOOT_TAG_TYPE_CMDLINE:
+            if (Syslog.isTraceLevel)
+            {
+                Syslog.trace("Multiboot command line tag found");
+            }
+            auto cmd = cast(Multiboot.multiboot_tag_string*) tag;
+            auto cmdLine = Strings.toString(cast(char*) cmd.string);
+            if (Syslog.isTraceLevel)
+            {
+                if (cmdLine.length > 0)
+                {
+                    string[1] cmdArgs = [cmdLine];
+                    Syslog.tracef("Multiboot command line found: %s", cmdArgs);
+                }
+
+                Syslog.trace("Multiboot command line parsed");
+            }
+            break;
+        case MultibootSpec.MULTIBOOT_TAG_TYPE_BASIC_MEMINFO:
+            if (Syslog.isTraceLevel)
+            {
+                Syslog.trace("Multiboot memory info tag found");
+            }
+            auto memKb = cast(MultibootSpec.multiboot_tag_basic_meminfo*) tag;
+            const memUpper = (cast(uint) memKb.mem_upper) * 1000;
+            Allocator.setMemoryPhysicalUpper(memUpper);
+            if (Syslog.isTraceLevel)
+            {
+                size_t[1] memArgs = [memUpper];
+                Syslog.tracef("Multiboot memory info parsed. Max upper: %l", memArgs);
+            }
+            break;
+        case MultibootSpec.MULTIBOOT_TAG_TYPE_MMAP:
+            if (Syslog.isTraceLevel)
+            {
+                Syslog.trace("Multiboot memory map tag found");
+            }
+            auto mmapEntryIterator = Multiboot.createMapEntryIterator(
+                    cast(MultibootSpec.multiboot_tag_mmap*) tag);
+            enum startAddr = 0x100000;
+            foreach (entry; mmapEntryIterator)
+            {
+                if (entry.addr == startAddr && entry.type
+                        == MultibootSpec.MULTIBOOT_MEMORY_AVAILABLE)
+                {
+                    const maxAddr = startAddr + cast(size_t)(entry.len) - 0x400;
+                    if (maxAddr > 0 && maxAddr <= cast(size_t) memoryEnd)
+                    {
+                        Allocator.setMemoryPhysicalEnd(cast(ubyte*) maxAddr);
+                        if (Syslog.isTraceLevel)
+                        {
+                            size_t[1] memArgs = [cast(size_t) maxAddr];
+                            Syslog.tracef("Multiboot found physical memory end: %x", memArgs);
+                        }
+                    }
+                }
+            }
+
+            if (Syslog.isTraceLevel)
+            {
+                Syslog.trace("Multiboot memory map parsed");
+            }
+            break;
+        default:
+            break;
+        }
+    }
+
+    if (Syslog.isTraceLevel)
+    {
+        Syslog.trace("Multiboot data parsed");
+    }
+
+    runTests;
+
+    TextDisplay.clearScreen;
+    if (Syslog.isTraceLevel)
+    {
+        Syslog.trace("Clear screen");
+    }
+
     KashShell.init;
+    if (Syslog.isTraceLevel)
+    {
+        Syslog.trace("System shell enabled");
+    }
+
     Terminal.enable;
     Terminal.start;
+    if(Syslog.isTraceLevel){
+        Syslog.trace("Terminal enabled");
+    }
+
+    if(Syslog.isTraceLevel){
+        Syslog.trace("Operating system initialization completed");
+    }
 }
 
 extern (C) __gshared void runInterruptServiceRoutine(const ulong num, const ulong err)
