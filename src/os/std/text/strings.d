@@ -694,6 +694,19 @@ unittest
     kassert(indexOfAny("AAAAB", "AA", true) == 2);
 }
 
+bool contains(string str, string pattern)
+{
+    return indexOf(str, pattern) != -1;
+}
+
+unittest
+{
+    import os.std.asserts : kassert;
+
+    kassert(contains("aabaab", "aab"));
+    kassert(!contains("aabaab", "aabb"));
+}
+
 bool startsWith(string str, string pattern)
 {
     return indexOf(str, pattern) == 0;

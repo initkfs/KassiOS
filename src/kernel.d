@@ -161,7 +161,38 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
                 if (cmdLine.length > 0)
                 {
                     string[1] cmdArgs = [cmdLine];
-                    Syslog.tracef("Multiboot command line found: %s", cmdArgs);
+                    Syslog.tracef("Multiboot command line found: '%s'", cmdArgs);
+
+                    const bool isAcpi = !Strings.contains(cmdLine, CoreConfig.noAcpiKernelArgKey);
+                    if (Syslog.isTraceLevel)
+                    {
+                        if (isAcpi)
+                        {
+                            Syslog.trace("ACPI enabled from kernel command line");
+                        }
+                        else
+                        {
+                            Syslog.trace("ACPI disabled from kernel command line");
+                        }
+                    }
+
+                    CoreConfig.setAcpiEnabled(isAcpi);
+
+                    const bool isKernelTest = !Strings.contains(cmdLine,
+                            CoreConfig.noKernelTestArgKey);
+                    if (Syslog.isTraceLevel)
+                    {
+                        if (isKernelTest)
+                        {
+                            Syslog.trace("Tests enabled from kernel command line");
+                        }
+                        else
+                        {
+                            Syslog.trace("Tests disabled from kernel command line");
+                        }
+                    }
+
+                    CoreConfig.setKernelTestEnabled(isKernelTest);
                 }
 
                 Syslog.trace("Multiboot command line parsed");
@@ -222,7 +253,33 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
         Syslog.trace("Multiboot data parsed");
     }
 
-    runTests;
+    if (CoreConfig.isKernelTestEnabled)
+    {
+        runTests;
+    }
+    else
+    {
+        if (Syslog.isTraceLevel)
+        {
+            Syslog.trace("No testing. Kernel testing disabled in config");
+        }
+    }
+
+    if (CoreConfig.isAcpiEnabled)
+    {
+        ACPI.init;
+        if (Syslog.isTraceLevel)
+        {
+            Syslog.trace("ACPI enabled");
+        }
+    }
+    else
+    {
+        if (Syslog.isTraceLevel)
+        {
+            Syslog.trace("No ACPI. ACPI disabled in config");
+        }
+    }
 
     TextDisplay.clearScreen;
     if (Syslog.isTraceLevel)
@@ -238,11 +295,13 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
 
     Terminal.enable;
     Terminal.start;
-    if(Syslog.isTraceLevel){
+    if (Syslog.isTraceLevel)
+    {
         Syslog.trace("Terminal enabled");
     }
 
-    if(Syslog.isTraceLevel){
+    if (Syslog.isTraceLevel)
+    {
         Syslog.trace("Operating system initialization completed");
     }
 }
