@@ -6,11 +6,10 @@ module os.std.math.math_strict;
 import std.traits;
 import os.std.errors;
 
-// Warning! The checks are very simple and contain vulnerabilities
-
+// Warning! The checks are very simple and may contain vulnerabilities. For example, the result between two ushorts will be int.
 err addExact(T)(T a, T b, ref T sum) if (isIntegral!T)
 {
-    const T mustBeSum = a + b;
+    const T mustBeSum = cast(T)(a + b);
 
     static if (isUnsigned!T)
     {
@@ -40,6 +39,9 @@ unittest
 {
     import os.std.asserts : kassert;
 
+    ushort sumu;
+    kassert(addExact(ushort.max, 1u, sumu) !is null);
+
     uint sum1;
     kassert(addExact(uint.max, 1u, sum1) !is null);
 
@@ -61,15 +63,16 @@ err subtractExact(T)(T a, T b, ref T sub) if (isIntegral!T)
 {
     static if (isUnsigned!T)
     {
-        if(a < b){
+        if (a < b)
+        {
             return error("Overflow occurred during unsigned subtraction");
         }
-        sub = a - b;
+        sub = cast(T)(a - b);
         return null;
     }
     else
     {
-        const T mustBeSub = a - b;
+        const T mustBeSub = cast(T)(a - b);
         if ((a ^ b) < 0 && (mustBeSub ^ b) >= 0)
         {
             return error("Overflow occurred during signed subtraction");
@@ -85,8 +88,12 @@ unittest
 {
     import os.std.asserts : kassert;
 
-    long sub1;
-    kassert(subtractExact(long.min, long.min, sub1) is null);
+    ushort sub1;
+    kassert(subtractExact(ushort.min, ushort.min, sub1) is null);
+    kassert(subtractExact(ushort.min, ushort.max, sub1) !is null);
+    long sub2;
+    kassert(subtractExact(long.min, long.min, sub2) is null);
+    kassert(subtractExact(long.min, long.max, sub2) !is null);
 }
 
 //TODO unsigned
