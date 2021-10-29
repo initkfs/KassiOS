@@ -3,15 +3,12 @@
  */
 module os.core.graphic.text_display;
 
-private
-{
-    alias Ascii = os.std.text.ascii;
-    alias Ports = os.core.io.ports;
-    alias List = os.std.container.linear_list;
-    alias Syslog = os.core.logger.syslog;
-    alias Strings = os.std.text.strings;
-    alias Math = os.std.math.math_core;
-}
+import Ascii = os.std.text.ascii;
+import Ports = os.core.io.ports;
+import List = os.std.container.linear_list;
+import Syslog = os.core.logger.syslog;
+import Strings = os.std.text.strings;
+import Math = os.std.math.math_core;
 
 enum DISPLAY_COLUMNS = 80;
 enum DISPLAY_LINES = 25;

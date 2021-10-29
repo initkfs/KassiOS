@@ -5,10 +5,7 @@ module os.std.date.systime;
 
 import os.std.date.datetime;
 
-private
-{
-    alias RTC = os.core.io.rtc;
-}
+import RTC = os.core.io.rtc;
 
 LocalDate getDateUtc()
 {
@@ -23,4 +20,3 @@ LocalDateTime getDateTimeUtc()
     auto date = LocalDateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second);
     return date;
 }
-

@@ -11,15 +11,12 @@ __gshared int lastResult;
 __gshared char* outResult;
 __gshared char* errResult;
 
-private
-{
-    alias Strings = os.std.text.strings;
-    alias Allocator = os.core.mem.allocator;
-    alias Ascii = os.std.text.ascii;
-    alias Kstdio = os.std.io.kstdio;
-    alias NumberExpressionExecutor = os.sys.kash.executor.number_expression_executor;
-    alias VarExecutor = os.sys.kash.executor.variable_executor;
-}
+import Strings = os.std.text.strings;
+import Allocator = os.core.mem.allocator;
+import Ascii = os.std.text.ascii;
+import Kstdio = os.std.io.kstdio;
+import NumberExpressionExecutor = os.sys.kash.executor.number_expression_executor;
+import VarExecutor = os.sys.kash.executor.variable_executor;
 
 void execute(AstNode* node, int function(string, HashMap*, ref char* outR,
         ref char* errR) onCommandExecute = null)

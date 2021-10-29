@@ -6,11 +6,7 @@ module os.std.container.linear_list;
 import std.traits;
 
 import os.std.errors;
-
-private
-{
-	alias Allocator = os.core.mem.allocator;
-}
+import Allocator = os.core.mem.allocator;
 
 struct LinearList
 {

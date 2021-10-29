@@ -5,11 +5,8 @@ module os.sys.system.exit;
 
 import os.std.container.hash_map;
 
-private
-{
-    alias ACPI = os.core.acpi.acpi;
-    alias Ports = os.core.io.ports;
-}
+import ACPI = os.core.acpi.acpi;
+import Ports = os.core.io.ports;
 
 int run(HashMap* args, ref char* outResult, ref char* errResult)
 {

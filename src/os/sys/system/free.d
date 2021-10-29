@@ -5,13 +5,10 @@ module os.sys.system.free;
 
 import os.std.container.hash_map;
 
-private
-{
-    alias Allocator = os.core.mem.allocator;
-    alias Strings = os.std.text.strings;
-    alias Kstdio = os.std.io.kstdio;
-    alias Units = os.std.util.units;
-}
+import Allocator = os.core.mem.allocator;
+import Strings = os.std.text.strings;
+import Kstdio = os.std.io.kstdio;
+import Units = os.std.util.units;
 
 int run(HashMap* args, ref char* outResult, ref char* errResult)
 {
@@ -26,7 +23,8 @@ int run(HashMap* args, ref char* outResult, ref char* errResult)
 
     Kstdio.kprint("Rough size: ");
     auto sizePtr = Units.formatBytes(Allocator.getMemoryPhysicalUpper);
-    scope(exit){
+    scope (exit)
+    {
         Allocator.free(sizePtr);
     }
     Kstdio.kprintz(sizePtr);
@@ -40,21 +38,24 @@ int run(HashMap* args, ref char* outResult, ref char* errResult)
 
     Kstdio.kprint("Used: ");
     auto usedPtr = Units.formatBytes(usedBytes);
-    scope(exit){
+    scope (exit)
+    {
         Allocator.free(usedPtr);
     }
     Kstdio.kprintz(usedPtr);
 
     Kstdio.kprint(" Buffered: ");
     auto buffPtr = Units.formatBytes(bufferedBytes);
-    scope(exit){
+    scope (exit)
+    {
         Allocator.free(buffPtr);
     }
     Kstdio.kprintz(buffPtr);
 
     Kstdio.kprint(" Free: ");
     auto freePtr = Units.formatBytes(availableBytes);
-    scope(exit){
+    scope (exit)
+    {
         Allocator.free(freePtr);
     }
     Kstdio.kprintlnz(freePtr);

@@ -3,14 +3,14 @@
  */
 module os.core.fs.memfs.memfs;
 
+import Allocator = os.core.mem.allocator;
+import Partition = os.core.fs.memfs.memfs_partition;
+import File = os.core.fs.memfs.memfs_file;
+
+import Kstdio = os.std.io.kstdio;
+
 private
 {
-	alias Allocator = os.core.mem.allocator;
-	alias Partition = os.core.fs.memfs.memfs_partition;
-	alias File = os.core.fs.memfs.memfs_file;
-
-	alias Kstdio = os.std.io.kstdio;
-
 	__gshared Partition.MemfsPartition* rootPartition;
 }
 
@@ -98,7 +98,7 @@ bool write(string fileName, string data)
 	{
 		return false;
 	}
-	
+
 	auto file = File.findFile(fileName, rootPartition.mountPoint);
 	if (!file)
 	{

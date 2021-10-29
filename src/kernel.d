@@ -11,51 +11,51 @@ import os.std.asserts;
 private
 {
     //Core
-    alias CoreConfig = os.core.config.core_config;
-    alias Multiboot = os.core.boot.multiboot2;
-    alias MultibootSpec = os.core.boot.multiboot2spec;
-    alias CPU = os.core.cpu.x86_64;
-    alias ACPI = os.core.acpi.acpi;
-    alias Ports = os.core.io.ports;
-    alias TextDisplay = os.core.graphic.text_display;
-    alias Keyboard = os.core.io.keyboard;
-    alias Allocator = os.core.mem.allocator;
-    alias Idt = os.core.interrupt.idt;
-    alias Isr = os.core.interrupt.isr;
-    alias Irq = os.core.interrupt.irq;
-    alias Pic = os.core.interrupt.pic;
-    alias PCI = os.core.pci.pci_legacy;
-    alias RTC = os.core.io.rtc;
-    alias Serial = os.core.io.serial;
-    alias LoggerCore = os.core.logger.logger_core;
-    alias Syslog = os.core.logger.syslog;
+    import CoreConfig = os.core.config.core_config;
+    import Multiboot = os.core.boot.multiboot2;
+    import MultibootSpec = os.core.boot.multiboot2spec;
+    import CPU = os.core.cpu.x86_64;
+    import ACPI = os.core.acpi.acpi;
+    import Ports = os.core.io.ports;
+    import TextDisplay = os.core.graphic.text_display;
+    import Keyboard = os.core.io.keyboard;
+    import Allocator = os.core.mem.allocator;
+    import Idt = os.core.interrupt.idt;
+    import Isr = os.core.interrupt.isr;
+    import Irq = os.core.interrupt.irq;
+    import Pic = os.core.interrupt.pic;
+    import PCI = os.core.pci.pci_legacy;
+    import RTC = os.core.io.rtc;
+    import Serial = os.core.io.serial;
+    import LoggerCore = os.core.logger.logger_core;
+    import Syslog = os.core.logger.syslog;
 
     //Std
-    alias Tests = os.std.tests;
-    alias Bits = os.std.bits;
-    alias Ascii = os.std.text.ascii;
-    alias Strings = os.std.text.strings;
-    alias Kstdio = os.std.io.kstdio;
-    alias LinearList = os.std.container.linear_list;
-    alias ArrayList = os.std.container.array_list;
-    alias HashMap = os.std.container.hash_map;
-    alias LinkedList = os.std.container.linked_list;
-    alias Collections = os.std.container.collections;
-    alias MathCore = os.std.math.math_core;
-    alias MathRandom = os.std.math.math_random;
-    alias MathStrict = os.std.math.math_strict;
-    alias MathGeometry = os.std.math.math_geometry;
-    alias Datetime = os.std.date.datetime;
-    alias SysTime = os.std.date.systime;
-    alias Units = os.std.util.units;
+    import Tests = os.std.tests;
+    import Bits = os.std.bits;
+    import Ascii = os.std.text.ascii;
+    import Strings = os.std.text.strings;
+    import Kstdio = os.std.io.kstdio;
+    import LinearList = os.std.container.linear_list;
+    import ArrayList = os.std.container.array_list;
+    import HashMap = os.std.container.hash_map;
+    import LinkedList = os.std.container.linked_list;
+    import Collections = os.std.container.collections;
+    import MathCore = os.std.math.math_core;
+    import MathRandom = os.std.math.math_random;
+    import MathStrict = os.std.math.math_strict;
+    import MathGeometry = os.std.math.math_geometry;
+    import Datetime = os.std.date.datetime;
+    import SysTime = os.std.date.systime;
+    import Units = os.std.util.units;
 
     //System
-    alias KashLexer = os.sys.kash.lexer;
-    alias KashParser = os.sys.kash.parser.parser_core;
-    alias KashExecutor = os.sys.kash.executor.executor_core;
-    alias KashNumberExecutor = os.sys.kash.executor.number_expression_executor;
-    alias KashShell = os.sys.kash.shell;
-    alias Terminal = os.sys.term;
+    import KashLexer = os.sys.kash.lexer;
+    import KashParser = os.sys.kash.parser.parser_core;
+    import KashExecutor = os.sys.kash.executor.executor_core;
+    import KashNumberExecutor = os.sys.kash.executor.number_expression_executor;
+    import KashShell = os.sys.kash.shell;
+    import Terminal = os.sys.term;
 }
 
 extern (C) __gshared ulong KERNEL_END;

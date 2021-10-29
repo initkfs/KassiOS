@@ -3,15 +3,15 @@
  */
 module os.std.gui.text.widget.box;
 
+import Display = os.core.graphic.text_display;
+import Render = os.std.gui.text.render;
+
 private
 {
-    alias Display = os.core.graphic.text_display;
-    alias Render = os.std.gui.text.render;
     const char sideSymbol = Render.TextRenderSymbols.NumberSign;
 }
 
-void boxTop(const ubyte color = Display.CGAColors.DEFAULT_TEXT_COLOR,
-        const char symbol = sideSymbol)
+void boxTop(const ubyte color = Display.CGAColors.DEFAULT_TEXT_COLOR, const char symbol = sideSymbol)
 {
     Render.line(symbol, color);
 }
@@ -32,10 +32,11 @@ void boxHeader(const string text = "",
 }
 
 void simpleBox(const string text = "",
-        const ubyte color = Display.CGAColors.DEFAULT_TEXT_COLOR, const char symbol = sideSymbol){
+        const ubyte color = Display.CGAColors.DEFAULT_TEXT_COLOR, const char symbol = sideSymbol)
+{
     boxTop(color, symbol);
-	boxHeader(text, color, symbol);
-	boxBottom(color, symbol);
+    boxHeader(text, color, symbol);
+    boxBottom(color, symbol);
 }
 
 void boxSides(const size_t sideHeight = 1,

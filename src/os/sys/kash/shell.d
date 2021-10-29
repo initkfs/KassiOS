@@ -8,25 +8,25 @@ import os.std.container.hash_map;
 
 import std.traits;
 
+import Allocator = os.core.mem.allocator;
+import KashLexer = os.sys.kash.lexer;
+import KashParser = os.sys.kash.parser.parser_core;
+import KashExecutor = os.sys.kash.executor.executor_core;
+import Strings = os.std.text.strings;
+import Kstdio = os.std.io.kstdio;
+
+import Exit = os.sys.system.exit;
+import Clear = os.sys.system.clear;
+import Free = os.sys.system.free;
+import Mount = os.sys.fs.mount;
+import Unmount = os.sys.fs.unmount;
+import Mkfile = os.sys.fs.mkfile;
+import Ls = os.sys.fs.ls;
+
 private
 {
-    alias Allocator = os.core.mem.allocator;
-    alias KashLexer = os.sys.kash.lexer;
-    alias KashParser = os.sys.kash.parser.parser_core;
-    alias KashExecutor = os.sys.kash.executor.executor_core;
-    alias Strings = os.std.text.strings;
-    alias Kstdio = os.std.io.kstdio;
-
-    alias Exit = os.sys.system.exit;
-    alias Clear = os.sys.system.clear;
-    alias Free = os.sys.system.free;
-    alias Mount = os.sys.fs.mount;
-    alias Unmount = os.sys.fs.unmount;
-    alias Mkfile = os.sys.fs.mkfile;
-    alias Ls = os.sys.fs.ls;
-
     //TODO replace with List
-    public __gshared ShellCommand[7] shellCommands;
+    __gshared ShellCommand[7] shellCommands;
 }
 
 alias ShellCommandAction = int function(HashMap* args, ref char* outResult, ref char* inResult);

@@ -3,10 +3,7 @@
  */
 module os.core.acpi.rsdp;
 
-private
-{
-    alias AcpiCore = os.core.acpi.acpi_core;
-}
+import AcpiCore = os.core.acpi.acpi_core;
 
 const size_t acpiSignature = 0x2052545020445352;
 enum acpiQemuLocationAddr = 0xf68c0;

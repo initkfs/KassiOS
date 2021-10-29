@@ -3,10 +3,7 @@
  */
 module os.core.interrupt.isr;
 
-private
-{
-	alias Irq = os.core.interrupt.irq;
-}
+import Irq = os.core.interrupt.irq;
 
 /*
 * https://wiki.osdev.org/Exceptions

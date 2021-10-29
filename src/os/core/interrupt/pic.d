@@ -3,9 +3,7 @@
  */
 module os.core.interrupt.pic;
 
-private {
-    alias Ports = os.core.io.ports;
-}
+import Ports = os.core.io.ports;
 
 //https://wiki.osdev.org/8259_PIC
 //TODO APIC https://wiki.osdev.org/APIC

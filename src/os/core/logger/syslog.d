@@ -7,16 +7,16 @@ import os.core.logger.logger_core;
 
 import std.traits;
 
+import Allocator = os.core.mem.allocator;
+import Serial = os.core.io.serial;
+import DateTime = os.std.date.datetime;
+import SysTime = os.std.date.systime;
+import Strings = os.std.text.strings;
+import Ascii = os.std.text.ascii;
+import Inspector = os.core.support.inspector;
+
 private
 {
-    alias Allocator = os.core.mem.allocator;
-    alias Serial = os.core.io.serial;
-    alias DateTime = os.std.date.datetime;
-    alias SysTime = os.std.date.systime;
-    alias Strings = os.std.text.strings;
-    alias Ascii = os.std.text.ascii;
-    alias Inspector = os.core.support.inspector;
-
     __gshared LogLevel logLevel;
 }
 

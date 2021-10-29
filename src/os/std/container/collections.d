@@ -6,11 +6,8 @@ module os.std.container.collections;
 import os.std.container.array_list : ArrayList;
 import os.std.errors;
 
-private
-{
-	alias Allocator = os.core.mem.allocator;
-	alias Kstdio = os.std.io.kstdio;
-}
+import Allocator = os.core.mem.allocator;
+import Kstdio = os.std.io.kstdio;
 
 public size_t fill(T)(T[] arr, T placeholder)
 {

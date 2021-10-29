@@ -7,12 +7,9 @@ import std.traits;
 
 import os.std.errors;
 
-private
-{
-	alias Allocator = os.core.mem.allocator;
-	alias List = os.std.container.linear_list;
-	alias Strings = os.std.text.strings;
-}
+import Allocator = os.core.mem.allocator;
+import List = os.std.container.linear_list;
+import Strings = os.std.text.strings;
 
 private struct MapNodeList
 {

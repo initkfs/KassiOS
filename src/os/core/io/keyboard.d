@@ -4,11 +4,8 @@
 //https://wiki.osdev.org/PS/2_Keyboard
 module os.core.io.keyboard;
 
-private
-{
-	alias Ports = os.core.io.ports;
-	alias Bits = os.std.bits;
-}
+import Ports = os.core.io.ports;
+import Bits = os.std.bits;
 
 const
 {

@@ -7,11 +7,8 @@ import std.traits;
 
 import os.std.errors;
 
-private
-{
-	alias Allocator = os.core.mem.allocator;
-	alias Strings = os.std.text.strings;
-}
+import Allocator = os.core.mem.allocator;
+import Strings = os.std.text.strings;
 
 enum ListItemType
 {

@@ -7,11 +7,8 @@ import std.traits;
 
 import os.std.errors;
 
-private
-{
-	alias Allocator = os.core.mem.allocator;
-	alias List = os.std.container.linear_list;
-}
+import Allocator = os.core.mem.allocator;
+import List = os.std.container.linear_list;
 
 struct ArrayList(T)
 {

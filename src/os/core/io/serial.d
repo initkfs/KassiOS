@@ -4,11 +4,8 @@
  */
 module os.core.io.serial;
 
-private
-{
-	alias Ports = os.core.io.ports;
-	alias Ascii = os.std.text.ascii;
-}
+import Ports = os.core.io.ports;
+import Ascii = os.std.text.ascii;
 
 private __gshared ushort defaultPort;
 

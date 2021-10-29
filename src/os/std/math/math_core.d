@@ -5,12 +5,8 @@ module os.std.math.math_core;
 
 import std.traits;
 
-private
-{
-    alias Strings = os.std.text.strings;
-    alias Ascii = os.std.text.ascii;
-
-}
+import Strings = os.std.text.strings;
+import Ascii = os.std.text.ascii;
 
 enum E = 2.7182818284590452354;
 

@@ -4,12 +4,9 @@
 //https://wiki.osdev.org/RSDT
 module os.core.acpi.rsdt;
 
-private
-{
-    alias AcpiCore = os.core.acpi.acpi_core;
-    alias AcpiRsdp = os.core.acpi.rsdp;
-    alias Memory = os.core.mem.memory;
-}
+import AcpiCore = os.core.acpi.acpi_core;
+import AcpiRsdp = os.core.acpi.rsdp;
+import Memory = os.core.mem.memory;
 
 struct SystemDescriptorTableHeader
 {

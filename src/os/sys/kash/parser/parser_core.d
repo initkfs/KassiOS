@@ -8,15 +8,11 @@ import os.sys.kash.lexer;
 import std.traits;
 import os.std.errors;
 
-private
-{
-    alias Strings = os.std.text.strings;
-    alias Allocator = os.core.mem.allocator;
-    alias Ascii = os.std.text.ascii;
-    alias NumberOperationParser = os.sys.kash.parser.number_operation_parser;
-    alias VariableOperationParser = os.sys.kash.parser.variable_operation_parser;
-
-}
+import Strings = os.std.text.strings;
+import Allocator = os.core.mem.allocator;
+import Ascii = os.std.text.ascii;
+import NumberOperationParser = os.sys.kash.parser.number_operation_parser;
+import VariableOperationParser = os.sys.kash.parser.variable_operation_parser;
 
 enum AstNodeType
 {

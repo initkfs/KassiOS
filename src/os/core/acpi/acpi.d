@@ -4,12 +4,9 @@
 //https://wiki.osdev.org/ACPI
 module os.core.acpi.acpi;
 
-private
-{
-    alias AcpiRsdp = os.core.acpi.rsdp;
-    alias AcpiRsdt = os.core.acpi.rsdt;
-    alias AcpiFadt = os.core.acpi.fadt;
-}
+import AcpiRsdp = os.core.acpi.rsdp;
+import AcpiRsdt = os.core.acpi.rsdt;
+import AcpiFadt = os.core.acpi.fadt;
 
 const apicSignature = "APIC";
 const hpetSignature = "HPET";
@@ -41,7 +38,8 @@ void init()
     //     kprintln("Found HPET");
     // }
 
-    AcpiRsdt.SystemDescriptorTableHeader* fadtTable = AcpiRsdt.findTableBySignature(fadtSignature, rsdt);
+    AcpiRsdt.SystemDescriptorTableHeader* fadtTable = AcpiRsdt.findTableBySignature(
+            fadtSignature, rsdt);
     if (fadtTable)
     {
         AcpiFadt.setFadt(fadtTable);
@@ -55,7 +53,7 @@ bool shutdown()
         return false;
     }
 
-    alias Ports = os.core.io.ports;
+    import Ports = os.core.io.ports;
 
     Ports.outportw(cast(ushort) AcpiFadt.PM1a_CNT, cast(ushort)(AcpiFadt.SLP_TYPa | AcpiFadt.SLP_EN));
 

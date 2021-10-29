@@ -5,10 +5,7 @@ module os.std.math.math_geometry;
 
 import std.traits;
 
-private
-{
-    alias MathCore = os.std.math.math_core;
-}
+import MathCore = os.std.math.math_core;
 
 enum Pi = 3.14159265358979323846;
 enum RadiansInDeg = 0.017453292519943295;

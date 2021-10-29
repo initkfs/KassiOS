@@ -7,12 +7,9 @@ import os.std.container.array_list;
 import os.std.io.kstdio;
 import os.std.math.math_core;
 
-private
-{
-    alias Strings = os.std.text.strings;
-    alias Allocator = os.core.mem.allocator;
-    alias Ascii = os.std.text.ascii;
-}
+import Strings = os.std.text.strings;
+import Allocator = os.core.mem.allocator;
+import Ascii = os.std.text.ascii;
 
 enum TokenType
 {

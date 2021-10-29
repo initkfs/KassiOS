@@ -3,13 +3,10 @@
  */
 module os.core.fs.memfs.memfs_partition;
 
-private
-{
-	alias Allocator = os.core.mem.allocator;
-	alias Syslog = os.core.logger.syslog;
-	alias Strings = os.std.text.strings;
-	alias MemfsFile = os.core.fs.memfs.memfs_file;
-}
+import Allocator = os.core.mem.allocator;
+import Syslog = os.core.logger.syslog;
+import Strings = os.std.text.strings;
+import MemfsFile = os.core.fs.memfs.memfs_file;
 
 enum partitionIdMaxLength = 64;
 
@@ -18,13 +15,13 @@ struct MemfsPartition
 	char[partitionIdMaxLength] id;
 	size_t idLength;
 	MemfsFile.MemfsFile* mountPoint;
-};
+}
 
 MemfsPartition* createPartition(string id)
 {
-	auto partition = cast(MemfsPartition*)  Allocator.alloc(MemfsPartition.sizeof);
+	auto partition = cast(MemfsPartition*) Allocator.alloc(MemfsPartition.sizeof);
 	partition.idLength = id.length > partitionIdMaxLength ? partitionIdMaxLength : id.length;
-	partition.id = id[0..partition.idLength];
+	partition.id = id[0 .. partition.idLength];
 	partition.mountPoint = null;
 
 	if (Syslog.isTraceLevel)

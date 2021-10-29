@@ -3,17 +3,15 @@
  */
 module os.std.gui.text.render;
 
-private
-{
-    alias Display = os.core.graphic.text_display;
-}
+import Display = os.core.graphic.text_display;
 
 struct TextRenderSymbols
 {
     enum NumberSign = '#';
 }
 
-void line(const char symbol = TextRenderSymbols.NumberSign, const ubyte color = Display.CGAColors.DEFAULT_TEXT_COLOR)
+void line(const char symbol = TextRenderSymbols.NumberSign,
+        const ubyte color = Display.CGAColors.DEFAULT_TEXT_COLOR)
 {
     Display.printCharRepeat(symbol, Display.DISPLAY_COLUMNS, color);
 }

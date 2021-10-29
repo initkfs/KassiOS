@@ -3,10 +3,7 @@
  */
 module os.std.date.datetime;
 
-private
-{
-    alias Strings = os.std.text.strings;
-}
+import Strings = os.std.text.strings;
 
 struct LocalDate
 {

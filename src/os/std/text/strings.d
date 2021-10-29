@@ -10,13 +10,10 @@ const char NULL_BYTE = '\0';
 const string EMPTY = "";
 enum NOT_FOUND = -1;
 
-private
-{
-    alias Allocator = os.core.mem.allocator;
-    alias Ascii = os.std.text.ascii;
-    alias MathCore = os.std.math.math_core;
-    alias MathStrict = os.std.math.math_strict;
-}
+import Allocator = os.core.mem.allocator;
+import Ascii = os.std.text.ascii;
+import MathCore = os.std.math.math_core;
+import MathStrict = os.std.math.math_strict;
 
 bool isEqualz(const char* s1, const char* s2)
 {
@@ -748,7 +745,7 @@ unittest
 
 char* replace(string s, string searchFor, string replaceWith)
 {
-    alias List = os.std.container.linear_list;
+    import List = os.std.container.linear_list;
 
     if (s.length == 0 || searchFor.length == 0 || replaceWith.length == 0)
     {
@@ -832,7 +829,7 @@ unittest
 string take(string str, long num, bool isDropChars = false)
 {
 
-    alias MathCore = os.std.math.math_core;
+    import MathCore = os.std.math.math_core;
 
     if (!str)
     {
@@ -1132,7 +1129,7 @@ char* format(T)(const string pattern, const T[] args, const char placeholder = '
 {
     import os.std.container.array_list : ArrayList;
 
-    alias Collections = os.std.container.collections;
+    import Collections = os.std.container.collections;
     //TODO very inaccurate buffer size
     size_t argsSize = args.sizeof;
     static if (is(T == string))

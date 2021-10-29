@@ -8,10 +8,7 @@ import os.sys.kash.parser.parser_core;
 
 import os.std.errors;
 
-private
-{
-    alias Strings = os.std.text.strings;
-}
+import Strings = os.std.text.strings;
 
 bool isVarOperation(Token* token)
 {

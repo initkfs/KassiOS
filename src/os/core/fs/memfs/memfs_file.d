@@ -5,11 +5,8 @@ module os.core.fs.memfs.memfs_file;
 
 import os.core.fs.memfs.memfs_partition;
 
-private
-{
-    alias Allocator = os.core.mem.allocator;
-    alias Strings = os.std.text.strings;
-}
+import Allocator = os.core.mem.allocator;
+import Strings = os.std.text.strings;
 
 enum fileNameMaxLength = 64;
 
@@ -91,7 +88,7 @@ bool write(MemfsFile* file, ubyte[] data)
     }
 
     auto fileData = cast(MemfsFileData*) Allocator.alloc(MemfsFileData.sizeof);
-    
+
     const dataLength = data.length;
     auto dataPtr = Allocator.alloc(dataLength);
     auto dataBuff = cast(ubyte*) dataPtr;

@@ -4,11 +4,8 @@
 //https://wiki.osdev.org/CMOS
 module os.core.io.rtc;
 
-private
-{
-	alias Kstdio = os.std.io.kstdio;
-	alias Ports = os.core.io.ports;
-}
+import Kstdio = os.std.io.kstdio;
+import Ports = os.core.io.ports;
 
 enum cmosInPort = 0x70;
 enum cmosDataPort = 0x71;

@@ -3,12 +3,9 @@
  */
 module os.core.interrupt.irq;
 
-private
-{
-	alias Ports = os.core.io.ports;
-	alias Idt = os.core.interrupt.idt;
-	alias Pic = os.core.interrupt.pic;
-}
+import Ports = os.core.io.ports;
+import Idt = os.core.interrupt.idt;
+import Pic = os.core.interrupt.pic;
 
 /*
 * https://wiki.osdev.org/Interrupts

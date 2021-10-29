@@ -3,13 +3,10 @@
  */
 module os.std.io.kstdio;
 
-private
-{
-    alias Allocator = os.core.mem.allocator;
-    alias Display = os.core.graphic.text_display;
-    alias Ascii = os.std.text.ascii;
-    alias Strings = os.std.text.strings;
-}
+import Allocator = os.core.mem.allocator;
+import Display = os.core.graphic.text_display;
+import Ascii = os.std.text.ascii;
+import Strings = os.std.text.strings;
 
 void kprintSpace()
 {

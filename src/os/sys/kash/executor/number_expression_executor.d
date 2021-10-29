@@ -7,17 +7,17 @@ import os.sys.kash.lexer;
 import os.sys.kash.parser.parser_core;
 import os.std.errors;
 
+import Strings = os.std.text.strings;
+import Allocator = os.core.mem.allocator;
+import List = os.std.container.linked_list;
+import Ascii = os.std.text.ascii;
+import Kstdio = os.std.io.kstdio;
+import MathCore = os.std.math.math_core;
+import NumberOperationParser = os.sys.kash.parser.number_operation_parser;
+import VarExecutor = os.sys.kash.executor.variable_executor;
+
 private
 {
-    alias Strings = os.std.text.strings;
-    alias Allocator = os.core.mem.allocator;
-    alias List = os.std.container.linked_list;
-    alias Ascii = os.std.text.ascii;
-    alias Kstdio = os.std.io.kstdio;
-    alias MathCore = os.std.math.math_core;
-    alias NumberOperationParser = os.sys.kash.parser.number_operation_parser;
-    alias VarExecutor = os.sys.kash.executor.variable_executor;
-
     __gshared struct Operators
     {
         static const

@@ -4,10 +4,7 @@
 //https://wiki.osdev.org/Programmable_Interval_Timer
 module os.core.io.pit;
 
-private
-{
-    alias Ports = os.core.io.ports;
-}
+import Ports = os.core.io.ports;
 
 //1.19MHz
 enum OscillatorFrequencyHz = 1_193_180;

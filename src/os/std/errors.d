@@ -5,14 +5,11 @@ module os.std.errors;
 
 alias err = string;
 
-private
-{
-  alias CoreConfig = os.core.config.core_config;
-  alias Allocator = os.core.mem.allocator;
-  alias Kstdio = os.std.io.kstdio;
-  alias Strings = os.std.text.strings;
-  alias Syslog = os.core.logger.syslog;
-}
+import CoreConfig = os.core.config.core_config;
+import Allocator = os.core.mem.allocator;
+import Kstdio = os.std.io.kstdio;
+import Strings = os.std.text.strings;
+import Syslog = os.core.logger.syslog;
 
 err error(const string message, const string file = __FILE__, const int line = __LINE__)
 {
@@ -35,7 +32,7 @@ void panic(const string message, const string file = __FILE__, const int line = 
 {
   auto lineStrPtr = Strings.toStringz(line);
   string lineStr = Strings.toString(lineStrPtr);
- 
+
   if (Syslog.isErrorLevel)
   {
     string[3] args = [message, file, lineStr];
@@ -50,7 +47,7 @@ void panic(const string message, const string file = __FILE__, const int line = 
   Kstdio.kprint(":");
   Kstdio.kprint(lineStr);
   Kstdio.kprintln;
-  
+
   Allocator.free(lineStrPtr);
 
   asm

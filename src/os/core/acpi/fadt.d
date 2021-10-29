@@ -4,11 +4,11 @@
 //https://wiki.osdev.org/ACPI
 module os.core.acpi.fadt;
 
+import AcpiRsdt = os.core.acpi.rsdt;
+import Memory = os.core.mem.memory;
+
 private
 {
-    alias AcpiRsdt = os.core.acpi.rsdt;
-    alias Memory = os.core.mem.memory;
-
     __gshared bool enabled;
 }
 

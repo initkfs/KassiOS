@@ -5,23 +5,23 @@ module os.sys.term;
 
 import std.traits;
 
+import Allocator = os.core.mem.allocator;
+import Display = os.core.graphic.text_display;
+import Kstdio = os.std.io.kstdio;
+import Keyboard = os.core.io.keyboard;
+import List = os.std.container.linear_list;
+import Ascii = os.std.text.ascii;
+import GuiTextBox = os.std.gui.text.widget.box;
+import Config = os.core.config.core_config;
+import DateTime = os.std.date.datetime;
+import SysTime = os.std.date.systime;
+import Strings = os.std.text.strings;
+import Shell = os.sys.kash.shell;
+import Units = os.std.util.units;
+import Inspector = os.core.support.inspector;
+
 private
 {
-    alias Allocator = os.core.mem.allocator;
-    alias Display = os.core.graphic.text_display;
-    alias Kstdio = os.std.io.kstdio;
-    alias Keyboard = os.core.io.keyboard;
-    alias List = os.std.container.linear_list;
-    alias Ascii = os.std.text.ascii;
-    alias GuiTextBox = os.std.gui.text.widget.box;
-    alias Config = os.core.config.core_config;
-    alias DateTime = os.std.date.datetime;
-    alias SysTime = os.std.date.systime;
-    alias Strings = os.std.text.strings;
-    alias Shell = os.sys.kash.shell;
-    alias Units = os.std.util.units;
-    alias Inspector = os.core.support.inspector;
-
     const
     {
         __gshared string promptText = "$>";
@@ -39,12 +39,12 @@ private
 void start()
 {
     Display.clearScreen;
-    
+
     Display.setStartX(0);
     Display.setStartY(0);
 
     printHeader;
-    
+
     int x, y;
     x = Display.getX;
     y = Display.getY;
@@ -72,7 +72,8 @@ void clearScreen()
 void printHeader()
 {
     const bool isBuffer = Display.isTextBufferEnabled;
-    if(isBuffer){
+    if (isBuffer)
+    {
         Display.setTextBufferEnabled(false);
     }
 
@@ -105,7 +106,8 @@ void printHeader()
 
     string[7] osInfoArgs = [
         Config.osName, Config.osVersion, Strings.toString(dateTimeInfoPtr),
-        statusInfo, Strings.toString(usedMemPtr), Strings.toString(lastCodeStr), bufferStatus
+        statusInfo, Strings.toString(usedMemPtr), Strings.toString(lastCodeStr),
+        bufferStatus
     ];
     const osInfo = Strings.format("%s %s %s. Stat:%s, Mem:%s, Ret:%s, Tbuff:%s.", osInfoArgs);
     scope (exit)
@@ -114,7 +116,8 @@ void printHeader()
     }
     GuiTextBox.simpleBox(Strings.toString(osInfo), uiInfoColor);
 
-    if(isBuffer){
+    if (isBuffer)
+    {
         Display.setTextBufferEnabled(true);
     }
 }

@@ -3,12 +3,9 @@
  */
 module os.std.util.units;
 
-private
-{
-	alias Allocator = os.core.mem.allocator;
-	alias Strings = os.std.text.strings;
-	alias Math = os.std.math.math_core;
-}
+import Allocator = os.core.mem.allocator;
+import Strings = os.std.text.strings;
+import Math = os.std.math.math_core;
 
 enum UnitType
 {
@@ -87,7 +84,8 @@ unittest
 	auto zeroPtr = formatBytes(0);
 	auto onePtr = formatBytes(1);
 	auto xPtr = formatBytes(999);
-	scope(exit){
+	scope (exit)
+	{
 		Allocator.free(zeroPtr, onePtr, xPtr);
 	}
 

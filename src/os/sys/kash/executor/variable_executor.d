@@ -7,12 +7,12 @@ import os.sys.kash.lexer;
 import os.sys.kash.parser.parser_core;
 import os.std.errors;
 
+import Strings = os.std.text.strings;
+import MathCore = os.std.math.math_core;
+import List = os.std.container.linked_list;
+
 private
 {
-    alias Strings = os.std.text.strings;
-    alias MathCore = os.std.math.math_core;
-    alias List = os.std.container.linked_list;
-
     __gshared List.LinkedList* varList;
 }
 
@@ -27,7 +27,8 @@ List.ListItem* hasVar(string varName)
     return item;
 }
 
-bool hasVarDouble(string varName){
+bool hasVarDouble(string varName)
+{
     auto item = hasVar(varName);
     return item !is null && item.type == List.ListItemType.FLOATING;
 }

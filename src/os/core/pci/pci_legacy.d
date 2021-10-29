@@ -4,10 +4,7 @@
 //https://wiki.osdev.org/PCI
 module os.core.pci.pci_legacy;
 
-private
-{
-	alias Ports = os.core.io.ports;
-}
+import Ports = os.core.io.ports;
 
 struct PciConfigSpace
 {

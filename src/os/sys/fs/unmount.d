@@ -5,11 +5,8 @@ module os.sys.fs.unmount;
 
 import os.std.container.hash_map;
 
-private
-{
-    alias Fs = os.core.fs.memfs.memfs;
-    alias Strings = os.std.text.strings;
-}
+import Fs = os.core.fs.memfs.memfs;
+import Strings = os.std.text.strings;
 
 int run(HashMap* args, ref char* outResult, ref char* errResult)
 {
