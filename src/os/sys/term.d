@@ -22,18 +22,16 @@ import Inspector = os.core.support.inspector;
 
 private
 {
-    const
+    __gshared
     {
-        __gshared string promptText = "$>";
+        bool active;
+        ubyte promptColor = Display.CGAColors.DEFAULT_TEXT_COLOR;
+        ubyte errorColor = Display.CGAInfoColors.COLOR_ERROR;
+        ubyte infoColor = Display.CGAColors.DEFAULT_TEXT_COLOR;
+        List.LinearList* textBuffer;
+
+        const string promptText = "$>";
     }
-
-    __gshared bool active;
-
-    __gshared ubyte promptColor = Display.CGAColors.DEFAULT_TEXT_COLOR;
-    __gshared ubyte errorColor = Display.CGAInfoColors.COLOR_ERROR;
-    __gshared ubyte infoColor = Display.CGAColors.DEFAULT_TEXT_COLOR;
-
-    __gshared List.LinearList* textBuffer;
 }
 
 void start()

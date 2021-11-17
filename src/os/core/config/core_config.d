@@ -4,11 +4,11 @@
 //https://wiki.osdev.org/PCI
 module os.core.config.core_config;
 
-private
+private __gshared
 {
-	__gshared bool logGeneratedErrors;
-	__gshared bool acpiEnabled = true;
-	__gshared bool kernelTestEnabled = true;
+	bool logGeneratedErrors;
+	bool acpiEnabled = true;
+	bool kernelTestEnabled = true;
 }
 
 const

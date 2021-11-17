@@ -6,20 +6,20 @@ module os.core.mem.allocator;
 import os.std.errors;
 import os.std.asserts;
 
-private
+private __gshared
 {
-    __gshared ubyte* memoryStart;
-    __gshared ubyte* memoryEnd;
-    __gshared ubyte* memoryCurrentPos;
+    ubyte* memoryStart;
+    ubyte* memoryEnd;
+    ubyte* memoryCurrentPos;
 
-    __gshared ubyte* memoryPhysicalEnd;
+    ubyte* memoryPhysicalEnd;
 
-    __gshared size_t memoryPhysicalUpper;
+    size_t memoryPhysicalUpper;
 
-    __gshared MemBlock* heapStart;
-    __gshared MemBlock* heapCurrent;
+    MemBlock* heapStart;
+    MemBlock* heapCurrent;
 
-    __gshared const size_t MEM_BLOCK_MAGIC_CHECKSUM = 0x7872f0645e696b86;
+    const size_t MEM_BLOCK_MAGIC_CHECKSUM = 0x7872f0645e696b86;
 }
 
 static struct MemBlock

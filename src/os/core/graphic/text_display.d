@@ -44,23 +44,23 @@ __gshared struct CGAInfoColors
     enum COLOR_ERROR = CGAColors.COLOR_LIGHT_RED;
 }
 
-private
+private __gshared
 {
-    __gshared ubyte* textVideoMemoryPtr = cast(ubyte*) 0xB8000;
-    __gshared bool cursorEnabled = false;
+    ubyte* textVideoMemoryPtr = cast(ubyte*) 0xB8000;
+    bool cursorEnabled = false;
 
-    __gshared int displayIndexX;
-    __gshared int displayIndexY;
+    int displayIndexX;
+    int displayIndexY;
 
-    __gshared int displayStartIndexX;
-    __gshared int displayStartIndexY;
+    int displayStartIndexX;
+    int displayStartIndexY;
 
-    __gshared bool textBufferEnabled = false;
+    bool textBufferEnabled = false;
 
-    __gshared List.LinearList* textBuffer;
-    __gshared TextBufferWindowStatus textBufferStatus = TextBufferWindowStatus.MIN;
-    __gshared long textBufferStartIndex;
-    __gshared long textBufferEndIndex;
+    List.LinearList* textBuffer;
+    TextBufferWindowStatus textBufferStatus = TextBufferWindowStatus.MIN;
+    long textBufferStartIndex;
+    long textBufferEndIndex;
 }
 
 enum TextBufferWindowStatus

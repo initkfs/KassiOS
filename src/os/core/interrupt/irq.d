@@ -30,22 +30,10 @@ enum Interrupts
 	Ata2 //Secondary ATA Hard Disk
 }
 
-extern (C) __gshared void irq0();
-extern (C) __gshared void irq1();
-extern (C) __gshared void irq2();
-extern (C) __gshared void irq3();
-extern (C) __gshared void irq4();
-extern (C) __gshared void irq5();
-extern (C) __gshared void irq6();
-extern (C) __gshared void irq7();
-extern (C) __gshared void irq8();
-extern (C) __gshared void irq9();
-extern (C) __gshared void irq10();
-extern (C) __gshared void irq11();
-extern (C) __gshared void irq12();
-extern (C) __gshared void irq13();
-extern (C) __gshared void irq14();
-extern (C) __gshared void irq15();
+//void irg0(); .. void irg15();
+static foreach(i; 0..16){
+	mixin("extern(C) void irq", i, "();");
+}
 
 extern (C) __gshared void isr128();
 
@@ -74,22 +62,10 @@ void init()
 {
 	remapIrqs;
 
-	addDefaultIrqGate(32, &irq0);
-	addDefaultIrqGate(33, &irq1);
-	addDefaultIrqGate(34, &irq2);
-	addDefaultIrqGate(35, &irq3);
-	addDefaultIrqGate(36, &irq4);
-	addDefaultIrqGate(37, &irq5);
-	addDefaultIrqGate(38, &irq6);
-	addDefaultIrqGate(39, &irq7);
-	addDefaultIrqGate(40, &irq8);
-	addDefaultIrqGate(41, &irq9);
-	addDefaultIrqGate(42, &irq10);
-	addDefaultIrqGate(43, &irq11);
-	addDefaultIrqGate(44, &irq12);
-	addDefaultIrqGate(45, &irq13);
-	addDefaultIrqGate(46, &irq14);
-	addDefaultIrqGate(47, &irq15);
+	//addDefaultIrqGate(32, &irq0); .. addDefaultIrqGate(47, &irq15);
+	static foreach(i; 32..48){
+		mixin("addDefaultIrqGate(", i, ", &irq", (i - 32), ");");
+	}
 }
 
 void sendInerruptEnd(ulong irq)

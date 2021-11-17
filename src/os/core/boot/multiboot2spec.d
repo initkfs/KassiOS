@@ -152,7 +152,7 @@ struct multiboot_header_tag_relocatable
   multiboot_uint32_t max_addr;
   multiboot_uint32_t aalign;
   multiboot_uint32_t preference;
-};
+}
 
 struct multiboot_color
 {

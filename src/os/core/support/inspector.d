@@ -4,9 +4,9 @@
 //https://wiki.osdev.org/PCI
 module os.core.support.inspector;
 
-private
+private __gshared
 {
-	__gshared bool errors;
+	bool errors;
 }
 
 bool isErrors()

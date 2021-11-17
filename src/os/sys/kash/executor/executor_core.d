@@ -7,9 +7,12 @@ import os.sys.kash.lexer;
 import os.sys.kash.parser.parser_core;
 import os.std.container.hash_map;
 
-__gshared int lastResult;
-__gshared char* outResult;
-__gshared char* errResult;
+__gshared
+{
+    int lastResult;
+    char* outResult;
+    char* errResult;
+}
 
 import Strings = os.std.text.strings;
 import Allocator = os.core.mem.allocator;

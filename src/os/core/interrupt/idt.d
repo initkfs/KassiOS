@@ -4,8 +4,11 @@
  */
 module os.core.interrupt.idt;
 
-__gshared IdtPointer idtPointer;
-__gshared Idt64Entry[256] idtEntries;
+__gshared
+{
+	IdtPointer idtPointer;
+	Idt64Entry[256] idtEntries;
+}
 
 struct Idt64Entry
 {
@@ -13,17 +16,17 @@ align(1):
 	// offset bits 0..15
 	ushort offset1;
 	// code segment selector in GDT or LDT
-	ushort selector; 
+	ushort selector;
 	//its 0..2 holds Interrupt Stack Table offset, rest of bits zero.
 	ubyte ist;
 	// type and attributes
-	ubyte typeAttr; 
+	ubyte typeAttr;
 	// offset bits 16..31
-	ushort offset2; 
+	ushort offset2;
 	// offset bits 32..63
-	uint offset3; 
+	uint offset3;
 	// reserved
-	uint zero = 0; 
+	uint zero = 0;
 }
 
 struct IdtPointer

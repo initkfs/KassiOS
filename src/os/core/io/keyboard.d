@@ -72,9 +72,11 @@ public enum SCANCODES
 	LCONTROL = 0x1D
 }
 
-__gshared bool isShiftPress = false;
-__gshared bool isCapsLockPress = false;
-__gshared bool isControlPress = false;
+__gshared {
+	bool isShiftPress = false;
+	bool isCapsLockPress = false;
+	bool isControlPress = false;
+}
 
 bool isReleased(const ubyte code) @safe pure
 {

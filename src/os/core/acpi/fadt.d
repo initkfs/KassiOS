@@ -30,12 +30,15 @@ struct FixedDescriptionTable
     ubyte century;
 }
 
-__gshared uint PM1a_CNT;
-__gshared uint PM1b_CNT;
-__gshared uint SLP_TYPa;
-__gshared uint SLP_TYPb;
-__gshared uint SLP_EN;
-__gshared uint SCI_EN;
+__gshared
+{
+    uint PM1a_CNT;
+    uint PM1b_CNT;
+    uint SLP_TYPa;
+    uint SLP_TYPb;
+    uint SLP_EN;
+    uint SCI_EN;
+}
 
 bool isEnabled()
 {
