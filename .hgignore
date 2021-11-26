@@ -4,3 +4,6 @@ build/
 iso/
 os.iso
 serial.txt
+zig-cache/
+zig-out/
+.vscode/

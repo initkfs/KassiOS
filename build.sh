@@ -94,6 +94,12 @@ EOF
 
 popd
 
+zig build
+if [[ $? -ne 0 ]]; then
+	echo "Zig build error" >&2
+	exit 1
+fi
+
 #dmd -betterC -map -vtls -m64 -i=app.core.main_controller  -boundscheck=off -release -c $sourceDir/kernel.d -of=$buildDir/kernel.o
 #ldc2 -nogc -g -betterC -boundscheck=off -c -od="$buildDir" "$dSourceFile"
 dub build --arch=x86_64
@@ -104,7 +110,7 @@ fi
 
 kernelPath=$osImageBootFiles/kernel.bin
 
-ld -n -o -T "${scriptDir}/linker.ld" -o "$kernelPath" "$buildDir"/*.o*
+ld -n -o -T "${scriptDir}/linker.ld" -o "$kernelPath" "$buildDir"/*.o* "$scriptDir/zig-out/lib"/*.a*
 if [[ $? -ne 0 ]]; then
 	echo "Linker error" >&2
 	exit 1
