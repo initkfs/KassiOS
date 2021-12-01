@@ -24,14 +24,14 @@ private size_t getListSize(T)(size_t initCapacity)
 	return size;
 }
 
-LinearList* initList(T)(size_t initCapacity)
+LinearList* initList(T)(size_t initCapacity, const string file = __FILE__, const int line = __LINE__)
 {
 	const size = getListSize!T(initCapacity);
 	if (size == 0)
 	{
 		panic("Can't create linear list with zero capacity");
 	}
-	auto list = cast(LinearList*) Allocator.alloc(size);
+	auto list = cast(LinearList*) Allocator.alloc(size, file, line);
 	list.size = size;
 	list.capacity = initCapacity;
 	list.length = 0;
@@ -52,7 +52,7 @@ private T* getIndexAddress(T)(LinearList* list, const size_t index) pure
 }
 
 err push(T)(ref LinearList* list, T value, bool isFrozenCapacity = false,
-		size_t capacityScaleFactor = 2)
+	size_t capacityScaleFactor = 2)
 {
 	if (list.length >= list.capacity)
 	{

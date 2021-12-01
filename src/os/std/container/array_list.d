@@ -20,21 +20,21 @@ struct ArrayList(T)
 	@property size_t capacityScalingFactor = 2;
 	@property bool isFrozenCapacity;
 
-	this(size_t capacity)
+	this(size_t capacity, size_t initCapacityScaleFactor = 2, bool frozenCapacity = false, const string file = __FILE__, const int line = __LINE__)
 	{
-		if (const initErr = initList(capacity))
+		if (const initErr = initList(capacity, initCapacityScaleFactor, frozenCapacity, file, line))
 		{
 			panic("Cannot initialize list in constructor");
 		}
 	}
 
-	err initList(size_t capacity = 8, size_t initCapacityScaleFactor = 2, bool frozenCapacity = false)
+	err initList(size_t capacity = 8, size_t initCapacityScaleFactor = 2, bool frozenCapacity = false, const string file = __FILE__, const int line = __LINE__)
 	{
 		if (list)
 		{
 			return error("Array list is already initialized");
 		}
-		list = List.initList!T(capacity);
+		list = List.initList!T(capacity, file, line);
 		capacityScalingFactor = initCapacityScaleFactor;
 		isFrozenCapacity = frozenCapacity;
 		return null;
@@ -111,9 +111,9 @@ struct ArrayList(T)
 		return result;
 	}
 
-	void free()
+	void free(string file = __FILE__, int line = __LINE__)
 	{
-		Allocator.free(cast(size_t*) list);
+		Allocator.free(cast(size_t*) list, file, line);
 	}
 
 	@property size_t size() @safe pure
