@@ -2,21 +2,21 @@ const std = @import("std");
 const mem = std.mem;
 const testing = std.testing;
 
-pub fn jenkins(dataPtr: [*:0]const u8) u32 {
-    const data = mem.sliceTo(dataPtr, 0);
-    const length: usize = data.len;
+const strings = @import("./strings.zig");
 
-    if (length == 0) {
+pub fn jenkins(dataPtr: [*:0]const u8) u32 {
+    const data: [:0]const u8 = strings.fromStringz(dataPtr);
+
+    if (data.len == 0) {
         return 0;
     }
 
     var hash: u32 = 0;
-    var index: usize = 0;
-    while (index < length) {
-        hash +%= data[index];
+
+    for (data) |ch| {
+        hash +%= ch;
         hash +%= hash << 10;
         hash ^= hash >> 6;
-        index += 1;
     }
 
     hash +%= hash << 3;
@@ -33,20 +33,18 @@ test "Test Jenkins hash" {
 }
 
 pub fn adler32(dataPtr: [*:0]const u8) u32 {
-    const data = mem.sliceTo(dataPtr, 0);
-    const length: usize = data.len;
+    const data: [:0]const u8 = strings.fromStringz(dataPtr);
 
-    if (length == 0) {
+    if (data.len == 0) {
         return 0;
     }
 
     var s1: u32 = 1;
     var s2: u32 = 0;
-    var i: usize = 0;
-    while (i < length) {
-        s1 = (s1 + data[i]) % 65521;
-        s2 = (s2 + s1) % 65521;
-        i += 1;
+    const rem = 65221;
+    for (data) |ch| {
+        s1 = (s1 + ch) % rem;
+        s2 = (s2 + s1) % rem;
     }
 
     return (s2 << 16) | s1;
@@ -59,28 +57,25 @@ test "Test adler32 hash" {
 }
 
 pub fn pjw32(dataPtr: [*:0]const u8) u32 {
-    const data = mem.sliceTo(dataPtr, 0);
-    const length: usize = data.len;
+    const data: [:0]const u8 = strings.fromStringz(dataPtr);
 
-    if (length == 0) {
+    if (data.len == 0) {
         return 0;
     }
 
     var hash: u32 = 0;
-    var testHash: u32 = 0;
+    var hashTest: u32 = 0;
 
-    var i: usize = 0;
-    while (i < length) {
-        hash = (hash << 4) +% @intCast(u8, data[i]);
+    for (data) |ch| {
+        hash = (hash << 4) +% ch;
 
-        testHash = hash & 0xf0000000;
-        if (testHash != 0) {
-            hash = ((hash ^ (testHash >> 24)) & (0xfffffff));
+        hashTest = hash & 0xf0000000;
+        if (hashTest != 0) {
+            hash = ((hash ^ (hashTest >> 24)) & (0xfffffff));
         }
-        i += 1;
     }
 
-    return hash % @intCast(u32, length);
+    return hash % @intCast(u32, data.len);
 }
 
 test "Test pjw32 hash" {
@@ -91,7 +86,7 @@ test "Test pjw32 hash" {
 
 //Simple implementation prone to collisions
 pub fn murmur32(dataPtr: [*:0]const u8) u32 {
-    const data = mem.sliceTo(dataPtr, 0);
+    const data: [:0]const u8 = strings.fromStringz(dataPtr);
     const length: usize = data.len;
 
     if (length == 0) {
@@ -102,13 +97,13 @@ pub fn murmur32(dataPtr: [*:0]const u8) u32 {
     const seed: u32 = 0;
     const r: i32 = 24;
 
-    var h: u32 = seed ^ @intCast(u32, length);
+    var hash: u32 = seed ^ @intCast(u32, length);
 
     var k: u32 = 0;
-    var len: usize = length;
+    var blockLength: usize = length;
 
     var i: usize = 0;
-    while (len >= 4) {
+    while (blockLength >= 4) {
         k = data[i];
         //https://github.com/ziglang/zig/issues/6903
         k |= @as(u32, data[i + 1]) << 8;
@@ -119,27 +114,27 @@ pub fn murmur32(dataPtr: [*:0]const u8) u32 {
         k ^= k >> r;
         k *%= m;
 
-        h *%= m;
-        h ^= k;
+        hash *%= m;
+        hash ^= k;
 
         i += 4;
-        len -= 4;
+        blockLength -= 4;
     }
 
-    if (len == 3) {
-        h ^= @as(u32, data[i + 2]) << 16;
-    } else if (len == 2) {
-        h ^= @as(u32, data[i + 1]) << 8;
-    } else if (len == 1) {
-        h ^= data[i];
-        h *%= m;
+    if (blockLength == 3) {
+        hash ^= @as(u32, data[i + 2]) << 16;
+    } else if (blockLength == 2) {
+        hash ^= @as(u32, data[i + 1]) << 8;
+    } else if (blockLength == 1) {
+        hash ^= data[i];
+        hash *%= m;
     }
 
-    h ^= h >> 13;
-    h *%= m;
-    h ^= h >> 15;
+    hash ^= hash >> 13;
+    hash *%= m;
+    hash ^= hash >> 15;
 
-    return h;
+    return hash;
 }
 
 test "Test murmur32 hash" {
