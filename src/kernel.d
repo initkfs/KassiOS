@@ -36,6 +36,7 @@ private
     import Bits = os.std.bits;
     import Ascii = os.std.text.ascii;
     import Strings = os.std.text.strings;
+    import Hash = os.std.text.hash;
     import Kstdio = os.std.io.kstdio;
     import LinearList = os.std.container.linear_list;
     import ArrayList = os.std.container.array_list;

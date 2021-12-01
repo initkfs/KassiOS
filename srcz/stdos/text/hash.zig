@@ -4,7 +4,7 @@ const testing = std.testing;
 
 const strings = @import("./strings.zig");
 
-pub fn jenkins(dataPtr: [*:0]const u8) u32 {
+export fn jenkins(dataPtr: [*:0]const u8) callconv(.C) u32 {
     const data: [:0]const u8 = strings.fromStringz(dataPtr);
 
     if (data.len == 0) {
@@ -32,7 +32,7 @@ test "Test Jenkins hash" {
     try testing.expect(jenkins("The quick brown fox jumps over the lazy dog") == 1369346549);
 }
 
-pub fn adler32(dataPtr: [*:0]const u8) u32 {
+export fn adler32(dataPtr: [*:0]const u8) callconv(.C) u32 {
     const data: [:0]const u8 = strings.fromStringz(dataPtr);
 
     if (data.len == 0) {
@@ -56,7 +56,7 @@ test "Test adler32 hash" {
     try testing.expect(adler32("hello world") == 436929629);
 }
 
-pub fn pjw32(dataPtr: [*:0]const u8) u32 {
+export fn pjw32(dataPtr: [*:0]const u8) callconv(.C) u32 {
     const data: [:0]const u8 = strings.fromStringz(dataPtr);
 
     if (data.len == 0) {
@@ -85,7 +85,7 @@ test "Test pjw32 hash" {
 }
 
 //Simple implementation prone to collisions
-pub fn murmur32(dataPtr: [*:0]const u8) u32 {
+export fn murmur32(dataPtr: [*:0]const u8) callconv(.C) u32 {
     const data: [:0]const u8 = strings.fromStringz(dataPtr);
     const length: usize = data.len;
 
