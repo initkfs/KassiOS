@@ -22,8 +22,7 @@ struct ArrayList(T)
 
 	this(size_t capacity)
 	{
-		auto mustBeErr = initList(capacity);
-		if (mustBeErr)
+		if (const initErr = initList(capacity))
 		{
 			panic("Cannot initialize list in constructor");
 		}

@@ -64,11 +64,16 @@ struct LinkedList
 
 	bool isEmpty()
 	{
-		return first is null && size == 0;
+		return first is null || size == 0;
 	}
 
 	void freeListItem(ListItem* item)
 	{
+		if (!item)
+		{
+			return;
+		}
+
 		if (item.key)
 		{
 			Allocator.free(item.key);
