@@ -11,7 +11,7 @@ pub fn build(b: *std.build.Builder) void {
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall.
     const mode = b.standardReleaseOptions();
 
-    const lib = b.addStaticLibrary("zstd", "src_zig/main.zig");
+    const lib = b.addStaticLibrary("osz", "srcz/osz.zig");
     lib.setTarget(target);
     lib.setBuildMode(mode);
     lib.install();
