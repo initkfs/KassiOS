@@ -261,6 +261,27 @@ unittest
     kassert(isEquals(toString("foo bar".ptr), "foo bar"));
 }
 
+char* toStringzBuf(string str, char* buffer)
+{
+    size_t size;
+    const incErr = MathStrict.incrementExact(str.length, size);
+    if (incErr)
+    {
+        buffer[0] = NULL_BYTE;
+        return buffer;
+    }
+
+    size_t index;
+    foreach (ch; str)
+    {
+        buffer[index] = ch;
+        index++;
+    }
+
+    buffer[index] = NULL_BYTE;
+    return buffer;
+}
+
 char* toStringz(string str)
 {
     size_t size;
@@ -293,35 +314,23 @@ unittest
     Allocator.free(s);
 }
 
-/*
-* https://stackoverflow.com/questions/18858115/c-long-long-to-char-conversion-function-in-embedded-system
-*/
-char* toStringz(const long longValue, const int base = 10)
+string toString(const long longValue, char* buff, int buffSize, const int base = 10)
 {
     if (base < 2 || base > 16)
     {
-        return toStringz(EMPTY);
+        return EMPTY;
     }
 
     if (longValue == 0)
     {
-        return toStringz("0");
+        return "0";
     }
 
-    enum size = 64;
-    auto ptr = Allocator.alloc(size);
-    //TODO ineffective with toStringz, but this buffer may contain garbage
-    scope (exit)
-    {
-        Allocator.free(ptr);
-    }
-
-    char* buff = cast(char*) ptr;
     immutable char[16] alphabet = "0123456789ABCDEF";
 
     long val = longValue;
 
-    int i = size - 2;
+    int i = buffSize - 2;
     const isNegative = (val < 0);
     if (isNegative)
     {
@@ -332,17 +341,32 @@ char* toStringz(const long longValue, const int base = 10)
     {
         immutable digitBaseRemainder = val % base;
         immutable letter = alphabet[digitBaseRemainder];
-        Allocator.set(buff, letter, ptr, i);
+        buff[i] = letter;
     }
 
     if (isNegative)
     {
         auto negCharIndex = i--;
-        Allocator.set(buff, '-', ptr, negCharIndex);
+        buff[negCharIndex] = '-';
     }
 
-    string result = cast(string) buff[(i + 1) .. (size - 1)];
+    string result = cast(string) buff[(i + 1) .. (buffSize - 1)];
     //TODO check i < buffer length, remove unnecessary copying into memory
+    return result;
+}
+
+/*
+* https://stackoverflow.com/questions/18858115/c-long-long-to-char-conversion-function-in-embedded-system
+*/
+char* toStringz(const long longValue, const int base = 10)
+{
+    enum buffSize = 64;
+    auto buff = cast(char*) Allocator.alloc(buffSize);
+    scope(exit){
+        Allocator.free(buff);
+    }
+    //TODO remove buffer and null-byte
+    string result = toString(longValue, buff, buffSize, base);
     return toStringz(result);
 }
 
@@ -453,7 +477,7 @@ unittest
 //TODO 1e-9 -> :e-10
 // https://stackoverflow.com/questions/2302969/convert-a-float-to-a-string
 char* toStringz(const double x, const size_t maxDigitsAfterPoint = 0,
-        const double precision = 0.00000000000000001, const char sep = '.')
+    const double precision = 0.00000000000000001, const char sep = '.')
 {
     import os.std.math.math_core : isNaN, isPositiveInf, isNegativeInf, log10, pow, floor, abs;
 
@@ -629,7 +653,7 @@ long indexOf(const string str, const string pattern)
 }
 
 private long indexOfAny(const string str, const string pattern,
-        bool isLastIndexOf = false, size_t index = 0)
+    bool isLastIndexOf = false, size_t index = 0)
 {
     if (!str || !pattern)
     {
@@ -927,7 +951,7 @@ unittest
 }
 
 private char* pad(string s, size_t numberOfChars, char padChar = ' ',
-        bool isLeft = true, bool isRight = true)
+    bool isLeft = true, bool isRight = true)
 {
     if (numberOfChars <= s.length || s.length == 0 || (!isLeft && !isRight))
     {
@@ -1130,6 +1154,7 @@ char* format(T)(const string pattern, const T[] args, const char placeholder = '
     import os.std.container.array_list : ArrayList;
 
     import Collections = os.std.container.collections;
+
     //TODO very inaccurate buffer size
     size_t argsSize = args.sizeof;
     static if (is(T == string))

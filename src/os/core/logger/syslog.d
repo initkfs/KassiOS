@@ -14,10 +14,22 @@ import SysTime = os.std.date.systime;
 import Strings = os.std.text.strings;
 import Ascii = os.std.text.ascii;
 import Inspector = os.core.support.inspector;
+import Buffer = os.core.mem.buffer;
 
 private
 {
     __gshared LogLevel logLevel;
+    __gshared bool load;
+}
+
+void setLoad(bool isLoad)
+{
+    load = isLoad;
+}
+
+bool isLoad()
+{
+    return load;
 }
 
 void setLoggerLevel(LogLevel level = LogLevel.all)
@@ -72,7 +84,7 @@ private void log(LogLevel level, lazy string message, lazy string file, lazy int
 }
 
 private void logf(T)(LogLevel level, lazy string pattern, lazy T[] args,
-        lazy string file, lazy int line)
+    lazy string file, lazy int line)
 {
     if (!isForLogLevel(level, logLevel))
     {
@@ -92,13 +104,21 @@ private void writeLogRecord(ref LogRecord record)
 {
     const spaceChar = ' ';
 
-    auto dateInfo = DateTime.toIsoSimpleString(record.datetime);
-    scope (exit)
-    {
-        Allocator.free(dateInfo);
-    }
+    char* buffPtr = cast(char*) Buffer.getMemoryStart;
+    enum buffSize = 64;
 
-    Serial.write(Strings.toString(dateInfo));
+    Serial.write(Strings.toString(record.datetime.year, buffPtr, buffSize));
+    Serial.write(".");
+    Serial.write(Strings.toString(record.datetime.month, buffPtr, buffSize));
+    Serial.write(".");
+    Serial.write(Strings.toString(record.datetime.day, buffPtr, buffSize));
+    Serial.write(spaceChar);
+    Serial.write(Strings.toString(record.datetime.hour, buffPtr, buffSize));
+    Serial.write(":");
+    Serial.write(Strings.toString(record.datetime.minute, buffPtr, buffSize));
+    Serial.write(":");
+    Serial.write(Strings.toString(record.datetime.second, buffPtr, buffSize));
+
     Serial.write(spaceChar);
     Serial.write(getLevelName(record.level));
     Serial.write(spaceChar);
@@ -107,12 +127,7 @@ private void writeLogRecord(ref LogRecord record)
     Serial.write(record.file);
     Serial.write(':');
 
-    auto lineInfo = Strings.toStringz(record.line);
-    scope (exit)
-    {
-        Allocator.free(lineInfo);
-    }
-    Serial.write(Strings.toString(lineInfo));
+    Serial.write(Strings.toString(record.line, buffPtr, buffSize));
     Serial.write(Ascii.LF);
 }
 

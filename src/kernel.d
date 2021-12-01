@@ -20,6 +20,7 @@ private
     import TextDisplay = os.core.graphic.text_display;
     import Keyboard = os.core.io.keyboard;
     import Allocator = os.core.mem.allocator;
+    import Buffer = os.core.mem.buffer;
     import Idt = os.core.interrupt.idt;
     import Isr = os.core.interrupt.isr;
     import Irq = os.core.interrupt.irq;
@@ -101,7 +102,11 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
     //TODO parse page tables, 0x6400000 (512 * 50 * 4096)
     auto memoryEnd = cast(ubyte*)(0x6400000 - 0x800);
 
-    Allocator.setMemoryStart(memoryStart);
+    Buffer.setMemoryStart(memoryStart);
+    auto memoryBufferEnd = memoryStart + 200;
+    Buffer.setMemoryEnd(memoryBufferEnd);
+
+    Allocator.setMemoryStart(memoryBufferEnd);
     Allocator.setMemoryEnd(memoryEnd);
 
     enum MULTIBOOT_BOOTLOADER_MAGIC = 0x36d76289;
@@ -131,6 +136,7 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
     Serial.writeln("Serial port enabled");
 
     Syslog.setLoggerLevel(LoggerCore.LogLevel.all);
+    Syslog.setLoad(true);
     if (Syslog.isTraceLevel)
     {
         string[1] levelArgs = [Syslog.getLoggerLevelName];

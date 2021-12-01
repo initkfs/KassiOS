@@ -6,6 +6,8 @@ module os.core.mem.allocator;
 import os.std.errors;
 import os.std.asserts;
 
+import Syslog = os.core.logger.syslog;
+
 private __gshared
 {
     ubyte* memoryStart;
@@ -32,8 +34,14 @@ static struct MemBlock
     size_t[1] data;
 }
 
-size_t* alloc(size_t requestSizeInBytes)
+size_t* alloc(size_t requestSizeInBytes, const string file = __FILE__, const int line = __LINE__)
 {
+    if (Syslog.isLoad)
+    {
+        //TODO add bytes info
+        Syslog.trace("Request allocation", file, line);
+    }
+
     size_t size = alignWords(requestSizeInBytes) + MemBlock.sizeof;
 
     if (auto block = findFreeMemBlock(requestSizeInBytes))
@@ -45,7 +53,7 @@ size_t* alloc(size_t requestSizeInBytes)
     if (memoryPhysicalEnd !is null && (memoryCurrentPos + size) >= memoryPhysicalEnd)
     {
         panic(
-                "Unable to allocate memory, physical memory limit set, but requested more than available");
+            "Unable to allocate memory, physical memory limit set, but requested more than available");
     }
 
     if (size > getMemoryAvailableBytes)
@@ -71,10 +79,17 @@ size_t* alloc(size_t requestSizeInBytes)
     block.fullSize = size;
     block.used = true;
     incMemoryPos(size);
+
+    if (Syslog.isLoad)
+    {
+        //TODO add bytes info
+        Syslog.trace("Allocation", file, line);
+    }
+
     return cast(size_t*) block.data.ptr;
 }
 
-void free(T...)(T ptrs)
+void free(T...)(T ptrs, string file = __FILE__, int line = __LINE__)
 {
     foreach (ptr; ptrs)
     {
@@ -82,8 +97,13 @@ void free(T...)(T ptrs)
     }
 }
 
-void free(T)(T* ptr)
+void free(T)(T* ptr, string file = __FILE__, int line = __LINE__)
 {
+    if (Syslog.isLoad)
+    {
+        Syslog.trace("Request deallocation", file, line);
+    }
+
     size_t* dataPtr = cast(size_t*) ptr;
     MemBlock* block = getMemBlockByData(dataPtr);
     if (!block.used)
@@ -97,6 +117,11 @@ void free(T)(T* ptr)
         blockPtr[i] = 0;
     }
     block.used = false;
+
+    if (Syslog.isLoad)
+    {
+        Syslog.trace("Deallocation", file, line);
+    }
 }
 
 ubyte* getMemBlockDataEndAddr(size_t* data)
@@ -160,7 +185,7 @@ void set(T)(T* ptr, T value, size_t* basePtr, size_t index)
     if (valueEndAddr > getMemBlockDataEndAddr(basePtr))
     {
         panic(
-                "Unable set value to pointer with index: value end address is greater than the data size");
+            "Unable set value to pointer with index: value end address is greater than the data size");
     }
     ptr[index] = value;
 }
