@@ -7,3 +7,4 @@ serial.txt
 zig-cache/
 zig-out/
 .vscode/
+build.sh

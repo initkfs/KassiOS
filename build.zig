@@ -11,8 +11,17 @@ pub fn build(b: *std.build.Builder) void {
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall.
     const mode = b.standardReleaseOptions();
 
-    const lib = b.addStaticLibrary("osz", "srcz/osz.zig");
+    const libName = "osz";
+    const mainFile = "srcz/osz.zig";
+
+    const lib = b.addStaticLibrary(libName, mainFile);
     lib.setTarget(target);
     lib.setBuildMode(mode);
     lib.install();
+
+    var main_tests = b.addTest(mainFile);
+    main_tests.setBuildMode(mode);
+
+    const test_step = b.step("test", "Run library tests");
+    test_step.dependOn(&main_tests.step);
 }

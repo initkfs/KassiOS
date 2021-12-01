@@ -1,15 +1,19 @@
-pub fn jenkins(data: *u8) u32 {
-    const dataPtr: [*]u8 = @ptrCast([*]u8, data);
+const std = @import("std");
+const mem = std.mem;
+const testing = std.testing;
 
-    var length: usize = 0;
-    while (dataPtr[length] != 0) {
-        length += 1;
+pub fn jenkins(dataPtr: [*:0]const u8) u32 {
+    const data = mem.sliceTo(dataPtr, 0);
+    const length: usize = data.len;
+
+    if (length == 0) {
+        return 0;
     }
 
     var hash: u32 = 0;
     var index: usize = 0;
     while (index < length) {
-        hash +%= dataPtr[index];
+        hash +%= data[index];
         hash +%= hash << 10;
         hash ^= hash >> 6;
         index += 1;
@@ -20,4 +24,10 @@ pub fn jenkins(data: *u8) u32 {
     hash +%= hash << 15;
 
     return hash;
+}
+
+test "Test Jenkins hash" {
+    try testing.expect(jenkins("") == 0);
+    try testing.expect(jenkins("hello") == 3372029979);
+    try testing.expect(jenkins("The quick brown fox jumps over the lazy dog") == 1369346549);
 }

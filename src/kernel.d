@@ -48,7 +48,6 @@ private
     import Datetime = os.std.date.datetime;
     import SysTime = os.std.date.systime;
     import Units = os.std.util.units;
-    import Hash = os.std.text.hash;
 
     //System
     import KashLexer = os.sys.kash.lexer;
@@ -72,7 +71,6 @@ private void runTests()
 
     Tests.runTest!(Allocator);
     Tests.runTest!(Strings);
-    Tests.runTest!(Hash);
     Tests.runTest!(LinearList);
     Tests.runTest!(ArrayList);
     Tests.runTest!(LinkedList);
