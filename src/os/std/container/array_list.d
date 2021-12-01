@@ -22,7 +22,11 @@ struct ArrayList(T)
 
 	this(size_t capacity)
 	{
-		initList;
+		auto mustBeErr = initList(capacity);
+		if (mustBeErr)
+		{
+			panic("Cannot initialize list in constructor");
+		}
 	}
 
 	err initList(size_t capacity = 8, size_t initCapacityScaleFactor = 2, bool frozenCapacity = false)
@@ -115,22 +119,22 @@ struct ArrayList(T)
 
 	@property size_t size() @safe pure
 	{
-		return list.size;
+		return list !is null ? list.size : 0;
 	}
 
 	@property size_t capacity() @safe pure
 	{
-		return list.capacity;
+		return list !is null ? list.capacity : 0;
 	}
 
 	@property size_t length() @safe pure
 	{
-		return list.length;
+		return list !is null ? list.length : 0;
 	}
 
 	@property size_t* ptr()
 	{
-		return list.data.ptr;
+		return list !is null ? list.data.ptr : null;
 	}
 }
 
