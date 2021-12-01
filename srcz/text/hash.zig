@@ -31,3 +31,120 @@ test "Test Jenkins hash" {
     try testing.expect(jenkins("hello") == 3372029979);
     try testing.expect(jenkins("The quick brown fox jumps over the lazy dog") == 1369346549);
 }
+
+pub fn adler32(dataPtr: [*:0]const u8) u32 {
+    const data = mem.sliceTo(dataPtr, 0);
+    const length: usize = data.len;
+
+    if (length == 0) {
+        return 0;
+    }
+
+    var s1: u32 = 1;
+    var s2: u32 = 0;
+    var i: usize = 0;
+    while (i < length) {
+        s1 = (s1 + data[i]) % 65521;
+        s2 = (s2 + s1) % 65521;
+        i += 1;
+    }
+
+    return (s2 << 16) | s1;
+}
+
+test "Test adler32 hash" {
+    try testing.expect(adler32("") == 0);
+    try testing.expect(adler32("hello") == 103547413);
+    try testing.expect(adler32("hello world") == 436929629);
+}
+
+pub fn pjw32(dataPtr: [*:0]const u8) u32 {
+    const data = mem.sliceTo(dataPtr, 0);
+    const length: usize = data.len;
+
+    if (length == 0) {
+        return 0;
+    }
+
+    var hash: u32 = 0;
+    var testHash: u32 = 0;
+
+    var i: usize = 0;
+    while (i < length) {
+        hash = (hash << 4) +% @intCast(u8, data[i]);
+
+        testHash = hash & 0xf0000000;
+        if (testHash != 0) {
+            hash = ((hash ^ (testHash >> 24)) & (0xfffffff));
+        }
+        i += 1;
+    }
+
+    return hash % @intCast(u32, length);
+}
+
+test "Test pjw32 hash" {
+    try testing.expect(pjw32("") == 0);
+    try testing.expect(pjw32("hello") == 2);
+    try testing.expect(pjw32("hello world") == 6);
+}
+
+//Simple implementation prone to collisions
+pub fn murmur32(dataPtr: [*:0]const u8) u32 {
+    const data = mem.sliceTo(dataPtr, 0);
+    const length: usize = data.len;
+
+    if (length == 0) {
+        return 0;
+    }
+
+    const m: u32 = 0x5bd1e995;
+    const seed: u32 = 0;
+    const r: i32 = 24;
+
+    var h: u32 = seed ^ @intCast(u32, length);
+
+    var k: u32 = 0;
+    var len: usize = length;
+
+    var i: usize = 0;
+    while (len >= 4) {
+        k = data[i];
+        //https://github.com/ziglang/zig/issues/6903
+        k |= @as(u32, data[i + 1]) << 8;
+        k |= @as(u32, data[i + 2]) << 16;
+        k |= @as(u32, data[i + 3]) << 24;
+
+        k *%= m;
+        k ^= k >> r;
+        k *%= m;
+
+        h *%= m;
+        h ^= k;
+
+        i += 4;
+        len -= 4;
+    }
+
+    if (len == 3) {
+        h ^= @as(u32, data[i + 2]) << 16;
+    } else if (len == 2) {
+        h ^= @as(u32, data[i + 1]) << 8;
+    } else if (len == 1) {
+        h ^= data[i];
+        h *%= m;
+    }
+
+    h ^= h >> 13;
+    h *%= m;
+    h ^= h >> 15;
+
+    return h;
+}
+
+test "Test murmur32 hash" {
+    try testing.expect(murmur32("") == 0);
+    try testing.expect(murmur32("hello") == 3848350155);
+    try testing.expect(murmur32("hello world") == 3930116263);
+    try testing.expect(murmur32("Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s") == 3150412050);
+}
