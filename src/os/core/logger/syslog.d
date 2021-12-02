@@ -105,19 +105,18 @@ private void writeLogRecord(ref LogRecord record)
     const spaceChar = ' ';
 
     char* buffPtr = cast(char*) Buffer.getMemoryStart;
-    enum buffSize = 64;
 
-    Serial.write(Strings.toString(record.datetime.year, buffPtr, buffSize));
+    Serial.write(Strings.toString(record.datetime.year, buffPtr));
     Serial.write(".");
-    Serial.write(Strings.toString(record.datetime.month, buffPtr, buffSize));
+    Serial.write(Strings.toString(record.datetime.month, buffPtr));
     Serial.write(".");
-    Serial.write(Strings.toString(record.datetime.day, buffPtr, buffSize));
+    Serial.write(Strings.toString(record.datetime.day, buffPtr));
     Serial.write(spaceChar);
-    Serial.write(Strings.toString(record.datetime.hour, buffPtr, buffSize));
+    Serial.write(Strings.toString(record.datetime.hour, buffPtr));
     Serial.write(":");
-    Serial.write(Strings.toString(record.datetime.minute, buffPtr, buffSize));
+    Serial.write(Strings.toString(record.datetime.minute, buffPtr));
     Serial.write(":");
-    Serial.write(Strings.toString(record.datetime.second, buffPtr, buffSize));
+    Serial.write(Strings.toString(record.datetime.second, buffPtr));
 
     Serial.write(spaceChar);
     Serial.write(getLevelName(record.level));
@@ -127,7 +126,7 @@ private void writeLogRecord(ref LogRecord record)
     Serial.write(record.file);
     Serial.write(':');
 
-    Serial.write(Strings.toString(record.line, buffPtr, buffSize));
+    Serial.write(Strings.toString(record.line, buffPtr));
     Serial.write(Ascii.LF);
 }
 

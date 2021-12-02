@@ -86,28 +86,11 @@ unittest
     kassert(isEquals(cast(string) s1, cast(string) s2));
 }
 
-size_t lengthz(const char* str)
-{
-    if (!str)
-    {
-        return 0;
-    }
-
-    char* ptr = cast(char*) str;
-    size_t length;
-    while (*ptr && *ptr != NULL_BYTE)
-    {
-        length++;
-        ptr++;
-    }
-
-    return length;
-}
-
+extern(C) size_t lengthz(const char* str);
 unittest
 {
     import os.std.asserts : kassert;
-
+    
     kassert(lengthz(null) == 0);
     kassert(lengthz("".ptr) == 0);
     kassert(lengthz(" ".ptr) == 1);
@@ -314,45 +297,11 @@ unittest
     Allocator.free(s);
 }
 
-string toString(const long longValue, char* buff, int buffSize, const int base = 10)
+extern(C) char* parseLong(long value, char* buff, int base);
+
+string toString(const long longValue, char* buff, const int base = 10)
 {
-    if (base < 2 || base > 16)
-    {
-        return EMPTY;
-    }
-
-    if (longValue == 0)
-    {
-        return "0";
-    }
-
-    immutable char[16] alphabet = "0123456789ABCDEF";
-
-    long val = longValue;
-
-    int i = buffSize - 2;
-    const isNegative = (val < 0);
-    if (isNegative)
-    {
-        val = -val;
-    }
-
-    for (; val && i; --i, val /= base)
-    {
-        immutable digitBaseRemainder = val % base;
-        immutable letter = alphabet[digitBaseRemainder];
-        buff[i] = letter;
-    }
-
-    if (isNegative)
-    {
-        auto negCharIndex = i--;
-        buff[negCharIndex] = '-';
-    }
-
-    string result = cast(string) buff[(i + 1) .. (buffSize - 1)];
-    //TODO check i < buffer length, remove unnecessary copying into memory
-    return result;
+   return toString(parseLong(longValue, buff, base));
 }
 
 /*
@@ -360,13 +309,13 @@ string toString(const long longValue, char* buff, int buffSize, const int base =
 */
 char* toStringz(const long longValue, const int base = 10)
 {
-    enum buffSize = 64;
+    enum buffSize = 64 + 3;
     auto buff = cast(char*) Allocator.alloc(buffSize);
     scope(exit){
         Allocator.free(buff);
     }
     //TODO remove buffer and null-byte
-    string result = toString(longValue, buff, buffSize, base);
+    string result = toString(longValue, buff, base);
     return toStringz(result);
 }
 
@@ -381,10 +330,6 @@ unittest
     auto s2 = toStringz(1, 1);
     kassert(isEquals(toString(s1), ""));
     Allocator.free(s2);
-
-    auto s3 = toStringz(1, 17);
-    kassert(isEquals(toString(s1), ""));
-    Allocator.free(s3);
 
     //Decimal
     auto sd = toStringz(0, 10);
@@ -419,8 +364,8 @@ unittest
     kassert(isEquals(toString(sdmax), "9223372036854775807"));
     Allocator.free(sdmax);
 
-    auto sdmaxNeg = toStringz(-(long.min - 1), 10);
-    kassert(isEquals(toString(sdmaxNeg), "-9223372036854775807"));
+    auto sdmaxNeg = toStringz(long.min, 10);
+    kassert(isEquals(toString(sdmaxNeg), "-9223372036854775808"));
     Allocator.free(sdmaxNeg);
 
     //Bin

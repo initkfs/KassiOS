@@ -137,7 +137,8 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
     Serial.writeln("Serial port enabled");
 
     Syslog.setLoggerLevel(LoggerCore.LogLevel.all);
-    Syslog.setLoad(true);
+    //TODO Disable for performance
+    //Syslog.setLoad(true);
     if (Syslog.isTraceLevel)
     {
         string[1] levelArgs = [Syslog.getLoggerLevelName];
