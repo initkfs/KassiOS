@@ -47,6 +47,4 @@ test "Test Lagrange interpolation" {
 
     const result2: f64 = interpolateLagrange(dataValues, 4, 4);
     try testing.expect(math.approxEqAbs(f64, result2, 78, math.f32_epsilon));
-
-    try testing.expect(false);
 }
