@@ -32,6 +32,8 @@ private
     import Syslog = os.core.logger.syslog;
 
     //Std
+    import os.std.container.array;
+
     import Tests = os.std.tests;
     import Bits = os.std.bits;
     import Ascii = os.std.text.ascii;
@@ -113,9 +115,8 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
     enum MULTIBOOT_BOOTLOADER_MAGIC = 0x36d76289;
     if (magic != MULTIBOOT_BOOTLOADER_MAGIC)
     {
-        size_t[2] magicArgs = [MULTIBOOT_BOOTLOADER_MAGIC, magic];
         Kstdio.kprintfln("Multiboot-compliant bootloader verification error: magic number expected %x, but received %x. See https://www.gnu.org/software/grub/manual/multiboot2/multiboot.html",
-                magicArgs);
+                [MULTIBOOT_BOOTLOADER_MAGIC, magic].staticArr);
         return;
     }
 
@@ -141,10 +142,9 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
     //Syslog.setLoad(true);
     if (Syslog.isTraceLevel)
     {
-        string[1] levelArgs = [Syslog.getLoggerLevelName];
-        Syslog.tracef("Loaded logger with log level %s", levelArgs);
+        Syslog.tracef("Loaded logger with log level %s", [Syslog.getLoggerLevelName].staticArr);
 
-        size_t[2] memArgs = [cast(size_t) memoryStart, cast(size_t) memoryEnd];
+        immutable memArgs = [cast(size_t) memoryStart, cast(size_t) memoryEnd].staticArr;
         Syslog.tracef("Set allocator start %x, end %x", memArgs);
     }
 
@@ -168,8 +168,7 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
             {
                 if (cmdLine.length > 0)
                 {
-                    string[1] cmdArgs = [cmdLine];
-                    Syslog.tracef("Multiboot command line found: '%s'", cmdArgs);
+                    Syslog.tracef("Multiboot command line found: '%s'", [cmdLine].staticArr);
 
                     const bool isAcpi = !Strings.contains(cmdLine, CoreConfig.noAcpiKernelArgKey);
                     if (Syslog.isTraceLevel)
@@ -216,8 +215,7 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
             Allocator.setMemoryPhysicalUpper(memUpper);
             if (Syslog.isTraceLevel)
             {
-                size_t[1] memArgs = [memUpper];
-                Syslog.tracef("Multiboot memory info parsed. Max upper: %l", memArgs);
+                Syslog.tracef("Multiboot memory info parsed. Max upper: %l", [memUpper].staticArr);
             }
             break;
         case MultibootSpec.MULTIBOOT_TAG_TYPE_MMAP:
@@ -239,8 +237,7 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
                         Allocator.setMemoryPhysicalEnd(cast(ubyte*) maxAddr);
                         if (Syslog.isTraceLevel)
                         {
-                            size_t[1] memArgs = [cast(size_t) maxAddr];
-                            Syslog.tracef("Multiboot found physical memory end: %x", memArgs);
+                            Syslog.tracef("Multiboot found physical memory end: %x", [cast(size_t) maxAddr].staticArr);
                         }
                     }
                 }
@@ -365,8 +362,7 @@ extern (C) __gshared void runInterruptServiceRoutine(const ulong num, const ulon
             mov RAX, CR2;
             mov errorAddr, RAX;
         }
-        size_t[1] errorArgs = [errorAddr];
-        auto errMessagePtr = Strings.format("Page fault: %x", errorArgs);
+        auto errMessagePtr = Strings.format("Page fault: %x", [errorAddr].staticArr);
         scope (exit)
         {
             Allocator.free(errMessagePtr);
