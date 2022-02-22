@@ -4,7 +4,7 @@
 //https://wiki.osdev.org/ACPI
 module os.core.acpi.acpi_core;
 
-bool validate(const ubyte* addr, const size_t size)
+bool validate(const ubyte* addr, const size_t size) @nogc pure
 {
     ubyte count;
     foreach (b; addr[0 .. size])

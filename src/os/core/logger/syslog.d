@@ -22,47 +22,47 @@ private
     __gshared bool load;
 }
 
-void setLoad(bool isLoad)
+void setLoad(bool isLoad) @nogc
 {
     load = isLoad;
 }
 
-bool isLoad()
+bool isLoad() @nogc
 {
     return load;
 }
 
-void setLoggerLevel(LogLevel level = LogLevel.all)
+void setLoggerLevel(LogLevel level = LogLevel.all) @nogc
 {
     logLevel = level;
 }
 
-string getLoggerLevelName()
+string getLoggerLevelName() @nogc
 {
     return getLevelName(logLevel);
 }
 
-bool isErrorLevel()
+bool isErrorLevel() @nogc
 {
     return isForSyslogLevel(LogLevel.error);
 }
 
-bool isWarnLevel()
+bool isWarnLevel() @nogc
 {
     return isForSyslogLevel(LogLevel.warn);
 }
 
-bool isInfoLevel()
+bool isInfoLevel() @nogc
 {
     return isForSyslogLevel(LogLevel.info);
 }
 
-bool isTraceLevel()
+bool isTraceLevel() @nogc
 {
     return isForSyslogLevel(LogLevel.trace);
 }
 
-bool isForSyslogLevel(LogLevel level)
+bool isForSyslogLevel(LogLevel level) @nogc
 {
     return isForLogLevel(level, logLevel);
 }

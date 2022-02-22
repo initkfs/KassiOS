@@ -27,7 +27,7 @@ struct LogRecord
         int line;
     }
 
-    this(string message, LogLevel level, LocalDateTime datetime, string file, int line)
+    this(string message, LogLevel level, LocalDateTime datetime, string file, int line) @nogc
     {
         this.level = level;
         this.datetime = datetime;
@@ -37,7 +37,7 @@ struct LogRecord
     }
 }
 
-string getLevelName(LogLevel level)
+string getLevelName(const LogLevel level) @nogc pure @safe
 {
     string levelName = "undefined.level";
     foreach (l; EnumMembers!LogLevel)
@@ -51,7 +51,7 @@ string getLevelName(LogLevel level)
 }
 
 //minimal logger level >= global logger level
-bool isForLogLevel(LogLevel level, LogLevel loggerLevel)
+bool isForLogLevel(const LogLevel level, const LogLevel loggerLevel) @nogc pure @safe
 {
     if (loggerLevel == LogLevel.all)
     {
