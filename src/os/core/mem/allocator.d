@@ -21,10 +21,10 @@ private __gshared
     MemBlock* heapStart;
     MemBlock* heapCurrent;
 
-    const size_t MEM_BLOCK_MAGIC_CHECKSUM = 0x7872f0645e696b86;
+    enum MEM_BLOCK_MAGIC_CHECKSUM = 0x7872f0645e696b86;
 }
 
-static struct MemBlock
+struct MemBlock
 {
     MemBlock* next;
     size_t checksum;
@@ -32,9 +32,11 @@ static struct MemBlock
     size_t fullSize;
     bool used;
     size_t[1] data;
+
+    @disable this();
 }
 
-size_t* alloc(size_t requestSizeInBytes, const string file = __FILE__, const int line = __LINE__)
+size_t* alloc(const size_t requestSizeInBytes, const string file = __FILE__, const int line = __LINE__)
 {
     if (Syslog.isLoad)
     {
@@ -42,12 +44,12 @@ size_t* alloc(size_t requestSizeInBytes, const string file = __FILE__, const int
         Syslog.trace("Request allocation", file, line);
     }
 
-    size_t size = alignWords(requestSizeInBytes) + MemBlock.sizeof;
+    const size_t size = alignWords(requestSizeInBytes + MemBlock.sizeof - MemBlock.data.sizeof);
 
     if (auto block = findFreeMemBlock(requestSizeInBytes))
     {
         block.used = true;
-        return cast(size_t*) block.data.ptr;
+        return block.data.ptr;
     }
 
     if (memoryPhysicalEnd !is null && (memoryCurrentPos + size) >= memoryPhysicalEnd)
@@ -78,6 +80,7 @@ size_t* alloc(size_t requestSizeInBytes, const string file = __FILE__, const int
     block.size = requestSizeInBytes;
     block.fullSize = size;
     block.used = true;
+
     incMemoryPos(size);
 
     if (Syslog.isLoad)
@@ -86,10 +89,10 @@ size_t* alloc(size_t requestSizeInBytes, const string file = __FILE__, const int
         Syslog.trace("Allocation", file, line);
     }
 
-    return cast(size_t*) block.data.ptr;
+    return block.data.ptr;
 }
 
-void free(T...)(T ptrs, string file = __FILE__, int line = __LINE__)
+void free(T...)(const T ptrs, const string file = __FILE__, const int line = __LINE__)
 {
     foreach (ptr; ptrs)
     {
@@ -97,22 +100,23 @@ void free(T...)(T ptrs, string file = __FILE__, int line = __LINE__)
     }
 }
 
-void free(T)(T* ptr, string file = __FILE__, int line = __LINE__)
+void free(T)(const T* ptr, const string file = __FILE__, const int line = __LINE__)
 {
     if (Syslog.isLoad)
     {
         Syslog.trace("Request deallocation", file, line);
     }
 
-    size_t* dataPtr = cast(size_t*) ptr;
+    const size_t* dataPtr = cast(size_t*) ptr;
     MemBlock* block = getMemBlockByData(dataPtr);
     if (!block.used)
     {
         panic("The block to be freed has already been released");
     }
-    const size = block.size;
+
     auto blockPtr = cast(ubyte*) dataPtr;
-    foreach (i; 0 .. size)
+    //TODO more effective 
+    foreach (i; 0 .. block.size)
     {
         blockPtr[i] = 0;
     }
@@ -124,13 +128,13 @@ void free(T)(T* ptr, string file = __FILE__, int line = __LINE__)
     }
 }
 
-ubyte* getMemBlockDataEndAddr(size_t* data)
+ubyte* getMemBlockDataEndAddr(const size_t* data)
 {
     auto memBlock = getMemBlockByData(data);
     return (cast(ubyte*) data) + memBlock.size;
 }
 
-MemBlock* getMemBlockByData(size_t* data)
+MemBlock* getMemBlockByData(const size_t* data)
 {
     const endAddr = (cast(ubyte*) data) + MemBlock.data.sizeof;
     const startAddr = endAddr - MemBlock.sizeof;
@@ -142,7 +146,7 @@ MemBlock* getMemBlockByData(size_t* data)
     return mustBeBlock;
 }
 
-private MemBlock* findFreeMemBlock(size_t size)
+private MemBlock* findFreeMemBlock(const size_t size)
 {
     auto block = heapStart;
     while (block !is null)
@@ -157,7 +161,7 @@ private MemBlock* findFreeMemBlock(size_t size)
     return null;
 }
 
-void set(T)(T* ptr, T value, size_t* basePtr)
+void set(T)(T* ptr, T value, const size_t* basePtr)
 {
     //TODO ptr == basePtr
     const ubyte* valueStartAddr = cast(ubyte*) ptr;
@@ -174,7 +178,7 @@ void set(T)(T* ptr, T value, size_t* basePtr)
     *ptr = value;
 }
 
-void set(T)(T* ptr, T value, size_t* basePtr, size_t index)
+void set(T)(T* ptr, T value, const size_t* basePtr, const size_t index)
 {
     const ubyte* valueStartAddr = (cast(ubyte*) ptr) + index * T.sizeof;
     if (valueStartAddr < cast(ubyte*) basePtr)
@@ -230,7 +234,7 @@ immutable(ubyte*) getMemoryEnd()
     return cast(immutable(ubyte*)) memoryEnd;
 }
 
-void setMemoryPhysicalUpper(size_t value)
+void setMemoryPhysicalUpper(const size_t value)
 {
     kassert(value > 0);
     memoryPhysicalUpper = value;
@@ -267,13 +271,13 @@ size_t getMemorySize()
     return memoryEnd - memoryStart;
 }
 
-void getMemoryStat(ref size_t usedBytes, ref size_t bufferedBytes, ref size_t avalilableBytes)
+void getMemoryStat(out size_t usedBytes, out size_t bufferedBytes, out size_t avalilableBytes)
 {
     avalilableBytes = getMemoryAvailableBytes;
     auto block = heapStart;
     while (block !is null)
     {
-        size_t size = block.size;
+        const size_t size = block.size;
         if (block.used)
         {
             usedBytes += size;
@@ -338,7 +342,7 @@ private void incMemoryPos(const size_t value)
     memoryCurrentPos += value;
 }
 
-private size_t alignWords(size_t n) @safe pure
+private size_t alignWords(size_t n) @nogc pure @safe
 {
     return (n + size_t.sizeof - 1) & ~(size_t.sizeof - 1);
 }

@@ -5,9 +5,9 @@ module os.core.mem.memory;
 
 import std.traits;
 
-int memcmp(T)(T* addr1, T* addr2, size_t size)
+int memcmp(T)(T* addr1, T* addr2, const size_t size) @nogc pure
 {
-    for (auto i = 0; i < size; i++, addr1++, addr2++)
+    for (size_t i = 0; i < size; i++, addr1++, addr2++)
     {
         if (*addr1 < *addr2)
         {
@@ -21,7 +21,7 @@ int memcmp(T)(T* addr1, T* addr2, size_t size)
     return 0;
 }
 
-size_t memcp(T)(T* dest, T* src, size_t n)
+size_t memcp(T)(T* dest, T* src, const size_t n) @nogc pure
 {
     if (n == 0)
     {
