@@ -8,11 +8,14 @@ import AcpiRsdp = os.core.acpi.rsdp;
 import AcpiRsdt = os.core.acpi.rsdt;
 import AcpiFadt = os.core.acpi.fadt;
 
-const apicSignature = "APIC";
-const hpetSignature = "HPET";
-const fadtSignature = "FACP";
+private
+{
+    const apicSignature = "APIC";
+    const hpetSignature = "HPET";
+    const fadtSignature = "FACP";
+}
 
-void init()
+void init() @nogc
 {
     AcpiRsdp.RootSystemDescriptionPointerV1* rsdp = AcpiRsdp.findAcpiRSDP1;
     if (!rsdp)
@@ -39,14 +42,14 @@ void init()
     // }
 
     AcpiRsdt.SystemDescriptorTableHeader* fadtTable = AcpiRsdt.findTableBySignature(
-            fadtSignature, rsdt);
+        fadtSignature, rsdt);
     if (fadtTable)
     {
         AcpiFadt.setFadt(fadtTable);
     }
 }
 
-bool shutdown()
+bool shutdown() @nogc
 {
     if (AcpiFadt.SCI_EN != 1)
     {
@@ -60,7 +63,7 @@ bool shutdown()
     if (AcpiFadt.PM1b_CNT != 0)
     {
         Ports.outportw(cast(ushort) AcpiFadt.PM1b_CNT,
-                cast(ushort)(AcpiFadt.SLP_TYPb | AcpiFadt.SLP_EN));
+            cast(ushort)(AcpiFadt.SLP_TYPb | AcpiFadt.SLP_EN));
     }
 
     return true;

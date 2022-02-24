@@ -40,17 +40,17 @@ __gshared
     uint SCI_EN;
 }
 
-bool isEnabled()
+bool isEnabled() @nogc
 {
     return enabled;
 }
 
-private void setEnabled(bool value)
+private void setEnabled(bool value) @nogc
 {
     enabled = value;
 }
 
-void setFadt(AcpiRsdt.SystemDescriptorTableHeader* fadtHeader)
+void setFadt(AcpiRsdt.SystemDescriptorTableHeader* fadtHeader) @nogc
 {
     setEnabled(false);
     auto fadt = cast(FixedDescriptionTable*) fadtHeader;

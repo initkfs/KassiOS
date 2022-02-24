@@ -3,12 +3,12 @@
  */
 module os.core.io.ports;
 
-void outport(T)(const ushort port, T data)
+void outport(T)(const ushort port, T data) @nogc
 		if (is(T == ubyte) || is(T == ushort) || is(T == uint))
 {
 	const uint value = data;
 
-	asm
+	asm @nogc
 	{
 		mov DX, port;
 		mov EAX, value;
@@ -16,47 +16,47 @@ void outport(T)(const ushort port, T data)
 
 	static if (is(T == ubyte))
 	{
-		asm
+		asm @nogc
 		{
 			out DX, AL;
 		}
 	}
 	else static if (is(T == ushort))
 	{
-		asm
+		asm @nogc
 		{
 			out DX, AX;
 		}
 	}
 	else static if (is(T == uint))
 	{
-		asm
+		asm @nogc
 		{
 			out DX, EAX;
 		}
 	}
 }
 
-void outportb(const ushort port, const ubyte data)
+void outportb(const ushort port, const ubyte data) @nogc
 {
 	outport!ubyte(port, data);
 }
 
-void outportw(const ushort port, const ushort data)
+void outportw(const ushort port, const ushort data) @nogc
 {
 	outport!ushort(port, data);
 }
 
-void outportd(const ushort port, const uint data)
+void outportd(const ushort port, const uint data) @nogc
 {
 	outport!uint(port, data);
 }
 
-T inport(T)(const ushort port) if (is(T == ubyte) || is(T == ushort) || is(T == uint))
+T inport(T)(const ushort port) @nogc if (is(T == ubyte) || is(T == ushort) || is(T == uint))
 {
 	T result;
 
-	asm
+	asm @nogc
 	{
 		mov DX, port;
 	}
@@ -64,7 +64,7 @@ T inport(T)(const ushort port) if (is(T == ubyte) || is(T == ushort) || is(T == 
 	//TODO check port
 	static if (is(T == ubyte))
 	{
-		asm
+		asm @nogc
 		{
 			in AL, DX;
 			mov result, AL;
@@ -72,7 +72,7 @@ T inport(T)(const ushort port) if (is(T == ubyte) || is(T == ushort) || is(T == 
 	}
 	else static if (is(T == ushort))
 	{
-		asm
+		asm @nogc
 		{
 			in AX, DX;
 			mov result, AX;
@@ -80,7 +80,7 @@ T inport(T)(const ushort port) if (is(T == ubyte) || is(T == ushort) || is(T == 
 	}
 	else static if (is(T == uint))
 	{
-		asm
+		asm @nogc
 		{
 			in EAX, DX;
 			mov result, EAX;

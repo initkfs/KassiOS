@@ -5,7 +5,7 @@ module os.core.acpi.rsdp;
 
 import AcpiCore = os.core.acpi.acpi_core;
 
-const size_t acpiSignature = 0x2052545020445352;
+enum acpiSignature = 0x2052545020445352;
 enum acpiQemuLocationAddr = 0xf68c0;
 enum acpiBiosStartScanAddr = 0x000e0000;
 enum acpiBiosEndScanAddr = 0x000fffff;
@@ -32,12 +32,12 @@ align(1):
     ubyte[3] reserved;
 }
 
-private bool isAcpiRsdpSignature(const ubyte* addr)
+private bool isAcpiRsdpSignature(const ubyte* addr) @nogc
 {
     return *cast(size_t*) addr == acpiSignature;
 }
 
-private RootSystemDescriptionPointerV1* getRsdpFromAddr(ubyte* addr)
+private RootSystemDescriptionPointerV1* getRsdpFromAddr(const ubyte* addr) @nogc
 {
     if (AcpiCore.validate(addr, RootSystemDescriptionPointerV1.sizeof))
     {
@@ -46,7 +46,7 @@ private RootSystemDescriptionPointerV1* getRsdpFromAddr(ubyte* addr)
     return null;
 }
 
-RootSystemDescriptionPointerV1* findAcpiRSDP1()
+RootSystemDescriptionPointerV1* findAcpiRSDP1() @nogc
 {
     const mustBeQemuAddr = cast(ubyte*) acpiQemuLocationAddr;
     if (isAcpiRsdpSignature(mustBeQemuAddr))

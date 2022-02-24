@@ -21,14 +21,14 @@ struct SystemDescriptorTableHeader
     uint creatorRevision;
 }
 
-bool isSdtSignature(ubyte* addr, string sign)
+bool isSdtSignature(ubyte* addr, string sign) @nogc
 {
     return Memory.memcmp(addr, cast(ubyte*) sign, sign.length) == 0;
 }
 
-SystemDescriptorTableHeader* findTableBySignature(string id, SystemDescriptorTableHeader* rsdt)
+SystemDescriptorTableHeader* findTableBySignature(string id, SystemDescriptorTableHeader* rsdt) @nogc
 {
-    ulong entries = (rsdt.length - SystemDescriptorTableHeader.sizeof) / 4;
+    size_t entries = (rsdt.length - SystemDescriptorTableHeader.sizeof) / 4;
 
     ubyte* entryAddr = cast(ubyte*) rsdt;
     entryAddr += SystemDescriptorTableHeader.sizeof;
@@ -54,7 +54,7 @@ SystemDescriptorTableHeader* findTableBySignature(string id, SystemDescriptorTab
     return null;
 }
 
-SystemDescriptorTableHeader* findAcpiRsdt(AcpiRsdp.RootSystemDescriptionPointerV1* rdsp)
+SystemDescriptorTableHeader* findAcpiRsdt(AcpiRsdp.RootSystemDescriptionPointerV1* rdsp) @nogc
 {
     //TODO xsdtAddress
     if (!rdsp.rsdtAddress)
