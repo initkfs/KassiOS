@@ -39,7 +39,7 @@ bool isDeviceExists(ushort bus, ushort slot, ushort func = 0) @nogc
 	return readConfig(bus, slot, func, 0) != ushort.max;
 }
 
-void iteratePciDevices(scope void delegate(uint, uint) onDeviceIdAndVendor)
+void iteratePciDevices(void delegate(uint, uint) onDeviceIdAndVendor)
 {
 	for (ushort bus = 0; bus < 256; bus++)
 	{

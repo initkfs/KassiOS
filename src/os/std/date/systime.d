@@ -7,23 +7,16 @@ import os.std.date.datetime;
 
 import RTC = os.core.io.rtc;
 
-void getDateUtc(out LocalDate localDate)
+LocalDate getDateUtc()
 {
-    RTC.DateTimeRtc dt;
-    RTC.getDateTime(dt);
-    localDate.year = dt.year;
-    localDate.month = dt.month;
-    localDate.day = dt.day;
+    RTC.DateTimeRtc dt = RTC.getDateTime;
+    auto date = LocalDate(dt.year, dt.month, dt.day);
+    return date;
 }
 
-void getDateTimeUtc(out LocalDateTime localDatetime)
+LocalDateTime getDateTimeUtc()
 {
-    RTC.DateTimeRtc dt;
-    RTC.getDateTime(dt);
-    //TODO auto copy
-    localDatetime.year = dt.year;
-    localDatetime.month = dt.month;
-    localDatetime.hour = dt.hour;
-    localDatetime.minute = dt.minute;
-    localDatetime.second = dt.second;
+    RTC.DateTimeRtc dt = RTC.getDateTime;
+    auto date = LocalDateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second);
+    return date;
 }

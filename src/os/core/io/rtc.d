@@ -7,8 +7,6 @@ module os.core.io.rtc;
 import Kstdio = os.std.io.kstdio;
 import Ports = os.core.io.ports;
 
-import os.std.date.datetime;
-
 enum cmosInPort = 0x70;
 enum cmosDataPort = 0x71;
 enum centuryRegister = 0x00;
@@ -28,7 +26,7 @@ enum RtcRegisters
 
 struct DateTimeRtc
 {
-	@property
+	const
 	{
 		uint century;
 		uint year;
@@ -38,16 +36,29 @@ struct DateTimeRtc
 		ubyte minute;
 		ubyte second;
 	}
+
+	this(const uint century, const uint year, const ubyte month, const ubyte day,
+			const ubyte hour, const ubyte minute, const ubyte second)
+	{
+		//TODO validate
+		this.century = century;
+		this.year = year;
+		this.month = month;
+		this.day = day;
+		this.hour = hour;
+		this.minute = minute;
+		this.second = second;
+	}
 }
 
-ubyte readFromRtcRegister(const ubyte reg) @nogc
+ubyte readFromRtcRegister(const ubyte reg)
 {
 	Ports.outportb(cmosInPort, reg);
 	auto rtcValue = Ports.inport!ubyte(cmosDataPort);
 	return rtcValue;
 }
 
-void getDateTime(out DateTimeRtc dateTime) @nogc
+DateTimeRtc getDateTime()
 {
 	auto updateCount = 1000;
 	while (updateCount > 0)
@@ -103,11 +114,6 @@ void getDateTime(out DateTimeRtc dateTime) @nogc
 		fullYear = 100 * century + year;
 	}
 
-	dateTime.century = century;
-	dateTime.year = fullYear;
-	dateTime.month = month;
-	dateTime.day = day;
-	dateTime.hour = hour;
-	dateTime.minute = minute;
-	dateTime.second = second;
+	auto dt = DateTimeRtc(century, fullYear, month, day, hour, minute, second);
+	return dt;
 }

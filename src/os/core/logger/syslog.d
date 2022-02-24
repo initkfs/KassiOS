@@ -4,7 +4,6 @@
 module os.core.logger.syslog;
 
 import os.core.logger.logger_core;
-import os.std.date.datetime;
 
 import std.traits;
 
@@ -80,7 +79,7 @@ private void log(LogLevel level, lazy string message, lazy string file, lazy int
         Inspector.setErrors;
     }
 
-    LogRecord record = LogRecord(message, level, file, line);
+    LogRecord record = LogRecord(message, level, SysTime.getDateTimeUtc, file, line);
     writeLogRecord(record);
 }
 
@@ -107,20 +106,17 @@ private void writeLogRecord(ref LogRecord record)
 
     char* buffPtr = cast(char*) Buffer.getMemoryStart;
 
-    LocalDateTime datetime;
-    SysTime.getDateTimeUtc(datetime), 
-
-    Serial.write(Strings.toString(datetime.year, buffPtr));
+    Serial.write(Strings.toString(record.datetime.year, buffPtr));
     Serial.write(".");
-    Serial.write(Strings.toString(datetime.month, buffPtr));
+    Serial.write(Strings.toString(record.datetime.month, buffPtr));
     Serial.write(".");
-    Serial.write(Strings.toString(datetime.day, buffPtr));
+    Serial.write(Strings.toString(record.datetime.day, buffPtr));
     Serial.write(spaceChar);
-    Serial.write(Strings.toString(datetime.hour, buffPtr));
+    Serial.write(Strings.toString(record.datetime.hour, buffPtr));
     Serial.write(":");
-    Serial.write(Strings.toString(datetime.minute, buffPtr));
+    Serial.write(Strings.toString(record.datetime.minute, buffPtr));
     Serial.write(":");
-    Serial.write(Strings.toString(datetime.second, buffPtr));
+    Serial.write(Strings.toString(record.datetime.second, buffPtr));
 
     Serial.write(spaceChar);
     Serial.write(getLevelName(record.level));

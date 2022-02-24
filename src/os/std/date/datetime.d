@@ -7,7 +7,7 @@ import Strings = os.std.text.strings;
 
 struct LocalDate
 {
-    @property
+    const
     {
         int year;
         int month;
@@ -17,7 +17,7 @@ struct LocalDate
 
 struct LocalDateTime
 {
-    @property
+    const
     {
         int year;
         int month;
