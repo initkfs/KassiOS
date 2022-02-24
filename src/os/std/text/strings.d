@@ -99,7 +99,7 @@ unittest
     kassert(lengthz("a b c".ptr) == 5);
 }
 
-char* transform(string s, char delegate(char) onChar)
+char* transform(string s, scope char delegate(char) onChar)
 {
     if (s.length == 0)
     {

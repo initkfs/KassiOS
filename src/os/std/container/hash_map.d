@@ -411,7 +411,7 @@ struct HashMap
 	}
 
 	//TODO iterator
-	err byKeyValue(T)(void delegate(string key, T value) onValue)
+	err byKeyValue(T)(scope void delegate(string key, T value) onValue)
 	{
 		foreach (i; 0 .. nodes.length)
 		{
