@@ -38,7 +38,7 @@ static foreach(i; 0..16){
 extern (C) __gshared void isr128();
 
 //https://wiki.osdev.org/Interrupts_tutorial
-private void remapIrqs()
+private void remapIrqs() @nogc
 {
 	Ports.outportb(Pic.Pic1Command, 0x11);
 	Ports.outportb(Pic.Pic2Command, 0x11);
@@ -53,12 +53,12 @@ private void remapIrqs()
 }
 
 void addDefaultIrqGate(const ubyte num, void* irq, const ushort selector = 0x08,
-		const ubyte flags = 0x8E)
+		const ubyte flags = 0x8E) @nogc
 {
 	Idt.addGateToTdt(num, cast(size_t) irq, selector, flags);
 }
 
-void init()
+void init() @nogc
 {
 	remapIrqs;
 
@@ -68,7 +68,7 @@ void init()
 	}
 }
 
-void sendInerruptEnd(ulong irq)
+void sendInerruptEnd(ulong irq) @nogc
 {
 	if (irq >= 8)
 	{
@@ -78,9 +78,9 @@ void sendInerruptEnd(ulong irq)
 	Ports.outportb(Pic.Pic1Command, Pic.PicEnd);
 }
 
-void enableInterrupts()
+void enableInterrupts() @nogc
 {
-	asm @trusted
+	asm @nogc @trusted
 	{
 		sti;
 	}
@@ -88,7 +88,7 @@ void enableInterrupts()
 
 void disableInterrupts()
 {
-	asm @trusted
+	asm @nogc @trusted
 	{
 		sti;
 	}

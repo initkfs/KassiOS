@@ -17,13 +17,13 @@ enum SerialPorts
 	COM4 = 0x2E8
 }
 
-void initDefaultPort(ushort port = SerialPorts.COM1)
+void initDefaultPort(ushort port = SerialPorts.COM1) @nogc
 {
 	initPort(port);
 	defaultPort = port;
 }
 
-void initPort(ushort portAddress)
+void initPort(ushort portAddress) @nogc
 {
 	Ports.outportb(cast(ushort)(portAddress + 1), 0x00); // Disable all interrupts
 	Ports.outportb(cast(ushort)(portAddress + 3), 0x80); // Enable DLAB
@@ -35,13 +35,13 @@ void initPort(ushort portAddress)
 }
 
 //TODO check is valid port
-bool hasReceived(ushort portAddress = defaultPort)
+bool hasReceived(ushort portAddress = defaultPort) @nogc
 {
 	const ubyte result = Ports.inport!ubyte(cast(ushort)(portAddress + 5)) & 1;
 	return result != 0;
 }
 
-ubyte read(ushort portAddress = defaultPort)
+ubyte read(ushort portAddress = defaultPort) @nogc
 {
 	//TODO limit?
 	while (!hasReceived)
@@ -51,13 +51,13 @@ ubyte read(ushort portAddress = defaultPort)
 	return Ports.inport!ubyte(portAddress);
 }
 
-bool transmitIsEmpty(ushort portAddress = defaultPort)
+bool transmitIsEmpty(ushort portAddress = defaultPort) @nogc
 {
 	const ubyte result = Ports.inport!ubyte(cast(ushort)(portAddress + 5)) & 0x20;
 	return result != 0;
 }
 
-void writeln(const string s, ushort portAddress = defaultPort)
+void writeln(const string s, ushort portAddress = defaultPort) @nogc
 {
 	foreach (char symbol; s)
 	{
@@ -68,7 +68,7 @@ void writeln(const string s, ushort portAddress = defaultPort)
 	write(Ascii.LF, portAddress);
 }
 
-void write(const string s, ushort portAddress = defaultPort)
+void write(const string s, ushort portAddress = defaultPort) @nogc
 {
 	foreach (char symbol; s)
 	{
@@ -76,7 +76,7 @@ void write(const string s, ushort portAddress = defaultPort)
 	}
 }
 
-void write(const ubyte a, ushort portAddress = defaultPort)
+void write(const ubyte a, ushort portAddress = defaultPort) @nogc
 {
 	//TODO limit?
 	while (!transmitIsEmpty)

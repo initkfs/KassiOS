@@ -12,7 +12,7 @@ struct PciConfigSpace
 	enum configData = 0xCFC;
 }
 
-uint readConfig(ushort bus, ushort slot, ushort func, ushort offset)
+uint readConfig(ushort bus, ushort slot, ushort func, ushort offset) @nogc
 {
 	uint address = cast(uint)(
 			(bus << 16) | (slot << 11) | (func << 8) | (offset & 0xfc) | (cast(uint) 0x80000000));
@@ -22,19 +22,19 @@ uint readConfig(ushort bus, ushort slot, ushort func, ushort offset)
 	return cast(ushort)(pciData >> ((offset & 2) * 8));
 }
 
-uint getVendorID(ushort bus, ushort device, ushort func)
+uint getVendorID(ushort bus, ushort device, ushort func) @nogc
 {
 	const vendorId = readConfig(bus, device, func, 0);
 	return vendorId;
 }
 
-uint getDeviceID(ushort bus, ushort device, ushort func)
+uint getDeviceID(ushort bus, ushort device, ushort func) @nogc
 {
 	const deviceId = readConfig(bus, device, func, 2);
 	return deviceId;
 }
 
-bool isDeviceExists(ushort bus, ushort slot, ushort func = 0)
+bool isDeviceExists(ushort bus, ushort slot, ushort func = 0) @nogc
 {
 	return readConfig(bus, slot, func, 0) != ushort.max;
 }

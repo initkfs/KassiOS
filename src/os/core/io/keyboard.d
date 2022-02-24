@@ -63,7 +63,7 @@ private __gshared char[178] scanCodeTable = [
 	'\?' //F12
 ];
 
-public enum SCANCODES
+enum SCANCODES
 {
 	CAPSLOCK = 0x3a,
 	LSHIFT = 0x2a,
@@ -78,18 +78,18 @@ __gshared {
 	bool isControlPress = false;
 }
 
-bool isReleased(const ubyte code) @safe pure
+bool isReleased(const ubyte code) @nogc pure @safe 
 {
 	//7 bit set -> 10000000
 	return Bits.isBitSet(code, 7);
 }
 
-bool isPressed(const ubyte code) @safe pure
+bool isPressed(const ubyte code) @nogc pure @safe 
 {
 	return !isReleased(code);
 }
 
-bool isSpecial(immutable(ubyte) code) @safe pure
+bool isSpecial(immutable(ubyte) code) @nogc pure @safe 
 {
 	if (code == SCANCODES.LSHIFT || code == SCANCODES.RSHIFT || code == SCANCODES.CAPSLOCK)
 	{
@@ -99,12 +99,12 @@ bool isSpecial(immutable(ubyte) code) @safe pure
 	return false;
 }
 
-bool isUnrelated(immutable(ubyte) code) @safe pure
+bool isUnrelated(immutable(ubyte) code) @nogc pure @safe 
 {
 	return code == notDisplayedCode;
 }
 
-ubyte scanKeyCode()
+ubyte scanKeyCode() @nogc
 {
 	immutable ubyte scanCode = Ports.inport!(ubyte)(0x60);
 
@@ -151,7 +151,7 @@ ubyte scanKeyCode()
 	return scanCode;
 }
 
-char getKeyByCode(immutable(ubyte) scanCode)
+char getKeyByCode(immutable(ubyte) scanCode) @nogc
 {
 	if (scanCode == 0 || isSpecial(scanCode) || isReleased(scanCode))
 	{

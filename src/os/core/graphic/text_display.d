@@ -15,33 +15,33 @@ enum DISPLAY_LINES = 25;
 enum DISPLAY_ATTRIBUTE = 7;
 enum DISPLAY_MAX_INDEX = DISPLAY_COLUMNS * DISPLAY_LINES * 2;
 
-__gshared struct CGAColors
+__gshared enum CGAColors
 {
-    enum COLOR_BLACK = 0; //00 00 00
-    enum COLOR_BLUE = 1; //00 00 AA
-    enum COLOR_GREEN = 0x02; //00 AA 00
-    enum COLOR_CYAN = 3; //00 AA AA
-    enum COLOR_RED = 4; //AA 00 00
-    enum COLOR_PURPLE = 5; //AA 00 AA
-    enum COLOR_BROWN = 6; //AA 55 00
-    enum COLOR_GRAY = 7; //AA AA AA
-    enum COLOR_DARK_GRAY = 8; //55 55 55
-    enum COLOR_LIGHT_BLUE = 9; //55 55 FF
-    enum COLOR_LIGHT_GREEN = 10; //55 FF 55
-    enum COLOR_LIGHT_CYAN = 11; //55 FF FF
-    enum COLOR_LIGHT_RED = 12; //FF 55 55
-    enum COLOR_LIGHT_PURPLE = 13; //FF 55 FF
-    enum COLOR_YELLOW = 14; //FF FF 55
-    enum COLOR_WHITE = 15; //FF FF FF
-    enum DEFAULT_TEXT_COLOR = COLOR_GRAY;
+    COLOR_BLACK = 0, //00 00 00
+    COLOR_BLUE = 1, //00 00 AA
+    COLOR_GREEN = 0x02, //00 AA 00
+    COLOR_CYAN = 3, //00 AA AA
+    COLOR_RED = 4, //AA 00 00
+    COLOR_PURPLE = 5, //AA 00 AA
+    COLOR_BROWN = 6, //AA 55 00
+    COLOR_GRAY = 7, //AA AA AA
+    COLOR_DARK_GRAY = 8, //55 55 55
+    COLOR_LIGHT_BLUE = 9, //55 55 FF
+    COLOR_LIGHT_GREEN = 10, //55 FF 55
+    COLOR_LIGHT_CYAN = 11, //55 FF FF
+    COLOR_LIGHT_RED = 12, //FF 55 55
+    COLOR_LIGHT_PURPLE = 13, //FF 55 FF
+    COLOR_YELLOW = 14, //FF FF 55
+    COLOR_WHITE = 15, //FF FF FF
+    DEFAULT_TEXT_COLOR = COLOR_GRAY
 }
 
-__gshared struct CGAInfoColors
+__gshared enum CGAInfoColors
 {
-    enum COLOR_SUCCESS = CGAColors.COLOR_LIGHT_GREEN;
-    enum COLOR_WARNING = CGAColors.COLOR_YELLOW;
-    enum COLOR_INFO = CGAColors.COLOR_CYAN;
-    enum COLOR_ERROR = CGAColors.COLOR_LIGHT_RED;
+    COLOR_SUCCESS = CGAColors.COLOR_LIGHT_GREEN,
+    COLOR_WARNING = CGAColors.COLOR_YELLOW,
+    COLOR_INFO = CGAColors.COLOR_CYAN,
+    COLOR_ERROR = CGAColors.COLOR_LIGHT_RED
 }
 
 private __gshared
@@ -63,20 +63,20 @@ private __gshared
     long textBufferEndIndex;
 }
 
-enum TextBufferWindowStatus
+private enum TextBufferWindowStatus
 {
     MIN,
     SLIDING,
     MAX
 }
 
-bool isCursorEnabled()
+bool isCursorEnabled() @nogc
 {
     return cursorEnabled;
 }
 
 //https://wiki.osdev.org/Text_Mode_Cursor
-void enableCursor(const ubyte cursorStart = 0, const ubyte cursorEnd = DISPLAY_COLUMNS)
+void enableCursor(const ubyte cursorStart = 0, const ubyte cursorEnd = DISPLAY_COLUMNS) @nogc
 {
     if (isCursorEnabled)
     {
@@ -96,7 +96,7 @@ void enableCursor(const ubyte cursorStart = 0, const ubyte cursorEnd = DISPLAY_C
     cursorEnabled = true;
 }
 
-void disableCursor()
+void disableCursor() @nogc
 {
     if (!isCursorEnabled)
     {
@@ -108,7 +108,7 @@ void disableCursor()
     cursorEnabled = false;
 }
 
-private void updateCursor()
+private void updateCursor() @nogc
 {
     const uint pos = displayIndexY * DISPLAY_COLUMNS + displayIndexX;
 
@@ -133,14 +133,14 @@ private size_t updateCoordinates()
     return positionByteX;
 }
 
-private void resetCoordinates()
+private void resetCoordinates() @nogc
 {
     displayIndexX = displayStartIndexX;
     displayIndexY = displayStartIndexY;
 }
 
 void backspace(const size_t border = 0, const char emptyChar = ' ',
-        const ubyte color = CGAColors.DEFAULT_TEXT_COLOR)
+    const ubyte color = CGAColors.DEFAULT_TEXT_COLOR)
 {
     if (displayIndexX <= border)
     {
@@ -196,7 +196,7 @@ void newLine()
     }
 }
 
-private void updateTextBufferIndices()
+private void updateTextBufferIndices() @nogc
 {
     if (!textBufferEnabled || textBuffer is null)
     {
@@ -395,7 +395,7 @@ private void renderTextBuffer(long start, long end)
             textBufferStatus = TextBufferWindowStatus.MAX;
         }
         else if ((displayStartIndexY == 0 && displayIndexY == 0)
-                || (displayStartIndexY > 0 && (displayIndexY - displayStartIndexY) == 1))
+            || (displayStartIndexY > 0 && (displayIndexY - displayStartIndexY) == 1))
         {
             textBufferStatus = TextBufferWindowStatus.MIN;
         }
@@ -414,7 +414,7 @@ private void renderTextBuffer()
 }
 
 private void writeToTextVideoMemory(size_t position, const ubyte value,
-        const ubyte color = CGAColors.DEFAULT_TEXT_COLOR)
+    const ubyte color = CGAColors.DEFAULT_TEXT_COLOR)
 {
     if (textBufferEnabled)
     {
@@ -433,7 +433,7 @@ private void writeToTextVideoMemory(size_t position, const ubyte value,
 }
 
 private void printToTextVideoMemory(const ubyte value,
-        const ubyte color = CGAColors.DEFAULT_TEXT_COLOR)
+    const ubyte color = CGAColors.DEFAULT_TEXT_COLOR)
 {
     const size_t position = updateCoordinates;
 
@@ -449,7 +449,7 @@ void scroll(uint lines = 1)
 }
 
 void printCharRepeat(const char symbol, const size_t repeatCount = 1,
-        const ubyte color = CGAColors.DEFAULT_TEXT_COLOR)
+    const ubyte color = CGAColors.DEFAULT_TEXT_COLOR)
 {
 
     size_t count = repeatCount;
@@ -506,7 +506,7 @@ void printString(const string str, const ubyte color = CGAColors.DEFAULT_TEXT_CO
 }
 
 void printStringRepeat(const string str, const size_t repeatCount = 1,
-        const ubyte color = CGAColors.DEFAULT_TEXT_COLOR)
+    const ubyte color = CGAColors.DEFAULT_TEXT_COLOR)
 {
 
     size_t mustBeStringCount = repeatCount;
@@ -575,43 +575,43 @@ void clearScreen(bool resetTextBuffer = true)
     }
 }
 
-int getX()
+int getX() @nogc
 {
     return displayIndexX;
 }
 
-int getY()
+int getY() @nogc
 {
     return displayIndexY;
 }
 
 //TODO check value > 0
-void setX(int value)
+void setX(int value) @nogc
 {
     displayIndexX = value;
 }
 
-void setY(int value)
+void setY(int value) @nogc
 {
     displayIndexY = value;
 }
 
-void setStartX(int value)
+void setStartX(int value) @nogc
 {
     displayStartIndexX = value;
 }
 
-void setStartY(int value)
+void setStartY(int value) @nogc
 {
     displayStartIndexY = value;
 }
 
-void setTextBufferEnabled(bool value)
+void setTextBufferEnabled(bool value) @nogc
 {
     textBufferEnabled = value;
 }
 
-bool isTextBufferEnabled()
+bool isTextBufferEnabled() @nogc
 {
     return textBufferEnabled;
 }

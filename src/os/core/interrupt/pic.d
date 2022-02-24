@@ -21,12 +21,12 @@ enum Timer1 = 0x41;
 enum Timer2 = 0x42;
 enum TimerMode = 0x43;
 
-void sendEndPic1()
+void sendEndPic1() @nogc
 {
     Ports.outportb(Pic1Command, PicEnd);
 }
 
-void sendEndPic2()
+void sendEndPic2() @nogc
 {
     Ports.outportb(Pic2Command, Pic2);
 }

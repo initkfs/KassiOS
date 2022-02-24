@@ -13,7 +13,7 @@ enum Channel1DataPort = 0x41;
 enum Channel2DataPort = 0x42;
 enum ModeWriteRegister = 0x43;
 
-void setTimerFrequencyHz(uint hz)
+void setTimerFrequencyHz(const uint hz) @nogc
 {
     const uint requestHz = hz == 0 ? 1 : hz;
     const uint divisor = OscillatorFrequencyHz / requestHz;

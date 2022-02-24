@@ -36,7 +36,7 @@ align(1):
 	ulong base;
 }
 
-void addGateToTdt(const ubyte num, const size_t base, const ushort selector, const ubyte flags)
+void addGateToTdt(const ubyte num, const size_t base, const ushort selector, const ubyte flags) @nogc
 {
 	//offset bits 0..15
 	idtEntries[num] = Idt64Entry(cast(ushort)(base & 0xFFFF), selector,
@@ -44,13 +44,13 @@ void addGateToTdt(const ubyte num, const size_t base, const ushort selector, con
 			cast(uint)((base >> 32) & 0xFFFFFFFF));
 }
 
-void init()
+void init() @nogc
 {
 	idtPointer.size = cast(ushort)((idtEntries[0].sizeof * 256) - 1);
 	idtPointer.base = cast(ulong)&idtEntries;
 	void* idtPointerAddr = cast(void*)(&idtPointer);
 
-	asm
+	asm @nogc
 	{
 		mov RAX, idtPointerAddr;
 		lidt [RAX];

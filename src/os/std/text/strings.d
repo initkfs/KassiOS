@@ -40,7 +40,7 @@ unittest
     kassert(!isEqualsIgnoreCase("foo", "f0o"));
 }
 
-bool isEquals(const string s1, const string s2)
+bool isEquals(const string s1, const string s2) @nogc
 {
     if (s1 is null || s2 is null || (s1.length != s2.length))
     {
