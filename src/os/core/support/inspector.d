@@ -1,7 +1,6 @@
 /**
  * Authors: initkfs
  */
-//https://wiki.osdev.org/PCI
 module os.core.support.inspector;
 
 private __gshared
@@ -9,12 +8,12 @@ private __gshared
 	bool errors;
 }
 
-bool isErrors()
+bool isErrors() @nogc
 {
 	return errors;
 }
 
-void setErrors()
+void setErrors() @nogc
 {
 	errors = true;
 }
