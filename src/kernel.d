@@ -142,7 +142,9 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
     //Syslog.setLoad(true);
     if (Syslog.isTraceLevel)
     {
-        Syslog.tracef("Loaded logger with log level %s", [Syslog.getLoggerLevelName].staticArr);
+        string levelName;
+        Syslog.getLoggerLevelName(levelName);
+        Syslog.tracef("Loaded logger with log level %s", [levelName].staticArr);
 
         immutable memArgs = [cast(size_t) memoryStart, cast(size_t) memoryEnd].staticArr;
         Syslog.tracef("Set allocator start %x, end %x", memArgs);

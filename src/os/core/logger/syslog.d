@@ -37,9 +37,9 @@ void setLoggerLevel(LogLevel level = LogLevel.all) @nogc
     logLevel = level;
 }
 
-string getLoggerLevelName() @nogc
+void getLoggerLevelName(out string name) @nogc
 {
-    return getLevelName(logLevel);
+    getLevelName(logLevel, name);
 }
 
 bool isErrorLevel() @nogc
@@ -78,9 +78,39 @@ private void log(LogLevel level, lazy string message, lazy string file, lazy int
     {
         Inspector.setErrors;
     }
+    
+    const spaceChar = ' ';
 
-    LogRecord record = LogRecord(message, level, SysTime.getDateTimeUtc, file, line);
-    writeLogRecord(record);
+    char* buffPtr = cast(char*) Buffer.getMemoryStart;
+
+    auto datetime = SysTime.getDateTimeUtc;
+
+    Serial.write(Strings.toString(datetime.year, buffPtr));
+    Serial.write(".");
+    Serial.write(Strings.toString(datetime.month, buffPtr));
+    Serial.write(".");
+    Serial.write(Strings.toString(datetime.day, buffPtr));
+    Serial.write(spaceChar);
+    Serial.write(Strings.toString(datetime.hour, buffPtr));
+    Serial.write(":");
+    Serial.write(Strings.toString(datetime.minute, buffPtr));
+    Serial.write(":");
+    Serial.write(Strings.toString(datetime.second, buffPtr));
+
+    Serial.write(spaceChar);
+
+    string levelName;
+    getLevelName(level, levelName);
+
+    Serial.write(levelName);
+    Serial.write(spaceChar);
+    Serial.write(message);
+    Serial.write(spaceChar);
+    Serial.write(file);
+    Serial.write(':');
+
+    Serial.write(Strings.toString(line, buffPtr));
+    Serial.write(Ascii.LF);
 }
 
 private void logf(T)(LogLevel level, lazy string pattern, lazy T[] args,
@@ -98,36 +128,6 @@ private void logf(T)(LogLevel level, lazy string pattern, lazy T[] args,
     }
     const message = Strings.toString(messagePtr);
     log(level, message, file, line);
-}
-
-private void writeLogRecord(ref LogRecord record)
-{
-    const spaceChar = ' ';
-
-    char* buffPtr = cast(char*) Buffer.getMemoryStart;
-
-    Serial.write(Strings.toString(record.datetime.year, buffPtr));
-    Serial.write(".");
-    Serial.write(Strings.toString(record.datetime.month, buffPtr));
-    Serial.write(".");
-    Serial.write(Strings.toString(record.datetime.day, buffPtr));
-    Serial.write(spaceChar);
-    Serial.write(Strings.toString(record.datetime.hour, buffPtr));
-    Serial.write(":");
-    Serial.write(Strings.toString(record.datetime.minute, buffPtr));
-    Serial.write(":");
-    Serial.write(Strings.toString(record.datetime.second, buffPtr));
-
-    Serial.write(spaceChar);
-    Serial.write(getLevelName(record.level));
-    Serial.write(spaceChar);
-    Serial.write(record.message);
-    Serial.write(spaceChar);
-    Serial.write(record.file);
-    Serial.write(':');
-
-    Serial.write(Strings.toString(record.line, buffPtr));
-    Serial.write(Ascii.LF);
 }
 
 void tracef(T)(lazy string pattern, T[] args, const string file = __FILE__, const int line = __LINE__)

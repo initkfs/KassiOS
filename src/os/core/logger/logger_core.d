@@ -16,28 +16,7 @@ enum LogLevel
     error
 }
 
-struct LogRecord
-{
-    const @property
-    {
-        LogLevel level;
-        LocalDateTime datetime;
-        string message;
-        string file;
-        int line;
-    }
-
-    this(string message, LogLevel level, LocalDateTime datetime, string file, int line) @nogc
-    {
-        this.level = level;
-        this.datetime = datetime;
-        this.message = message;
-        this.file = file;
-        this.line = line;
-    }
-}
-
-string getLevelName(const LogLevel level) @nogc pure @safe
+void getLevelName(const LogLevel level, out string name) @nogc pure @safe
 {
     string levelName = "undefined.level";
     foreach (l; EnumMembers!LogLevel)
@@ -47,7 +26,7 @@ string getLevelName(const LogLevel level) @nogc pure @safe
             levelName = l.stringof;
         }
     }
-    return levelName;
+    name = levelName;
 }
 
 //minimal logger level >= global logger level
