@@ -21,16 +21,14 @@ struct LogRecord
     const @property
     {
         LogLevel level;
-        LocalDateTime datetime;
         string message;
         string file;
         int line;
     }
 
-    this(string message, LogLevel level, LocalDateTime datetime, string file, int line) @nogc
+    this(string message, LogLevel level, string file, int line) @nogc
     {
         this.level = level;
-        this.datetime = datetime;
         this.message = message;
         this.file = file;
         this.line = line;

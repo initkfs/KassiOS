@@ -80,7 +80,9 @@ void printHeader()
     size_t usedBytes, bufferedBytes, availableBytes;
     Allocator.getMemoryStat(usedBytes, bufferedBytes, availableBytes);
 
-    auto dateTimeInfoPtr = DateTime.toIsoSimpleString(SysTime.getDateUtc);
+    DateTime.LocalDate dt;
+    SysTime.getDateUtc(dt);
+    auto dateTimeInfoPtr = DateTime.toIsoSimpleString(dt);
     scope (exit)
     {
         Allocator.free(dateTimeInfoPtr);
