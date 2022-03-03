@@ -4,10 +4,15 @@
 module os.std.text.strings;
 
 import std.traits;
+import os.std.errors;
 
-const string FORMAT_ERROR = "_formaterror_";
-const char NULL_BYTE = '\0';
-const string EMPTY = "";
+immutable
+{
+    string EMPTY = "";
+    string FORMAT_ERROR = "_formaterror_";
+    char NULL_BYTE = '\0';
+}
+
 enum NOT_FOUND = -1;
 
 import Allocator = os.core.mem.allocator;
@@ -52,9 +57,8 @@ bool isEquals(const string s1, const string s2) @nogc
         return true;
     }
 
-    for (int i = 0; i < s1.length; i++)
+    foreach (i, char1; s1)
     {
-        const char char1 = s1[i];
         const char char2 = s2[i];
         if (char1 != char2)
         {
@@ -86,11 +90,36 @@ unittest
     kassert(isEquals(cast(string) s1, cast(string) s2));
 }
 
-extern(C) size_t lengthz(const char* str);
+version (OS_EXT)
+{
+    extern (C) size_t lengthz(const char* str);
+}
+else
+{
+    size_t lengthz(const char* str)
+    {
+        if (!str)
+        {
+            return 0;
+        }
+
+        size_t lengthIndex;
+        while (str[lengthIndex] && str[lengthIndex] != NULL_BYTE)
+        {
+            if (const incErr = MathStrict.incrementExact(lengthIndex))
+            {
+                panic(incErr);
+            }
+        }
+
+        return lengthIndex;
+    }
+}
+
 unittest
 {
     import os.std.asserts : kassert;
-    
+
     kassert(lengthz(null) == 0);
     kassert(lengthz("".ptr) == 0);
     kassert(lengthz(" ".ptr) == 1);
@@ -106,16 +135,21 @@ char* transform(string s, scope char delegate(char) onChar)
         return toStringz(EMPTY);
     }
 
-    auto buffPtr = Allocator.alloc(s.length + 1);
-    auto buff = cast(char*) buffPtr;
+    size_t buffSize = s.length;
+    if (const incBuffErr = MathStrict.incrementExact(buffSize))
+    {
+        panic(incBuffErr);
+    }
+
+    auto buffPtr = cast(char*) Allocator.alloc(buffSize);
     foreach (i, ch; s)
     {
         const char newChar = onChar(ch);
-        Allocator.set(buff, newChar, buffPtr, i);
+        buffPtr[i] = newChar;
     }
 
-    Allocator.set(buff, NULL_BYTE, buffPtr, s.length);
-    return buff;
+    buffPtr[buffSize - 1] = NULL_BYTE;
+    return buffPtr;
 }
 
 char* toLower(string s)
@@ -201,7 +235,7 @@ unittest
     kassert(!isEmpty("a"));
 }
 
-bool isBlank(const string str)
+bool isBlank(const string str) @nogc pure @safe
 {
     if (!str || str.length == 0)
     {
@@ -244,48 +278,23 @@ unittest
     kassert(isEquals(toString("foo bar".ptr), "foo bar"));
 }
 
-char* toStringzBuf(string str, char* buffer)
+char* toStringz(const string str)
 {
-    size_t size;
-    const incErr = MathStrict.incrementExact(str.length, size);
-    if (incErr)
+    size_t buffSize = str.length;
+    if (const incErr = MathStrict.incrementExact(buffSize))
     {
-        buffer[0] = NULL_BYTE;
-        return buffer;
+        panic(incErr);
     }
 
-    size_t index;
-    foreach (ch; str)
+    auto buff = cast(char*) Allocator.alloc(buffSize);
+    foreach (i, ch; str)
     {
-        buffer[index] = ch;
-        index++;
+        buff[i] = ch;
     }
 
-    buffer[index] = NULL_BYTE;
-    return buffer;
-}
+    buff[buffSize - 1] = NULL_BYTE;
 
-char* toStringz(string str)
-{
-    size_t size;
-    const incErr = MathStrict.incrementExact(str.length, size);
-    if (incErr)
-    {
-        return toStringz(EMPTY);
-    }
-
-    auto buffPtr = Allocator.alloc(size);
-    auto buff = cast(ubyte*) buffPtr;
-    size_t index;
-    foreach (ch; str)
-    {
-        Allocator.set(buff, ch, buffPtr, index);
-        index++;
-    }
-
-    Allocator.set(buff, NULL_BYTE, buffPtr, index);
-
-    return cast(char*) buff;
+    return buff;
 }
 
 unittest
@@ -293,15 +302,18 @@ unittest
     import os.std.asserts : kassert;
 
     char* s = toStringz("foo bar ");
+    scope (exit)
+    {
+        Allocator.free(s);
+    }
     kassert(isEquals(toString(s), "foo bar "));
-    Allocator.free(s);
 }
 
-extern(C) char* parseLong(long value, char* buff, int base);
+extern (C) char* parseLong(long value, char* buff, int base);
 
 string toString(const long longValue, char* buff, const int base = 10)
 {
-   return toString(parseLong(longValue, buff, base));
+    return toString(parseLong(longValue, buff, base));
 }
 
 /*
@@ -311,7 +323,8 @@ char* toStringz(const long longValue, const int base = 10)
 {
     enum buffSize = 64 + 3;
     auto buff = cast(char*) Allocator.alloc(buffSize);
-    scope(exit){
+    scope (exit)
+    {
         Allocator.free(buff);
     }
     //TODO remove buffer and null-byte
@@ -460,14 +473,13 @@ char* toStringz(const double x, const size_t maxDigitsAfterPoint = 0,
         bufferSize++;
     }
 
-    auto bufferPtr = Allocator.alloc(bufferSize);
-    char* buffer = cast(char*) bufferPtr;
+    auto buffer = cast(char*) Allocator.alloc(bufferSize);
 
     int rankPos = cast(int) log10(value);
     int bufferIndex;
     if (isNeg)
     {
-        Allocator.set(buffer, '-', bufferPtr, bufferIndex);
+        buffer[bufferIndex] = '-';
         bufferIndex++;
     }
 
@@ -479,16 +491,17 @@ char* toStringz(const double x, const size_t maxDigitsAfterPoint = 0,
         const digitIndex = cast(int) floor(value / rankWeight);
         value -= (digitIndex * rankWeight);
         const ch = cast(char)('0' + digitIndex);
-        Allocator.set(buffer, ch, bufferPtr, bufferIndex);
+
+        buffer[bufferIndex] = ch;
 
         if (rankPos == 0)
         {
             separatorIndex = ++bufferIndex;
-            Allocator.set(buffer, sep, bufferPtr, separatorIndex);
+            buffer[separatorIndex] = sep;
             if (value < (0 + precision))
             {
                 auto zeroIndex = ++bufferIndex;
-                Allocator.set(buffer, '0', bufferPtr, zeroIndex);
+                buffer[zeroIndex] = '0';
             }
         }
 
@@ -504,7 +517,7 @@ char* toStringz(const double x, const size_t maxDigitsAfterPoint = 0,
             indexExlude = newIndex;
         }
     }
-    Allocator.set(buffer, NULL_BYTE, bufferPtr, indexExlude++);
+    buffer[indexExlude++] = NULL_BYTE;
     //auto result = cast(char*) buffer[0 .. indexExlude];
     return buffer;
 }
@@ -554,51 +567,50 @@ unittest
     Allocator.free(d3);
 }
 
-string reverse(const string s)
+char* reverse(const string s)
 {
-    if (s is null)
+    if (s.length == 0)
     {
-        return EMPTY;
-    }
-    if (s.length <= 1)
-    {
-        return s;
+        return toStringz(EMPTY);
     }
 
-    auto chars = cast(char[]) s;
-    for (auto i = 0, j = chars.length - 1; i < j; i++, j--)
+    const charCount = s.length;
+    char* buf = cast(char*) Allocator.alloc(charCount + 1);
+
+    foreach_reverse (i, ch; s)
     {
-        const char c = chars[i];
-        chars[i] = chars[j];
-        chars[j] = c;
+        buf[charCount - i - 1] = ch;
     }
-    return cast(string) chars;
+
+    buf[charCount] = NULL_BYTE;
+    return buf;
 }
 
 unittest
 {
     import os.std.asserts : kassert;
 
-    kassert(isEquals(reverse(null), ""));
-    kassert(isEquals(reverse(""), ""));
-    kassert(isEquals(reverse(" "), " "));
-    kassert(isEquals(reverse("a"), "a"));
-    kassert(isEquals(reverse("ab"), "ba"));
-    kassert(isEquals(reverse("foobar"), "raboof"));
+    char* reverse1 = reverse("foobar");
+    scope (exit)
+    {
+        Allocator.free(reverse1);
+    }
+
+    kassert(isEquals(toString(reverse1), "raboof"));
 }
 
-long lastIndexOf(const string str, const string pattern)
+long lastIndexOf(const string str, const string pattern) @nogc pure @safe
 {
     return indexOfAny(str, pattern, true);
 }
 
-long indexOf(const string str, const string pattern)
+long indexOf(const string str, const string pattern) @nogc pure @safe
 {
     return indexOfAny(str, pattern);
 }
 
 private long indexOfAny(const string str, const string pattern,
-    bool isLastIndexOf = false, size_t index = 0)
+    bool isLastIndexOf = false, size_t index = 0) @nogc pure @safe
 {
     if (!str || !pattern)
     {
@@ -660,7 +672,7 @@ unittest
     kassert(indexOfAny("AAAAB", "AA", true) == 2);
 }
 
-bool contains(string str, string pattern)
+bool contains(string str, string pattern) @nogc pure @safe
 {
     return indexOf(str, pattern) != -1;
 }
@@ -673,7 +685,7 @@ unittest
     kassert(!contains("aabaab", "aabb"));
 }
 
-bool startsWith(string str, string pattern)
+bool startsWith(string str, string pattern) @nogc pure @safe
 {
     return indexOf(str, pattern) == 0;
 }
@@ -693,12 +705,17 @@ bool endsWith(string str, string pattern)
 {
     import os.std.math.math_strict : subtractExact;
 
-    size_t lastIndex;
-    const err = subtractExact(str.length, pattern.length, lastIndex);
-    if (err)
+    if (pattern.length > str.length)
     {
         return false;
     }
+
+    size_t lastIndex;
+    if (const subErr = subtractExact(str.length, pattern.length, lastIndex))
+    {
+        panic(subErr);
+    }
+
     return lastIndexOf(str, pattern) == lastIndex;
 }
 
@@ -795,7 +812,7 @@ unittest
     Allocator.free(s5);
 }
 
-string take(string str, long num, bool isDropChars = false)
+string take(string str, long num, bool isDropChars = false) @nogc pure @safe
 {
 
     import MathCore = os.std.math.math_core;
@@ -838,7 +855,7 @@ unittest
     kassert(isEquals(take("foo", -100), "foo"));
 }
 
-string drop(string str, long num)
+string drop(string str, long num) @nogc pure @safe
 {
     return take(str, num, true);
 }
@@ -861,25 +878,30 @@ unittest
 
 char* repeat(string s, size_t num)
 {
-    if (!s || s.length == 0 || num == 0)
+    if (s.length == 0 || num == 0)
     {
         return toStringz(EMPTY);
     }
-    const buffSize = s.length * num + 1;
-    auto buffPtr = Allocator.alloc(buffSize);
-    char* buff = cast(char*) buffPtr;
 
+    //TODO unsigned MathStrict.multiplyExact
+    size_t buffSize = s.length * num;
+
+    if (const incErr = MathStrict.incrementExact(buffSize))
+    {
+        panic(incErr);
+    }
+
+    auto buffPtr = cast(char*) Allocator.alloc(buffSize);
     foreach (i; 0 .. num)
     {
         foreach (j, ch; s)
         {
-            Allocator.set(buff, ch, buffPtr, (i * s.length + j));
+            buffPtr[i * s.length + j] = ch;
         }
     }
 
-    Allocator.set(buff, NULL_BYTE, buffPtr, buffSize - 1);
-
-    return buff;
+    buffPtr[buffSize - 1] = NULL_BYTE;
+    return buffPtr;
 }
 
 unittest
@@ -903,8 +925,13 @@ private char* pad(string s, size_t numberOfChars, char padChar = ' ',
         return toStringz(s);
     }
 
-    auto buffPtr = Allocator.alloc(numberOfChars + 1);
-    auto buff = cast(char*) buffPtr;
+    size_t buffSize = numberOfChars;
+    if (const incErr = MathStrict.incrementExact(buffSize))
+    {
+        panic(incErr);
+    }
+
+    auto buffPtr = cast(char*) Allocator.alloc(buffSize);
 
     auto charsToAdd = numberOfChars - s.length;
     auto leftBorderSize = charsToAdd;
@@ -919,14 +946,14 @@ private char* pad(string s, size_t numberOfChars, char padChar = ' ',
     {
         foreach (i; 0 .. leftBorderSize)
         {
-            Allocator.set(buff, padChar, buffPtr, currentCharIndex);
+            buffPtr[currentCharIndex] = padChar;
             currentCharIndex++;
         }
     }
 
     foreach (ch; s)
     {
-        Allocator.set(buff, ch, buffPtr, currentCharIndex);
+        buffPtr[currentCharIndex] = ch;
         currentCharIndex++;
     }
 
@@ -934,12 +961,12 @@ private char* pad(string s, size_t numberOfChars, char padChar = ' ',
     {
         foreach (i; currentCharIndex .. numberOfChars)
         {
-            Allocator.set(buff, padChar, buffPtr, currentCharIndex);
+            buffPtr[currentCharIndex] = padChar;
             currentCharIndex++;
         }
     }
 
-    return buff;
+    return buffPtr;
 }
 
 char* center(string s, size_t numberOfChars, char padChar = ' ')
@@ -1020,7 +1047,7 @@ unittest
     Allocator.free(c4);
 }
 
-string trim(string s)
+string trim(string s) @nogc pure @safe
 {
     if (s.length == 0)
     {
@@ -1071,7 +1098,7 @@ unittest
     kassert(isEquals(trim(" \n\tfoo \n"), "foo"));
 }
 
-int compare(string s1, string s2)
+int compare(string s1, string s2) @nogc
 {
     const size_t length = MathCore.min(s1.length, s2.length);
     foreach (i; 0 .. length)

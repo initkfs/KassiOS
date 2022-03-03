@@ -59,7 +59,7 @@ unittest
     kassert(max(10, 5) == 10);
 }
 
-T min(T)(T a, T b) if (isFloatingPoint!(T) || isIntegral!(T))
+T min(T)(T a, T b) @nogc if (isFloatingPoint!(T) || isIntegral!(T))
 {
     static if (isFloatingPoint!(T))
     {

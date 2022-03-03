@@ -3,32 +3,35 @@
  */
 module os.std.text.ascii;
 
-enum NUL = '\0';
-enum BEL = '\a';
-enum BS = '\b';
-enum TAB = '\t';
-enum LF = '\n';
-enum VT = '\v';
-enum FF = '\f';
-enum CR = '\r';
-enum SPACE = ' ';
+enum : char
+{
+	NUL = '\0',
+	BEL = '\a',
+	BS = '\b',
+	TAB = '\t',
+	LF = '\n',
+	VT = '\v',
+	FF = '\f',
+	CR = '\r',
+	SPACE = ' '
+}
 
-bool isBackspace(const char code) @safe pure
+bool isBackspace(const char code) @nogc pure @safe
 {
 	return code == 8;
 }
 
-bool isDecimalDigit(const char c)
+bool isDecimalDigit(const char c) @nogc pure @safe
 {
 	return c >= '0' && c <= '9';
 }
 
-bool isAlpha(const char c)
+bool isAlpha(const char c) @nogc pure @safe
 {
 	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 }
 
-bool isSpace(const char c)
+bool isSpace(const char c) @nogc pure @safe
 {
 	return c == SPACE || c == TAB || c == LF || c == VT || c == FF || c == CR;
 }

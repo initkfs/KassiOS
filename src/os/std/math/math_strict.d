@@ -127,22 +127,22 @@ err castExact(T, C)(T n, ref C result) if (isIntegral!T && isIntegral!C)
     return null;
 }
 
-err incrementExact(T)(T n, ref T result) if (isIntegral!T)
+err incrementExact(T)(ref T n) if (isIntegral!T)
 {
     if (n == T.max)
     {
         return error("Increment error: overflow");
     }
-    result = n + 1;
+    n++;
     return null;
 }
 
-err decrementExact(T)(T n, ref T result) if (isIntegral!T)
+err decrementExact(T)(ref T n) if (isIntegral!T)
 {
     if (n == T.min)
     {
         return error("Decrement error: overflow");
     }
-    result = n - 1;
+    n--;
     return null;
 }
