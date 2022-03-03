@@ -10,10 +10,13 @@ import Syslog = os.core.logger.syslog;
 import Strings = os.std.text.strings;
 import Math = os.std.math.math_core;
 
-enum DISPLAY_COLUMNS = 80;
-enum DISPLAY_LINES = 25;
-enum DISPLAY_ATTRIBUTE = 7;
-enum DISPLAY_MAX_INDEX = DISPLAY_COLUMNS * DISPLAY_LINES * 2;
+enum
+{
+    DISPLAY_COLUMNS = 80,
+    DISPLAY_LINES = 25,
+    DISPLAY_ATTRIBUTE = 7,
+    DISPLAY_MAX_INDEX = DISPLAY_COLUMNS * DISPLAY_LINES * 2,
+}
 
 __gshared enum CGAColors
 {

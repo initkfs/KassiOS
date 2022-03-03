@@ -5,10 +5,13 @@ module os.core.acpi.rsdp;
 
 import AcpiCore = os.core.acpi.acpi_core;
 
-enum acpiSignature = 0x2052545020445352;
-enum acpiQemuLocationAddr = 0xf68c0;
-enum acpiBiosStartScanAddr = 0x000e0000;
-enum acpiBiosEndScanAddr = 0x000fffff;
+private enum
+{
+    acpiSignature = 0x2052545020445352,
+    acpiQemuLocationAddr = 0xf68c0,
+    acpiBiosStartScanAddr = 0x000e0000,
+    acpiBiosEndScanAddr = 0x000fffff,
+}
 
 //https://wiki.osdev.org/RSDP
 //__attribute__ ((packed))

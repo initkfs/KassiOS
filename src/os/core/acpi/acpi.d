@@ -8,11 +8,11 @@ import AcpiRsdp = os.core.acpi.rsdp;
 import AcpiRsdt = os.core.acpi.rsdt;
 import AcpiFadt = os.core.acpi.fadt;
 
-private
+private enum : string
 {
-    const apicSignature = "APIC";
-    const hpetSignature = "HPET";
-    const fadtSignature = "FACP";
+    apicSignature = "APIC",
+    hpetSignature = "HPET",
+    fadtSignature = "FACP",
 }
 
 void init() @nogc

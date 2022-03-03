@@ -7,19 +7,33 @@ import Ports = os.core.io.ports;
 
 //https://wiki.osdev.org/8259_PIC
 //TODO APIC https://wiki.osdev.org/APIC
-enum Pic1 = 0x20;
-enum Pic2 = 0xA0;
-enum Pic1Command = Pic1;
-enum Pic1Data = Pic1 + 1;
-enum Pic2Command = Pic2;
-enum Pic2Data = Pic2 + 1;
 
-enum PicEnd = 0x20; /* End-of-interrupt command code */
+private enum
+{
+    Pic1 = 0x20,
+    Pic1Command = Pic1,
+    Pic1Data = Pic1 + 1,
+}
 
-enum Timer0 = 0x40;
-enum Timer1 = 0x41;
-enum Timer2 = 0x42;
-enum TimerMode = 0x43;
+private enum
+{
+    Pic2 = 0xA0,
+    Pic2Command = Pic2,
+    Pic2Data = Pic2 + 1,
+}
+
+private enum
+{
+    Timer0 = 0x40,
+    Timer1 = 0x41,
+    Timer2 = 0x42,
+    TimerMode = 0x43,
+}
+
+private
+{
+    enum PicEnd = 0x20; /* End-of-interrupt command code */
+}
 
 void sendEndPic1() @nogc
 {

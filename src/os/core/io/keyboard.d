@@ -72,24 +72,25 @@ enum SCANCODES
 	LCONTROL = 0x1D
 }
 
-__gshared {
+__gshared
+{
 	bool isShiftPress = false;
 	bool isCapsLockPress = false;
 	bool isControlPress = false;
 }
 
-bool isReleased(const ubyte code) @nogc pure @safe 
+bool isReleased(const ubyte code) @nogc pure @safe
 {
 	//7 bit set -> 10000000
 	return Bits.isBitSet(code, 7);
 }
 
-bool isPressed(const ubyte code) @nogc pure @safe 
+bool isPressed(const ubyte code) @nogc pure @safe
 {
 	return !isReleased(code);
 }
 
-bool isSpecial(immutable(ubyte) code) @nogc pure @safe 
+bool isSpecial(immutable(ubyte) code) @nogc pure @safe
 {
 	if (code == SCANCODES.LSHIFT || code == SCANCODES.RSHIFT || code == SCANCODES.CAPSLOCK)
 	{
@@ -99,7 +100,7 @@ bool isSpecial(immutable(ubyte) code) @nogc pure @safe
 	return false;
 }
 
-bool isUnrelated(immutable(ubyte) code) @nogc pure @safe 
+bool isUnrelated(immutable(ubyte) code) @nogc pure @safe
 {
 	return code == notDisplayedCode;
 }
