@@ -5,12 +5,13 @@ module os.std.tests;
 
 import Syslog = os.core.logger.syslog;
 
+import os.std.container.array;
+
 void runTest(alias testModule)()
 {
 	if (Syslog.isTraceLevel)
 	{
-		string[1] moduleNameArgs = [testModule.stringof];
-		Syslog.tracef("Start testing %s", moduleNameArgs);
+		Syslog.tracef("Start testing %s", [testModule.stringof].staticArr);
 	}
 
 	//The -unittest flag needs to be passed to the compiler.
@@ -21,7 +22,6 @@ void runTest(alias testModule)()
 
 	if (Syslog.isTraceLevel)
 	{
-		string[1] moduleNameArgs = [testModule.stringof];
-		Syslog.tracef("Test %s", moduleNameArgs);
+		Syslog.tracef("End testing %s", [testModule.stringof].staticArr);
 	}
 }

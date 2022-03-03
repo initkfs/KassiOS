@@ -73,23 +73,31 @@ private void runTests()
 
     CoreConfig.setLogGeneratedErrors(false);
 
-    Tests.runTest!(Allocator);
-    Tests.runTest!(Strings);
-    Tests.runTest!(LinearList);
-    Tests.runTest!(ArrayList);
-    Tests.runTest!(LinkedList);
-    Tests.runTest!(HashMap);
-    Tests.runTest!(Collections);
-    Tests.runTest!(MathCore);
-    Tests.runTest!(MathRandom);
-    Tests.runTest!(MathStrict);
-    Tests.runTest!(MathGeometry);
-    Tests.runTest!(KashLexer);
-    Tests.runTest!(KashParser);
-    Tests.runTest!(KashExecutor);
-    Tests.runTest!(Units);
-    Tests.runTest!(Bits);
-    Tests.runTest!(KashNumberExecutor);
+    import std.meta : AliasSeq;
+
+    alias testModules = AliasSeq!(
+        Allocator,
+        Strings,
+        LinearList,
+        ArrayList,
+        LinkedList,
+        HashMap,
+        Collections,
+        MathCore,
+        MathRandom,
+        MathStrict,
+        MathGeometry,
+        KashLexer,
+        KashParser,
+        KashExecutor,
+        Units,
+        Bits,
+        KashNumberExecutor);
+
+    foreach (m; testModules)
+    {
+        Tests.runTest!(m);
+    }
 
     CoreConfig.setLogGeneratedErrors(true);
 
@@ -116,7 +124,7 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
     if (magic != MULTIBOOT_BOOTLOADER_MAGIC)
     {
         Kstdio.kprintfln("Multiboot-compliant bootloader verification error: magic number expected %x, but received %x. See https://www.gnu.org/software/grub/manual/multiboot2/multiboot.html",
-                [MULTIBOOT_BOOTLOADER_MAGIC, magic].staticArr);
+            [MULTIBOOT_BOOTLOADER_MAGIC, magic].staticArr);
         return;
     }
 
@@ -170,7 +178,9 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
             {
                 if (cmdLine.length > 0)
                 {
-                    Syslog.tracef("Multiboot command line found: '%s'", [cmdLine].staticArr);
+                    Syslog.tracef("Multiboot command line found: '%s'", [
+                            cmdLine
+                        ].staticArr);
 
                     const bool isAcpi = !Strings.contains(cmdLine, CoreConfig.noAcpiKernelArgKey);
                     if (Syslog.isTraceLevel)
@@ -188,7 +198,7 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
                     CoreConfig.setAcpiEnabled(isAcpi);
 
                     const bool isKernelTest = !Strings.contains(cmdLine,
-                            CoreConfig.noKernelTestArgKey);
+                        CoreConfig.noKernelTestArgKey);
                     if (Syslog.isTraceLevel)
                     {
                         if (isKernelTest)
@@ -217,7 +227,9 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
             Allocator.setMemoryPhysicalUpper(memUpper);
             if (Syslog.isTraceLevel)
             {
-                Syslog.tracef("Multiboot memory info parsed. Max upper: %l", [memUpper].staticArr);
+                Syslog.tracef("Multiboot memory info parsed. Max upper: %l", [
+                        memUpper
+                    ].staticArr);
             }
             break;
         case MultibootSpec.MULTIBOOT_TAG_TYPE_MMAP:
@@ -226,12 +238,12 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
                 Syslog.trace("Multiboot memory map tag found");
             }
             auto mmapEntryIterator = Multiboot.createMapEntryIterator(
-                    cast(MultibootSpec.multiboot_tag_mmap*) tag);
+                cast(MultibootSpec.multiboot_tag_mmap*) tag);
             enum startAddr = 0x100000;
             foreach (entry; mmapEntryIterator)
             {
                 if (entry.addr == startAddr && entry.type
-                        == MultibootSpec.MULTIBOOT_MEMORY_AVAILABLE)
+                    == MultibootSpec.MULTIBOOT_MEMORY_AVAILABLE)
                 {
                     const maxAddr = startAddr + cast(size_t)(entry.len) - 0x400;
                     if (maxAddr > 0 && maxAddr <= cast(size_t) memoryEnd)
@@ -239,7 +251,9 @@ extern (C) void kmain(size_t magic, size_t* multibootInfoAddress)
                         Allocator.setMemoryPhysicalEnd(cast(ubyte*) maxAddr);
                         if (Syslog.isTraceLevel)
                         {
-                            Syslog.tracef("Multiboot found physical memory end: %x", [cast(size_t) maxAddr].staticArr);
+                            Syslog.tracef("Multiboot found physical memory end: %x", [
+                                    cast(size_t) maxAddr
+                                ].staticArr);
                         }
                     }
                 }
