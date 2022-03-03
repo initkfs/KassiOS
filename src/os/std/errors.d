@@ -10,6 +10,7 @@ import Allocator = os.core.mem.allocator;
 import Kstdio = os.std.io.kstdio;
 import Strings = os.std.text.strings;
 import Syslog = os.core.logger.syslog;
+import os.std.container.array;
 
 err error(const string message, const string file = __FILE__, const int line = __LINE__)
 {
@@ -21,8 +22,9 @@ err error(const string message, const string file = __FILE__, const int line = _
     {
       Allocator.free(lineStr);
     }
-    string[3] args = [message, file, Strings.toString(lineStr)];
-    Syslog.errorf("Application error: %s, %s:%s", args);
+    Syslog.errorf("Application error: %s, %s:%s", [
+        message, file, Strings.toString(lineStr)
+      ].staticArr);
   }
 
   return message;
@@ -35,8 +37,7 @@ void panic(const string message, const string file = __FILE__, const int line = 
 
   if (Syslog.isErrorLevel)
   {
-    string[3] args = [message, file, lineStr];
-    Syslog.errorf("Panic: %s, %s:%s", args);
+    Syslog.errorf("Panic: %s, %s:%s", [message, file, lineStr].staticArr);
   }
 
   Kstdio.kprintln;

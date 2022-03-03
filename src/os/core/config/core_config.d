@@ -20,32 +20,32 @@ const
 	string noKernelTestArgKey = "notests";
 }
 
-void setAcpiEnabled(bool value)
+void setAcpiEnabled(bool value) @nogc
 {
 	acpiEnabled = value;
 }
 
-bool isAcpiEnabled()
+bool isAcpiEnabled() @nogc
 {
 	return acpiEnabled;
 }
 
-void setKernelTestEnabled(bool value)
+void setKernelTestEnabled(bool value) @nogc
 {
 	kernelTestEnabled = value;
 }
 
-bool isKernelTestEnabled()
+bool isKernelTestEnabled() @nogc
 {
 	return kernelTestEnabled;
 }
 
-void setLogGeneratedErrors(bool value)
+void setLogGeneratedErrors(bool value) @nogc
 {
 	logGeneratedErrors = value;
 }
 
-bool isLogGeneratedErrors()
+bool isLogGeneratedErrors() @nogc
 {
 	return logGeneratedErrors;
 }

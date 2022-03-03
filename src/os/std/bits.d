@@ -5,7 +5,7 @@ module os.std.bits;
 
 import std.traits;
 
-bool isBitSet(T)(T bits, T n) if (isIntegral!T)
+bool isBitSet(T)(T bits, T n) @nogc pure @safe if (isIntegral!T)
 {
   return (bits & (1 << n)) != 0;
 }
@@ -20,7 +20,7 @@ unittest
   kassert(isBitSet(128, 7));
 }
 
-T setBit(T)(T bits, T n) if (isIntegral!T)
+T setBit(T)(T bits, T n) @nogc pure @safe if (isIntegral!T)
 {
   return bits | (1 << n);
 }
@@ -36,7 +36,7 @@ unittest
   kassert(setBit(128, 3) == 136);
 }
 
-T unsetBit(T)(T bits, T n) if (isIntegral!T)
+T unsetBit(T)(T bits, T n) @nogc pure @safe if (isIntegral!T)
 {
   return bits & ~(1 << n);
 }
