@@ -10,7 +10,7 @@ private
     __gshared ulong next = 11_111;
 }
 
-uint randUnsafe(uint minInclusive = 0, uint maxInclusive = 0)
+uint randUnsafe(uint minInclusive = 0, uint maxInclusive = 0) @nogc
 {
     next = next * 1_103_515_245 + 12_345;
     uint result = cast(uint)(next / 65_536) % 32_768;
@@ -30,7 +30,7 @@ uint randUnsafe(uint minInclusive = 0, uint maxInclusive = 0)
     return inIntervalResult;
 }
 
-void srandUnsafe(uint seed)
+void srandUnsafe(uint seed) @nogc
 {
     next = cast(uint) seed % 32768;
 }

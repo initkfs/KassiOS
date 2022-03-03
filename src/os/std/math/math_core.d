@@ -19,7 +19,7 @@ struct Epsilon
     }
 }
 
-T abs(T)(T x) if (isFloatingPoint!(T) || isIntegral!(T))
+T abs(T)(T x) @nogc pure @safe if (isFloatingPoint!(T) || isIntegral!(T))
 {
     return x < 0 ? -x : x;
 }
@@ -35,7 +35,7 @@ unittest
     kassert(abs(3 - 9) == 6);
 }
 
-T max(T)(T a, T b) if (isFloatingPoint!(T) || isIntegral!(T))
+T max(T)(T a, T b) @nogc pure @safe if (isFloatingPoint!(T) || isIntegral!(T))
 {
     static if (isFloatingPoint!(T))
     {
@@ -59,7 +59,7 @@ unittest
     kassert(max(10, 5) == 10);
 }
 
-T min(T)(T a, T b) @nogc if (isFloatingPoint!(T) || isIntegral!(T))
+T min(T)(T a, T b) @nogc pure @safe if (isFloatingPoint!(T) || isIntegral!(T))
 {
     static if (isFloatingPoint!(T))
     {
@@ -83,7 +83,7 @@ unittest
 }
 
 //[min..max]
-T clamp(T)(T value, T minValue, T maxValue)
+T clamp(T)(T value, T minValue, T maxValue) @nogc pure @safe
 {
     return max!T(minValue, min!T(maxValue, value));
 }
@@ -100,7 +100,7 @@ unittest
     kassert(clamp(3, -1, 2) == 2);
 }
 
-bool isEqualEps(T)(T x, T y, T epsilon) if (isFloatingPoint!(T))
+bool isEqualEps(T)(T x, T y, T epsilon) @nogc pure @safe if (isFloatingPoint!(T))
 {
     if (abs(x - y) < epsilon)
     {
@@ -109,12 +109,12 @@ bool isEqualEps(T)(T x, T y, T epsilon) if (isFloatingPoint!(T))
     return false;
 }
 
-bool isEquals(float x, float y)
+bool isEquals(float x, float y) @nogc pure @safe
 {
     return isEqualEps(x, y, Epsilon.FLOAT_EPSILON);
 }
 
-bool isEquals(double x, double y)
+bool isEquals(double x, double y) @nogc pure @safe
 {
     return isEqualEps(x, y, Epsilon.DOUBLE_EPSILON);
 }
@@ -130,7 +130,7 @@ unittest
     kassert(isEquals(0.3, 0.30000000000000004));
 }
 
-double sqrt(double value)
+double sqrt(double value) @nogc
 {
     //or NaN?
     if (value == 0)
@@ -144,7 +144,7 @@ double sqrt(double value)
     }
 
     double result;
-    asm
+    asm @nogc
     {
         fld value;
         fsqrt;
@@ -167,7 +167,7 @@ unittest
     kassert(sqrt(9.6) == 3.0983866769659336);
 }
 
-double pow(const double base, const long exponent) pure @safe nothrow
+double pow(const double base, const long exponent) @nogc pure @safe
 {
     //0^0 must be an error
     if (base == 0)
@@ -214,7 +214,7 @@ unittest
     kassert(isEquals(pow(10, -3), 0.001));
 }
 
-bool isPositiveInf(T)(T x) if (isFloatingPoint!(T))
+bool isPositiveInf(T)(T x) @nogc pure @safe if (isFloatingPoint!(T))
 {
     return x == x.infinity;
 }
@@ -228,7 +228,7 @@ unittest
     kassert(!isPositiveInf(-double.infinity));
 }
 
-bool isNegativeInf(T)(T x) if (isFloatingPoint!(T))
+bool isNegativeInf(T)(T x) @nogc pure @safe if (isFloatingPoint!(T))
 {
     return x == -x.infinity;
 }
@@ -242,7 +242,7 @@ unittest
     kassert(!isNegativeInf(double.infinity));
 }
 
-bool isInf(T)(T x) if (isFloatingPoint!(T))
+bool isInf(T)(T x) @nogc pure @safe if (isFloatingPoint!(T))
 {
 
     return isPositiveInf(x) || isNegativeInf(x);
@@ -257,7 +257,7 @@ unittest
     kassert(isInf(3.4 / 0));
 }
 
-bool isNaN(T)(T value) if (isFloatingPoint!(T))
+bool isNaN(T)(T value) @nogc pure @safe if (isFloatingPoint!(T))
 {
     return value != value;
 }
@@ -274,7 +274,7 @@ unittest
     kassert(isNaN(double.nan));
 }
 
-bool isFinite(T)(T x) if (isFloatingPoint!(T))
+bool isFinite(T)(T x) @nogc pure @safe if (isFloatingPoint!(T))
 {
     return x == x && !isNaN(x) && !isInf(x);
 }
@@ -292,7 +292,7 @@ unittest
 }
 
 //log_y(x) = log_a(x) / log_a(y)
-double logbA(double a, double base)
+double logbA(double a, double base) @nogc
 {
     // if (a == 0)
     // {
@@ -308,7 +308,7 @@ double logbA(double a, double base)
     return log2(a) / log2(base);
 }
 
-double log(double x)
+double log(double x) @nogc
 {
     return logbA(x, E);
 }
@@ -321,7 +321,7 @@ unittest
 }
 
 //log10(x) = log2(x)/log2(10)
-double log10(double x)
+double log10(double x) @nogc
 {
     return logbA(x, 10);
     //asm
@@ -346,7 +346,7 @@ unittest
     kassert(isEquals(log10(3.4), 0.5314789170422551));
 }
 
-double log2(double x)
+double log2(double x) @nogc
 {
 
     if (x <= 1 || !isFinite(x))
@@ -355,7 +355,7 @@ double log2(double x)
     }
 
     double result;
-    asm
+    asm @nogc
     {
         fld1;
         fld x;
@@ -376,7 +376,7 @@ unittest
     kassert(isEquals(log2(3.0), 1.58496250072115628));
 }
 
-double floor(double x)
+double floor(double x) @nogc pure @safe
 {
     if (!isFinite(x))
     {
@@ -404,7 +404,7 @@ unittest
 }
 
 //TODO e-notation
-double parseDouble(string str, const char separator = '.')
+double parseDouble(string str, const char separator = '.') @nogc
 {
     if (str.length == 0)
     {
@@ -491,7 +491,7 @@ unittest
 }
 
 //TODO unittest
-size_t roundToIntegral(double value)
+size_t roundToIntegral(double value) @nogc pure @safe
 {
     if (isNaN(value))
     {
@@ -509,12 +509,12 @@ size_t roundToIntegral(double value)
 }
 
 //TODO unittest
-double round(double value, size_t precision)
+double round(double value, size_t precision) @nogc pure @safe
 {
     return pow(10, precision) * value / pow(10, precision);
 }
 
-T positiveOrZero(T)(T x) if (isIntegral!(T))
+T positiveOrZero(T)(T x) @nogc pure @safe if(isIntegral!(T))
 {
     return x < 0 ? 0 : x;
 }

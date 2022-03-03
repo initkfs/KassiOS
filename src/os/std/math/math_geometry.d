@@ -7,11 +7,14 @@ import std.traits;
 
 import MathCore = os.std.math.math_core;
 
-enum Pi = 3.14159265358979323846;
-enum RadiansInDeg = 0.017453292519943295;
-enum DegInRadians = 57.29577951308232;
+enum
+{
+    Pi = 3.14159265358979323846,
+    RadiansInDeg = 0.017453292519943295,
+    DegInRadians = 57.29577951308232,
+}
 
-double toRadians(double angleValueDeg)
+double toRadians(double angleValueDeg) @nogc pure @safe
 {
     return angleValueDeg * RadiansInDeg;
 }
@@ -23,7 +26,7 @@ unittest
     kassert(MathCore.isEquals(toRadians(10), 0.17453292519943293));
 }
 
-double toDegrees(double angleValueRad)
+double toDegrees(double angleValueRad) @nogc pure @safe
 {
     return angleValueRad * DegInRadians;
 }
@@ -36,10 +39,10 @@ unittest
 }
 
 //TODO check bounds
-double sin(double radValue)
+double sin(double radValue) @nogc
 {
     double result;
-    asm
+    asm @nogc
     {
         //TODO check soprocessor errors
         fld radValue;
@@ -57,10 +60,10 @@ unittest
     kassert(MathCore.isEquals(sin(1), 0.8414709848078965));
 }
 
-double cos(double radValue)
+double cos(double radValue) @nogc
 {
     double result;
-    asm
+    asm @nogc
     {
         fld radValue;
         fcos;
@@ -77,7 +80,7 @@ unittest
     kassert(MathCore.isEquals(cos(1), 0.5403023058681398));
 }
 
-double tan(double radValue)
+double tan(double radValue) @nogc
 {
     return sin(radValue) / cos(radValue);
 }
