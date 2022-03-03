@@ -31,7 +31,7 @@ struct MemBlock
     size_t size;
     size_t fullSize;
     bool used;
-    size_t[1] data;
+    size_t[0] data;
 
     @disable this();
 }
