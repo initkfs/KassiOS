@@ -5,7 +5,7 @@ module os.std.bits;
 
 import std.traits;
 
-bool isBitSet(T)(T bits, T n) @nogc pure @safe if (isIntegral!T)
+bool isBitSet(T)(T bits, T n) if (isUnsigned!T)
 {
   return (bits & (1 << n)) != 0;
 }
@@ -14,13 +14,13 @@ unittest
 {
   import os.std.asserts : kassert;
 
-  kassert(isBitSet(1, 0));
-  kassert(isBitSet(2, 1));
-  kassert(isBitSet(4, 2));
-  kassert(isBitSet(128, 7));
+  kassert(isBitSet(1u, 0u));
+  kassert(isBitSet(2u, 1u));
+  kassert(isBitSet(4u, 2u));
+  kassert(isBitSet(128u, 7u));
 }
 
-T setBit(T)(T bits, T n) @nogc pure @safe if (isIntegral!T)
+T setBit(T)(T bits, T n) if (isUnsigned!T)
 {
   return bits | (1 << n);
 }
@@ -29,14 +29,14 @@ unittest
 {
   import os.std.asserts : kassert;
 
-  kassert(setBit(0, 0) == 1);
-  kassert(setBit(0, 1) == 2);
-  kassert(setBit(0, 4) == 16);
-  kassert(setBit(0, 9) == 512);
-  kassert(setBit(128, 3) == 136);
+  kassert(setBit(0u, 0u) == 1u);
+  kassert(setBit(0u, 1u) == 2u);
+  kassert(setBit(0u, 4u) == 16u);
+  kassert(setBit(0u, 9u) == 512u);
+  kassert(setBit(128u, 3u) == 136u);
 }
 
-T unsetBit(T)(T bits, T n) @nogc pure @safe if (isIntegral!T)
+T unsetBit(T)(T bits, T n) if (isUnsigned!T)
 {
   return bits & ~(1 << n);
 }
@@ -45,7 +45,6 @@ unittest
 {
   import os.std.asserts : kassert;
 
-  //TODO check random panic
-  kassert(unsetBit(3, 0) == 2);
-  kassert(unsetBit(15, 2) == 11);
+  kassert(unsetBit(3u, 0u) == 2u);
+  kassert(unsetBit(15u, 2u) == 11u);
 }

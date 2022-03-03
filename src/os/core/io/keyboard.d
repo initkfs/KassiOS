@@ -82,7 +82,7 @@ __gshared
 bool isReleased(const ubyte code) @nogc pure @safe
 {
 	//7 bit set -> 10000000
-	return Bits.isBitSet(code, 7);
+	return Bits.isBitSet(code, 7u);
 }
 
 bool isPressed(const ubyte code) @nogc pure @safe
