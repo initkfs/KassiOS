@@ -7,6 +7,7 @@ import os.std.container.hash_map;
 
 import ACPI = os.core.acpi.acpi;
 import Ports = os.core.io.ports;
+import Terminal = os.sys.term;
 
 int run(HashMap* args, ref char* outResult, ref char* errResult)
 {
@@ -18,5 +19,5 @@ int run(HashMap* args, ref char* outResult, ref char* errResult)
         //Qemu shutdown
         Ports.outportw(0x604, 0x2000);
     }
-    return 0;
+    return Terminal.Result.SUCCESS;
 }

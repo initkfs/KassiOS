@@ -3,12 +3,14 @@
  */
 module os.sys.system.free;
 
+import os.std.container.array;
 import os.std.container.hash_map;
 
 import Allocator = os.core.mem.allocator;
 import Strings = os.std.text.strings;
 import Kstdio = os.std.io.kstdio;
 import Units = os.std.util.units;
+import Terminal = os.sys.term;
 
 int run(HashMap* args, ref char* outResult, ref char* errResult)
 {
@@ -18,8 +20,7 @@ int run(HashMap* args, ref char* outResult, ref char* errResult)
     Allocator.getMemoryStat(usedBytes, bufferedBytes, availableBytes);
 
     const size_t physEnd = cast(size_t) Allocator.getMemoryPhysicalEnd;
-    long[1] physInfo = [physEnd];
-    Kstdio.kprintf("Physical memory end %x. ", physInfo);
+    Kstdio.kprintf("Physical memory end %x. ", [physEnd].staticArr);
 
     Kstdio.kprint("Rough size: ");
     auto sizePtr = Units.formatBytes(Allocator.getMemoryPhysicalUpper);
@@ -33,8 +34,9 @@ int run(HashMap* args, ref char* outResult, ref char* errResult)
     const size_t allocMemStart = cast(size_t) Allocator.getMemoryStart;
     const size_t allocMemCurrent = cast(size_t) Allocator.getMemoryCurrentPos;
     const size_t allocMemEnd = cast(size_t) Allocator.getMemoryEnd;
-    const long[3] allocInfo = [allocMemStart, allocMemCurrent, allocMemEnd];
-    Kstdio.kprintfln("Allocator start: %x, current %x, end %x", allocInfo);
+    Kstdio.kprintfln("Allocator start: %x, current %x, end %x", [
+            allocMemStart, allocMemCurrent, allocMemEnd
+        ].staticArr);
 
     Kstdio.kprint("Used: ");
     auto usedPtr = Units.formatBytes(usedBytes);
@@ -60,5 +62,5 @@ int run(HashMap* args, ref char* outResult, ref char* errResult)
     }
     Kstdio.kprintlnz(freePtr);
 
-    return 0;
+    return Terminal.Result.SUCCESS;
 }

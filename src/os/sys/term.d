@@ -5,6 +5,8 @@ module os.sys.term;
 
 import std.traits;
 
+import os.std.container.array;
+
 import Allocator = os.core.mem.allocator;
 import Display = os.core.graphic.text_display;
 import Kstdio = os.std.io.kstdio;
@@ -19,6 +21,8 @@ import Strings = os.std.text.strings;
 import Shell = os.sys.kash.shell;
 import Units = os.std.util.units;
 import Inspector = os.core.support.inspector;
+
+alias Result = Shell.ShellResult;
 
 private
 {
@@ -102,11 +106,11 @@ void printHeader()
 
     string bufferStatus = Display.isTextBufferEnabled ? "On" : "Off";
 
-    string[7] osInfoArgs = [
+    auto osInfoArgs = [
         Config.osName, Config.osVersion, Strings.toString(dateTimeInfoPtr),
         statusInfo, Strings.toString(usedMemPtr), Strings.toString(lastCodeStr),
         bufferStatus
-    ];
+    ].staticArr;
     const osInfo = Strings.format("%s %s %s. Stat:%s, Mem:%s, Ret:%s, Tbuff:%s.", osInfoArgs);
     scope (exit)
     {
@@ -202,7 +206,8 @@ void acceptInput(const ubyte keyCode)
             if (outResult && Strings.lengthz(outResult) > 0)
             {
                 Kstdio.kprintz(outResult);
-                scope(exit){
+                scope (exit)
+                {
                     Allocator.free(outResult);
                 }
             }
@@ -214,7 +219,8 @@ void acceptInput(const ubyte keyCode)
                     Kstdio.kprintln;
                 }
                 Kstdio.kprintz(errResult, errorColor);
-                scope(exit){
+                scope (exit)
+                {
                     Allocator.free(errResult);
                 }
             }

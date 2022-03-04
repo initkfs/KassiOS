@@ -7,13 +7,14 @@ import os.std.container.hash_map;
 
 import Fs = os.core.fs.memfs.memfs;
 import Strings = os.std.text.strings;
+import Terminal = os.sys.term;
 
 int run(HashMap* args, ref char* outResult, ref char* errResult)
 {
     if (!Fs.isMount)
     {
         errResult = Strings.toStringz("File system not mounted");
-        return -1;
+        return Terminal.Result.ERROR;
     }
     Fs.unmount;
     if (!Fs.isMount)
@@ -23,7 +24,8 @@ int run(HashMap* args, ref char* outResult, ref char* errResult)
     else
     {
         errResult = Strings.toStringz("Failed to unmount filesystem");
-        return -1;
+        return Terminal.Result.ERROR;
     }
-    return 0;
+
+    return Terminal.Result.SUCCESS;
 }

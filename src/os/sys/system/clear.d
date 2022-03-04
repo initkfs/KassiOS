@@ -10,5 +10,5 @@ import Terminal = os.sys.term;
 int run(HashMap* args, ref char* outResult, ref char* errResult)
 {
     Terminal.clearScreen;
-    return 0;
+    return Terminal.Result.SUCCESS;
 }

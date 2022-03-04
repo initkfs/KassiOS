@@ -7,6 +7,7 @@ import os.std.container.hash_map;
 
 import Fs = os.core.fs.memfs.memfs;
 import Strings = os.std.text.strings;
+import Terminal = os.sys.term;
 
 int run(HashMap* args, ref char* outResult, ref char* errResult)
 {
@@ -21,5 +22,5 @@ int run(HashMap* args, ref char* outResult, ref char* errResult)
     {
         errResult = Strings.toStringz("Error. The file could not be created");
     }
-    return 0;
+    return Terminal.Result.SUCCESS;
 }
