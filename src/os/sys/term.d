@@ -202,6 +202,9 @@ void acceptInput(const ubyte keyCode)
             if (outResult && Strings.lengthz(outResult) > 0)
             {
                 Kstdio.kprintz(outResult);
+                scope(exit){
+                    Allocator.free(outResult);
+                }
             }
 
             if (errResult && Strings.lengthz(errResult) > 0)
@@ -211,6 +214,9 @@ void acceptInput(const ubyte keyCode)
                     Kstdio.kprintln;
                 }
                 Kstdio.kprintz(errResult, errorColor);
+                scope(exit){
+                    Allocator.free(errResult);
+                }
             }
 
             resetTextBuffer;

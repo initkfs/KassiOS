@@ -56,6 +56,8 @@ err runParser(Lexer* lexer, ref AstNode* resultNode, bool function(string) onCom
         if (onCommandExists && onCommandExists(commandName))
         {
             return parseCommandExecuteExpression(token, resultNode);
+        }else {
+            return error("Command does not exist");
         }
     }
 

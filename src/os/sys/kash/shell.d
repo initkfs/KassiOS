@@ -88,7 +88,9 @@ int run(string input, ref char* outResult, ref char* errResult)
     });
     scope (exit)
     {
-        KashParser.deleteAstNode(node);
+        if(node){
+            KashParser.deleteAstNode(node);
+        }
     }
 
     if (parserErr)
@@ -96,9 +98,8 @@ int run(string input, ref char* outResult, ref char* errResult)
         errResult = Strings.toStringz(parserErr);
     }
 
-    if (node is null)
-    {
-        errResult = Strings.toStringz("Invalid command received");
+    if(errResult){
+        return 1;
     }
 
     KashExecutor.execute(node, &onCommandExecute);
