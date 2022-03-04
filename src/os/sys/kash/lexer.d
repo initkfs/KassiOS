@@ -3,6 +3,7 @@
  */
 module os.sys.kash.lexer;
 
+import os.std.container.array;
 import os.std.container.array_list;
 import os.std.io.kstdio;
 import os.std.math.math_core;
@@ -40,14 +41,27 @@ enum TokenType
     GEQ,
 }
 
+enum LexerState
+{
+    NONE,
+    START_TOKEN,
+    END_TOKEN,
+}
+
 struct Token
 {
+    size_t id;
     Token* next;
     Token* prev;
-    size_t length;
     TokenType type;
     bool isInit;
-    char* data;
+    TokenData* dataPtr;
+}
+
+struct TokenData
+{
+    size_t length;
+    char[0] data;
 }
 
 struct Lexer
@@ -55,17 +69,17 @@ struct Lexer
     Token* root;
 }
 
-private bool isTypeBufferNeeded(TokenType type)
+private bool isTypeBufferNeeded(const TokenType type) @nogc pure @safe
 {
     return type >= TokenType.ID;
 }
 
-private bool isBufferNeed(Token* token)
+private bool isBufferNeed(const Token* token) @nogc pure @safe
 {
     return token && isTypeBufferNeeded(token.type);
 }
 
-private bool isBufferFlushNeed(Token* token, TokenType nextType)
+private bool isBufferFlushNeed(const Token* token, const TokenType nextType) @nogc pure @safe
 {
 
     if (!token)
@@ -81,7 +95,7 @@ private bool isBufferFlushNeed(Token* token, TokenType nextType)
     return isBufferNeed(token) && !isTypeBufferNeeded(nextType);
 }
 
-TokenType getTokenTypeByChar(const char c)
+TokenType getTokenTypeByChar(const char c) @nogc pure @safe
 {
 
     if (Ascii.isDecimalDigit(c))
@@ -148,51 +162,75 @@ unittest
     kassert(getTokenTypeByChar('-') == TokenType.MINUS);
 }
 
-Token* createToken(TokenType type, Token* prev)
-{
-    auto token = createToken(type);
-    if (prev)
-    {
-        prev.next = token;
-        token.prev = prev;
-    }
-    return token;
-}
-
-Token* createToken(TokenType type, Token* prev, char value)
-{
-    auto token = createToken(type, prev);
-    initToken(token, 1);
-    *token.data = value;
-    return token;
-}
-
-Token* createToken(TokenType type = TokenType.NONE)
+Token* createToken(const TokenType type = TokenType.NONE, Token* prev = null)
 {
     auto token = cast(Token*) Allocator.alloc(Token.sizeof);
+    token.id = 0;
     token.type = type;
-    token.data = null;
     token.next = null;
+    token.prev = null;
     token.isInit = false;
-    token.length = 0;
+    token.dataPtr = null;
+
+    if (prev)
+    {
+        token.prev = prev;
+        prev.next = token;
+        token.id = prev.id + 1;
+    }
 
     return token;
 }
 
-void initToken(Token* token, size_t dataSize)
+Token* createToken(const TokenType type, Token* prev, const char value)
 {
-    token.data = cast(char*) Allocator.alloc(dataSize);
-    token.length = dataSize;
+    auto token = createToken(type, prev);
+    initToken(token, [value].staticArr);
+    return token;
+}
+
+void initToken(Token* token, size_t dataLength)
+{
+    token.dataPtr = cast(TokenData*) Allocator.alloc(TokenData.sizeof + dataLength);
+    token.dataPtr.length = dataLength;
     token.isInit = true;
+}
+
+void initToken(Token* token, const char[] data)
+{
+    initToken(token, data.length);
+    foreach (i, ch; data)
+    {
+        token.dataPtr.data[i] = ch;
+    }
 }
 
 string getTokenData(Token* token)
 {
-    if (token.length == 0)
+    if (!token.dataPtr || token.dataPtr.length == 0)
     {
         return "";
     }
-    return cast(string) token.data[0 .. token.length];
+
+    return cast(string) token.dataPtr.data[0 .. token.dataPtr.length];
+}
+
+unittest
+{
+    import os.std.asserts : kassert;
+
+    Token* token = createToken(TokenType.ID);
+    scope (exit)
+    {
+        deleteToken(token);
+    }
+    const string id = "foo barbaz";
+
+    initToken(token, id);
+    kassert(token.isInit);
+
+    const string tokenId = getTokenData(token);
+    kassert(Strings.isEquals(id, tokenId));
 }
 
 void deleteToken(Token* token)
@@ -202,12 +240,10 @@ void deleteToken(Token* token)
         return;
     }
 
-    if (token.data)
+    if (token.dataPtr)
     {
-        Allocator.free(cast(size_t*) token.data);
+        Allocator.free(cast(size_t*) token.dataPtr);
     }
-
-    deleteToken(token.next);
 
     Allocator.free(cast(size_t*) token);
 }
@@ -216,31 +252,36 @@ void deleteLexer(Lexer* lexer)
 {
     if (lexer.root)
     {
-        deleteToken(lexer.root);
+        Token* t = lexer.root;
+        while (t)
+        {
+            Token* forDelete = t;
+            t = forDelete.next;
+            deleteToken(forDelete);
+        }
     }
 
     Allocator.free(cast(size_t*) lexer);
 }
 
-private Token* checkOrCreateToken(TokenType type, bool isPart, Token* oldToken)
+private Token* checkOrCreateToken(TokenType type, LexerState lexerState, Token* prevToken)
 {
-    if (!oldToken)
+    if (!prevToken)
     {
         return createToken(type);
     }
 
-    if (oldToken.type == TokenType.NONE)
+    if (lexerState == LexerState.END_TOKEN)
     {
-        oldToken.type = type;
-        return oldToken;
+        return createToken(type, prevToken);
     }
 
-    if (oldToken.type != type && !isPart)
+    if (prevToken.type == TokenType.NONE)
     {
-        return createToken(type, oldToken);
+        prevToken.type = type;
     }
 
-    return oldToken;
+    return prevToken;
 }
 
 private void flushTokenBuffer(Token* token, ref ArrayList!char tokenBuffer)
@@ -258,10 +299,38 @@ private void flushTokenBuffer(Token* token, ref ArrayList!char tokenBuffer)
     size_t index;
     foreach (chb; tokenBuffer)
     {
-        Allocator.set(token.data, chb, cast(size_t*) token.data, index);
+        token.dataPtr.data[index] = chb;
         index++;
     }
+
     tokenBuffer.clear;
+}
+
+unittest
+{
+    import os.std.asserts : kassert;
+
+    string input = "foo bar";
+    auto tokenBuffer = ArrayList!char(input.length);
+    scope (exit)
+    {
+        tokenBuffer.free;
+    }
+    foreach (ch; input)
+    {
+        if (const pushErr = tokenBuffer.push(ch))
+        {
+            kassert(false);
+        }
+    }
+
+    Token* token = createToken(TokenType.ID);
+    scope (exit)
+    {
+        deleteToken(token);
+    }
+    flushTokenBuffer(token, tokenBuffer);
+    kassert(Strings.isEquals(getTokenData(token), input));
 }
 
 void runLexer(string input, Lexer* lexer)
@@ -275,7 +344,7 @@ void runLexer(string input, Lexer* lexer)
 
     // allocate the first token
     Token* token;
-    bool isPartParsed;
+    LexerState lexerState = LexerState.NONE;
 
     auto tokenBuffer = ArrayList!char(input.length);
     scope (exit)
@@ -292,27 +361,27 @@ void runLexer(string input, Lexer* lexer)
 
         const type = getTokenTypeByChar(ch);
 
-        if (isPartParsed && isBufferFlushNeed(token, type))
+        if (lexerState == LexerState.START_TOKEN && isBufferFlushNeed(token, type))
         {
             flushTokenBuffer(token, tokenBuffer);
-            isPartParsed = false;
+            lexerState = LexerState.END_TOKEN;
         }
 
         //TODO remove code duplication
         switch (type)
         {
         case TokenType.ID:
-            token = checkOrCreateToken(TokenType.ID, isPartParsed, token);
+            token = checkOrCreateToken(TokenType.ID, lexerState, token);
             tokenBuffer.push(ch);
-            isPartParsed = true;
+            lexerState = LexerState.START_TOKEN;
             break;
         case TokenType.NUMBER:
-            token = checkOrCreateToken(TokenType.NUMBER, isPartParsed, token);
+            token = checkOrCreateToken(TokenType.NUMBER, lexerState, token);
             tokenBuffer.push(ch);
-            isPartParsed = true;
+            lexerState = LexerState.START_TOKEN;
             break;
         case TokenType.DOT:
-            if (isPartParsed && token && token.type == TokenType.NUMBER)
+            if (lexerState == LexerState.START_TOKEN && token && token.type == TokenType.NUMBER)
             {
                 tokenBuffer.push('.');
             }
@@ -322,7 +391,7 @@ void runLexer(string input, Lexer* lexer)
             }
             break;
         case TokenType.COMMA:
-            if (isPartParsed && token && token.type == TokenType.NUMBER)
+            if (lexerState == LexerState.START_TOKEN && token && token.type == TokenType.NUMBER)
             {
                 //',' => '.'
                 tokenBuffer.push('.');
@@ -365,10 +434,10 @@ void runLexer(string input, Lexer* lexer)
         }
     }
 
-    if (isPartParsed && isBufferNeed(token))
+    if (lexerState == LexerState.START_TOKEN && isBufferNeed(token))
     {
         flushTokenBuffer(token, tokenBuffer);
-        isPartParsed = false;
+        lexerState = LexerState.END_TOKEN;
     }
 }
 
@@ -376,7 +445,7 @@ unittest
 {
     import os.std.asserts : kassert;
 
-    const input = " free  -h 512   -n  ";
+    const input = "free -h 512 -n ";
     auto lexer = cast(Lexer*) Allocator.alloc(Lexer.sizeof);
     scope (exit)
     {
@@ -389,6 +458,7 @@ unittest
     auto token = lexer.root;
     kassert(token.prev is null);
     kassert(token.next !is null);
+
     while (token)
     {
         if (index == 0)
