@@ -3,9 +3,7 @@
  */
 module os.sys.kash.executor.number_expression_executor;
 
-import os.sys.kash.lexer;
-import os.sys.kash.parser.parser_core;
-import os.std.errors;
+import os.std.container.array;
 
 import Strings = os.std.text.strings;
 import Allocator = os.core.mem.allocator;
@@ -15,6 +13,10 @@ import Kstdio = os.std.io.kstdio;
 import MathCore = os.std.math.math_core;
 import NumberOperationParser = os.sys.kash.parser.number_operation_parser;
 import VarExecutor = os.sys.kash.executor.variable_executor;
+
+import os.sys.kash.lexer;
+import os.sys.kash.parser.parser_core;
+import os.std.errors;
 
 private
 {
@@ -36,7 +38,7 @@ private
 }
 
 //TODO ingeter
-err execute(AstNode* node, ref double result)
+err execute(AstNode* node, out double result)
 {
     List.LinkedList* digitsStack = List.LinkedList.create;
     List.LinkedList* operatorsStack = List.LinkedList.create;
@@ -99,7 +101,7 @@ err execute(AstNode* node, ref double result)
                 }
 
                 while (!operatorsStack.isEmpty
-                        && operatorPriority(last) >= operatorPriority(expressionChar))
+                    && operatorPriority(last) >= operatorPriority(expressionChar))
                 {
                     calculateOperation(digitsStack, operatorsStack);
                     if (auto lastItem = operatorsStack.peekLast)
@@ -160,7 +162,7 @@ err execute(AstNode* node, ref double result)
     return null;
 }
 
-private bool isOperator(const char c) @safe pure nothrow
+private bool isOperator(const char c) @nogc pure @safe
 {
     foreach (operator; __traits(allMembers, Operators))
     {
@@ -174,14 +176,14 @@ private bool isOperator(const char c) @safe pure nothrow
     return false;
 }
 
-private int operatorPriority(char operator) @safe pure nothrow
+private int operatorPriority(char operator) @nogc pure @safe
 {
     if (operator == Operators.addition || operator == Operators.subtraction)
     {
         return 1;
     }
     else if (operator == Operators.multiplication || operator == Operators.divisionRemainder
-            || operator == Operators.division || operator == Operators.exponentiation)
+        || operator == Operators.division || operator == Operators.exponentiation)
     {
         return 2;
     }

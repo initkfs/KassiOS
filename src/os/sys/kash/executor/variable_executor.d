@@ -3,13 +3,15 @@
  */
 module os.sys.kash.executor.variable_executor;
 
-import os.sys.kash.lexer;
-import os.sys.kash.parser.parser_core;
-import os.std.errors;
+import os.std.container.array;
 
 import Strings = os.std.text.strings;
 import MathCore = os.std.math.math_core;
 import List = os.std.container.linked_list;
+
+import os.sys.kash.lexer;
+import os.sys.kash.parser.parser_core;
+import os.std.errors;
 
 private
 {
@@ -63,8 +65,7 @@ err execute(AstNode* node, ref char* result)
             }
 
             varList.addLast!double(value, varName);
-            string[2] varArgs = [varName, valueStr];
-            result = Strings.format("%s = %s", varArgs);
+            result = Strings.format("%s = %s", [varName, valueStr].staticArr);
         }
     }
     return null;

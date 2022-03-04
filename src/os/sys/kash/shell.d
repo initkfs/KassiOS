@@ -3,10 +3,12 @@
  */
 module os.sys.kash.shell;
 
-import os.sys.kash.lexer;
+import std.traits;
+
+import os.std.container.array;
 import os.std.container.hash_map;
 
-import std.traits;
+import os.sys.kash.lexer;
 
 import Allocator = os.core.mem.allocator;
 import KashLexer = os.sys.kash.lexer;
@@ -27,6 +29,12 @@ private
 {
     //TODO replace with List
     __gshared ShellCommand[7] shellCommands;
+}
+
+enum ShellResult : int
+{
+    SUCCESS = 0,
+    ERROR = 1,
 }
 
 alias ShellCommandAction = int function(HashMap* args, ref char* outResult, ref char* inResult);
@@ -55,7 +63,7 @@ void init()
     shellCommands[2] = ShellCommand("free", "Print memory info", &Free.run);
     shellCommands[3] = ShellCommand("mount", "Mount root filesystem", &Mount.run);
     shellCommands[4] = ShellCommand("unmount",
-            "Unmount filesystem and delete all files", &Unmount.run);
+        "Unmount filesystem and delete all files", &Unmount.run);
     shellCommands[5] = ShellCommand("mkfile", "Create empty file", &Mkfile.run);
     shellCommands[6] = ShellCommand("ls", "Print list files", &Ls.run);
 }
@@ -88,7 +96,8 @@ int run(string input, ref char* outResult, ref char* errResult)
     });
     scope (exit)
     {
-        if(node){
+        if (node)
+        {
             KashParser.deleteAstNode(node);
         }
     }
@@ -98,15 +107,16 @@ int run(string input, ref char* outResult, ref char* errResult)
         errResult = Strings.toStringz(parserErr);
     }
 
-    if(errResult){
-        return 1;
+    if (errResult)
+    {
+        return ShellResult.ERROR;
     }
 
     KashExecutor.execute(node, &onCommandExecute);
     outResult = KashExecutor.outResult;
     errResult = KashExecutor.errResult;
 
-    return 0;
+    return ShellResult.SUCCESS;
 }
 
 void resetResult()
@@ -125,5 +135,5 @@ int onCommandExecute(string commandName, HashMap* args, ref char* outResult, ref
             return result;
         }
     }
-    return -1;
+    return ShellResult.ERROR;
 }

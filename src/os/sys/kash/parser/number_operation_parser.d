@@ -3,25 +3,25 @@
  */
 module os.sys.kash.parser.number_operation_parser;
 
-import os.sys.kash.lexer;
-import os.sys.kash.parser.parser_core;
-
 import os.std.errors;
 
 import Strings = os.std.text.strings;
 
-bool isNumberValue(Token* token)
+import os.sys.kash.lexer;
+import os.sys.kash.parser.parser_core;
+
+bool isNumberValue(Token* token) @nogc pure @safe
 {
     return token && (token.type == TokenType.ID || token.type == TokenType.NUMBER);
 }
 
-bool isUnaryNumberOperation(Token* token)
+bool isUnaryNumberOperation(Token* token) @nogc pure @safe
 {
     return (!token.prev || isNumberOperationType(token.prev.type)) && (token.type == TokenType.MINUS
             || token.type == TokenType.PLUS) && isNext(token) && isNumberValue(token.next);
 }
 
-bool isNumberOperation(Token* token)
+bool isNumberOperation(Token* token) @nogc pure @safe
 {
     if (!token)
     {
@@ -38,7 +38,7 @@ bool isNumberOperation(Token* token)
         && isNext(token) && isNumberOperationType(token.next.type);
 }
 
-bool isNumberOperationType(TokenType type)
+bool isNumberOperationType(TokenType type) @nogc pure @safe
 {
     if (!type)
     {

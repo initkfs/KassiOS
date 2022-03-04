@@ -3,14 +3,14 @@
  */
 module os.sys.kash.parser.variable_operation_parser;
 
-import os.sys.kash.lexer;
-import os.sys.kash.parser.parser_core;
-
 import os.std.errors;
 
 import Strings = os.std.text.strings;
 
-bool isVarOperation(Token* token)
+import os.sys.kash.lexer;
+import os.sys.kash.parser.parser_core;
+
+bool isVarOperation(Token* token) @nogc pure @safe
 {
     if (!token)
     {

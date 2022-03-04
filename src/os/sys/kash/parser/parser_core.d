@@ -3,8 +3,6 @@
  */
 module os.sys.kash.parser.parser_core;
 
-import os.sys.kash.lexer;
-
 import std.traits;
 import os.std.errors;
 
@@ -13,6 +11,8 @@ import Allocator = os.core.mem.allocator;
 import Ascii = os.std.text.ascii;
 import NumberOperationParser = os.sys.kash.parser.number_operation_parser;
 import VariableOperationParser = os.sys.kash.parser.variable_operation_parser;
+
+import os.sys.kash.lexer;
 
 enum AstNodeType
 {
@@ -139,7 +139,7 @@ AstNode* setNodeValue(T)(TokenType type, AstNode* node, T value)
     return node;
 }
 
-bool isNext(Token* token)
+bool isNext(Token* token) @nogc pure @safe
 {
     return token && token.next;
 }

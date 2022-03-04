@@ -3,9 +3,18 @@
  */
 module os.sys.kash.executor.executor_core;
 
+import os.std.container.array;
+
 import os.sys.kash.lexer;
 import os.sys.kash.parser.parser_core;
 import os.std.container.hash_map;
+
+import Strings = os.std.text.strings;
+import Allocator = os.core.mem.allocator;
+import Ascii = os.std.text.ascii;
+import Kstdio = os.std.io.kstdio;
+import NumberExpressionExecutor = os.sys.kash.executor.number_expression_executor;
+import VarExecutor = os.sys.kash.executor.variable_executor;
 
 __gshared
 {
@@ -14,12 +23,11 @@ __gshared
     char* errResult;
 }
 
-import Strings = os.std.text.strings;
-import Allocator = os.core.mem.allocator;
-import Ascii = os.std.text.ascii;
-import Kstdio = os.std.io.kstdio;
-import NumberExpressionExecutor = os.sys.kash.executor.number_expression_executor;
-import VarExecutor = os.sys.kash.executor.variable_executor;
+enum ExecutorResult : int
+{
+    SUCCESS = 0,
+    ERROR = 1,
+}
 
 void execute(AstNode* node, int function(string, HashMap*, ref char* outR,
         ref char* errR) onCommandExecute = null)
@@ -48,7 +56,7 @@ void execute(AstNode* node, int function(string, HashMap*, ref char* outR,
             if (!parseArg)
             {
                 if (currentToken.type == TokenType.MINUS && currentToken.next
-                        && currentToken.next.type == TokenType.ID)
+                    && currentToken.next.type == TokenType.ID)
                 {
                     parseArg = true;
                 }
@@ -75,7 +83,7 @@ void execute(AstNode* node, int function(string, HashMap*, ref char* outR,
                 }
                 else
                 {
-                    string argValue = getTokenData(currentToken);
+                    const string argValue = getTokenData(currentToken);
                     putCommandArg(argsMap, argKey, argValue, errResult);
                     argKey = null;
                     parseArg = false;
@@ -94,15 +102,14 @@ void execute(AstNode* node, int function(string, HashMap*, ref char* outR,
 
     if (node.type == AstNodeType.VARIABLE_ASSIGNMENT)
     {
-        const varErr = VarExecutor.execute(node, outResult);
-        if (varErr)
+        if (const varErr = VarExecutor.execute(node, outResult))
         {
-            lastResult = -1;
+            lastResult = ExecutorResult.ERROR;
             errResult = Strings.toStringz(varErr);
             return;
         }
 
-        lastResult = 0;
+        lastResult = ExecutorResult.SUCCESS;
         return;
     }
 
@@ -110,21 +117,20 @@ void execute(AstNode* node, int function(string, HashMap*, ref char* outR,
     {
         //TODO integer
         double result;
-        const numberErr = NumberExpressionExecutor.execute(node, result);
-        if (numberErr)
+        if (const numberErr = NumberExpressionExecutor.execute(node, result))
         {
-            lastResult = -1;
+            lastResult = ExecutorResult.ERROR;
             errResult = Strings.toStringz(numberErr);
             return;
         }
 
         outResult = Strings.toStringz(result);
-        lastResult = 0;
+        lastResult = ExecutorResult.SUCCESS;
         return;
         //return Strings.toString(result);
     }
 
-    lastResult = -1;
+    lastResult = ExecutorResult.ERROR;
     return;
 }
 
@@ -132,8 +138,7 @@ private void putCommandArg(HashMap* argsMap, string argKey, string value, ref ch
 {
     if (argsMap.containsKey(argKey))
     {
-        string[1] errArgs = [argKey];
-        err = Strings.format("Error. duplicate argument received '%s'", errArgs);
+        err = Strings.format("Error. duplicate argument received '%s'", [argKey].staticArr);
     }
     else
     {
@@ -143,7 +148,7 @@ private void putCommandArg(HashMap* argsMap, string argKey, string value, ref ch
 
 void resetResult()
 {
-    lastResult = 0;
+    lastResult = ExecutorResult.SUCCESS;
     if (outResult)
     {
         Allocator.free(outResult);
@@ -157,33 +162,33 @@ void resetResult()
     }
 }
 
-// unittest
-// {
-//     import os.std.asserts : kassert;
+unittest
+{
+    import os.std.asserts : kassert;
 
-//     const input = " 5  +  6 ";
-//     auto lexer = cast(Lexer*) Allocator.alloc(Lexer.sizeof);
-//     scope (exit)
-//     {
-//         deleteLexer(lexer);
-//     }
+    const input = " 5  +  6 * 3  + (4 + 3 ) * 2 + 5";
+    auto lexer = cast(Lexer*) Allocator.alloc(Lexer.sizeof);
+    scope (exit)
+    {
+        deleteLexer(lexer);
+    }
 
-//     runLexer(input, lexer);
+    runLexer(input, lexer);
 
-//     AstNode* node;
-//     const parserErr = runParser(lexer, node);
-//     scope (exit)
-//     {
-//         deleteAstNode(node);
-//     }
-//     kassert(parserErr is null);
-//     execute(node);
-//     kassert(lastResult == 0);
-//     kassert(outResult !is null);
-//     kassert(Strings.isEquals(Strings.toString(outResult), "11.0"));
+    AstNode* node;
+    const parserErr = runParser(lexer, node);
+    scope (exit)
+    {
+        deleteAstNode(node);
+    }
+    kassert(parserErr is null);
+    execute(node);
+    kassert(lastResult == ExecutorResult.SUCCESS);
+    kassert(outResult !is null);
+    kassert(Strings.isEquals(Strings.toString(outResult), "42.0"));
 
-//     resetResult;
-//     kassert(lastResult == 0);
-//     kassert(outResult is null);
-//     kassert(errResult is null);
-// }
+    resetResult;
+    kassert(lastResult == ExecutorResult.SUCCESS);
+    kassert(outResult is null);
+    kassert(errResult is null);
+}
