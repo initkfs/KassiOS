@@ -1146,7 +1146,17 @@ char* format(T)(const string pattern, const T[] args, const char placeholder = '
             argsSize += str.length;
         }
     }
-    auto buffer = ArrayList!char(pattern.length + argsSize);
+
+    import MathStrict = os.std.math.math_strict;
+    import os.std.errors;
+
+    size_t charSize;
+    if (const charSizeErr = MathStrict.addExact(pattern.length, argsSize, charSize))
+    {
+        panic(charSizeErr);
+    }
+
+    auto buffer = ArrayList!char(charSize);
     scope (exit)
     {
         buffer.free;

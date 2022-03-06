@@ -67,7 +67,13 @@ size_t* alloc(const size_t requestSizeInBytes, const string file = __FILE__, con
         return block.data.ptr;
     }
 
-    if (memoryPhysicalEnd !is null && (memoryCurrentPos + size) >= memoryPhysicalEnd)
+    const size_t endMemorySize;
+    if (const endMemErr = MathStrict.addExact(memoryCurrentPos, size, endMemorySize))
+    {
+        panic(endMemErr);
+    }
+
+    if (memoryPhysicalEnd !is null && endMemorySize >= memoryPhysicalEnd)
     {
         panic(
             "Unable to allocate memory, physical memory limit set, but requested more than available");
@@ -151,8 +157,21 @@ ubyte* getMemBlockDataEndAddr(const size_t* data)
 
 MemBlock* getMemBlockByData(const size_t* data)
 {
-    const endAddr = (cast(ubyte*) data) + MemBlock.data.sizeof;
-    const startAddr = endAddr - MemBlock.sizeof;
+    import MathStrict = os.std.math.math_strict;
+    import os.std.errors;
+
+    size_t endAddr;
+    if (const endAddrErr = MathStrict.addExact((cast(ubyte*) data, MemBlock.data.sizeof, endAddr)))
+    {
+        panic(endAddrErr);
+    }
+
+    size_t startAddr = endAddr - MemBlock.sizeof;
+    if (const startAddrErr = MathStrict.subtractExact(endAddr, MemBlock.sizeof, startAddr))
+    {
+        panic(startAddrErr);
+    }
+
     MemBlock* mustBeBlock = cast(MemBlock*)(startAddr);
     if (mustBeBlock.checksum != MEM_BLOCK_MAGIC_CHECKSUM)
     {
@@ -195,6 +214,7 @@ void set(T)(T* ptr, T value, const size_t* basePtr)
 
 void set(T)(T* ptr, T value, const size_t* basePtr, const size_t index)
 {
+    //TODO check overflow
     const ubyte* valueStartAddr = (cast(ubyte*) ptr) + index * T.sizeof;
     if (valueStartAddr < cast(ubyte*) basePtr)
     {

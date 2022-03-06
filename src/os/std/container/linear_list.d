@@ -20,6 +20,7 @@ struct LinearList
 
 private size_t getListSize(T)(size_t initCapacity)
 {
+	//TODO check overflow
 	const size = T.sizeof * initCapacity + LinearList.sizeof;
 	return size;
 }
@@ -47,6 +48,7 @@ bool isEmpty(LinearList* list)
 private T* getIndexAddress(T)(LinearList* list, const size_t index) pure
 {
 	ubyte* base = cast(ubyte*) list.data.ptr;
+	//TODO check overflow
 	auto addr = cast(T*)(base + index * T.sizeof);
 	return addr;
 }
@@ -82,10 +84,12 @@ err push(T)(ref LinearList* list, T value, bool isFrozenCapacity = false,
 		}
 	}
 
+	//TODO check increment overflow
 	const nextIndex = list.length > 0 ? (index + 1) : 0;
 	auto addr = getIndexAddress!T(list, nextIndex);
 	Allocator.set(addr, value, cast(size_t*) list);
 
+	//TODO check increment overflow
 	list.length++;
 
 	return null;
@@ -226,6 +230,7 @@ err removeAt(T)(LinearList* list, size_t index)
 	foreach (i; index .. (list.length - 1))
 	{
 		T value;
+		//TODO increment overflow
 		if (const getNewValueError = get(list, i + 1, value))
 		{
 			return getNewValueError;
@@ -307,6 +312,7 @@ unittest
 
 	kassert(list.length == capacity);
 
+	//TODO check overflow
 	enum newSize = capacity + 1;
 
 	const isIncreaseError = push(list, newSize - 1);
