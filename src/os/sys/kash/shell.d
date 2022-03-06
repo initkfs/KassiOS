@@ -24,11 +24,12 @@ import Mount = os.sys.fs.mount;
 import Unmount = os.sys.fs.unmount;
 import Mkfile = os.sys.fs.mkfile;
 import Ls = os.sys.fs.ls;
+import Beep = os.sys.media.beep;
 
 private
 {
     //TODO replace with List
-    __gshared ShellCommand[7] shellCommands;
+    __gshared ShellCommand[8] shellCommands;
 }
 
 enum ShellResult : int
@@ -66,6 +67,7 @@ void init()
         "Unmount filesystem and delete all files", &Unmount.run);
     shellCommands[5] = ShellCommand("mkfile", "Create empty file", &Mkfile.run);
     shellCommands[6] = ShellCommand("ls", "Print list files", &Ls.run);
+    shellCommands[7] = ShellCommand("beep", "Play sound with speaker", &Beep.run);
 }
 
 int lastCode()

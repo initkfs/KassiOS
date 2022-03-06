@@ -67,13 +67,8 @@ size_t* alloc(const size_t requestSizeInBytes, const string file = __FILE__, con
         return block.data.ptr;
     }
 
-    const size_t endMemorySize;
-    if (const endMemErr = MathStrict.addExact(memoryCurrentPos, size, endMemorySize))
-    {
-        panic(endMemErr);
-    }
-
-    if (memoryPhysicalEnd !is null && endMemorySize >= memoryPhysicalEnd)
+    //TODO page fault due addition?
+    if (memoryPhysicalEnd !is null && memoryCurrentPos + size >= memoryPhysicalEnd)
     {
         panic(
             "Unable to allocate memory, physical memory limit set, but requested more than available");
@@ -160,17 +155,9 @@ MemBlock* getMemBlockByData(const size_t* data)
     import MathStrict = os.std.math.math_strict;
     import os.std.errors;
 
-    size_t endAddr;
-    if (const endAddrErr = MathStrict.addExact((cast(ubyte*) data, MemBlock.data.sizeof, endAddr)))
-    {
-        panic(endAddrErr);
-    }
-
-    size_t startAddr = endAddr - MemBlock.sizeof;
-    if (const startAddrErr = MathStrict.subtractExact(endAddr, MemBlock.sizeof, startAddr))
-    {
-        panic(startAddrErr);
-    }
+    //TODO page fault due subtraction?
+    auto endAddr = cast(ubyte*) data - MemBlock.data.sizeof;
+    auto startAddr = endAddr - MemBlock.sizeof;
 
     MemBlock* mustBeBlock = cast(MemBlock*)(startAddr);
     if (mustBeBlock.checksum != MEM_BLOCK_MAGIC_CHECKSUM)
