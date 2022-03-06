@@ -25,11 +25,12 @@ import Unmount = os.sys.fs.unmount;
 import Mkfile = os.sys.fs.mkfile;
 import Ls = os.sys.fs.ls;
 import Beep = os.sys.media.beep;
+import Paint = os.sys.graphic.paint;
 
 private
 {
     //TODO replace with List
-    __gshared ShellCommand[8] shellCommands;
+    __gshared ShellCommand[9] shellCommands;
 }
 
 enum ShellResult : int
@@ -68,6 +69,7 @@ void init()
     shellCommands[5] = ShellCommand("mkfile", "Create empty file", &Mkfile.run);
     shellCommands[6] = ShellCommand("ls", "Print list files", &Ls.run);
     shellCommands[7] = ShellCommand("beep", "Play sound with speaker", &Beep.run);
+    shellCommands[8] = ShellCommand("paint", "Draw simple shapes", &Paint.run);
 }
 
 int lastCode()
