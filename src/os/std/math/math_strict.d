@@ -7,7 +7,7 @@ import std.traits;
 import os.std.errors;
 
 // Warning! The checks are very simple and may contain vulnerabilities. For example, the result between two ushorts will be int.
-err addExact(T)(T a, T b, ref T sum) if (isIntegral!T)
+err addExact(T)(T a, T b, out T sum) if (isIntegral!T)
 {
     const T mustBeSum = cast(T)(a + b);
 
@@ -40,7 +40,7 @@ unittest
     import os.std.asserts : kassert;
 
     ushort sumu;
-    kassert(addExact(ushort.max, 1u, sumu) !is null);
+    kassert(addExact(ushort.max, cast(ushort) 1, sumu) !is null);
 
     uint sum1;
     kassert(addExact(uint.max, 1u, sum1) !is null);
@@ -59,7 +59,7 @@ unittest
     kassert(addExact(ulong.max, 1u, sum5) !is null);
 }
 
-err subtractExact(T)(T a, T b, ref T sub) if (isIntegral!T)
+err subtractExact(T)(T a, T b, out T sub) if (isIntegral!T)
 {
     static if (isUnsigned!T)
     {
@@ -97,7 +97,7 @@ unittest
 }
 
 //TODO unsigned
-err multiplyExact(T)(T a, T b, T result) if (is(T == int) || is(T == long))
+err multiplyExact(T)(T a, T b, out T result) if (is(T == int) || is(T == long))
 {
     if (((b > 0) && (a > T.max / b || a < T.min / b)) || ((b < -1)
             && (a > T.min / b || a < T.max / b)) || ((b == -1) && (a == T.min)))
@@ -116,7 +116,7 @@ unittest
     kassert(multiplyExact(long.max, long.max, mul1) !is null);
 }
 
-err castExact(T, C)(T n, ref C result) if (isIntegral!T && isIntegral!C)
+err castExact(T, C)(T n, out C result) if (isIntegral!T && isIntegral!C)
 {
     //TODO floating point
     if (n < C.min || n > C.max)

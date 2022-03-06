@@ -44,7 +44,22 @@ size_t* alloc(const size_t requestSizeInBytes, const string file = __FILE__, con
         Syslog.trace("Request allocation", file, line);
     }
 
-    const size_t size = alignWords(requestSizeInBytes + MemBlock.sizeof - MemBlock.data.sizeof);
+    if (requestSizeInBytes == 0)
+    {
+        panic("Invalid allocation request, size is 0");
+    }
+
+    import MathStrict = os.std.math.math_strict;
+
+    size_t buffSize;
+    if (const buffSizeErr = MathStrict.addExact(requestSizeInBytes, MemBlock.sizeof, buffSize))
+    {
+        panic(buffSizeErr);
+    }
+
+    kassert(buffSize > 0);
+
+    const size_t size = alignWords(buffSize);
 
     if (auto block = findFreeMemBlock(requestSizeInBytes))
     {

@@ -253,7 +253,15 @@ struct HashMap
 			}
 		}
 
-		auto node = cast(MapNode*) Allocator.alloc(MapNode.sizeof + key.length);
+		import MathStrict = os.std.math.math_strict;
+
+		size_t buffSize;
+		if (const sumErr = MathStrict.addExact(MapNode.sizeof, key.length, buffSize))
+		{
+			panic(sumErr);
+		}
+
+		auto node = cast(MapNode*) Allocator.alloc(buffSize);
 		node.next = null;
 		node.data = null;
 
@@ -269,7 +277,15 @@ struct HashMap
 			dataSize = value.length;
 		}
 
-		auto dataNode = cast(MapNodeData*) Allocator.alloc(MapNodeData.sizeof + dataSize);
+		import MathStrict = os.std.math.math_strict;
+
+		size_t dataNodeSize;
+		if (const sumErr = MathStrict.addExact(MapNodeData.sizeof, dataSize, dataNodeSize))
+		{
+			panic(sumErr);
+		}
+
+		auto dataNode = cast(MapNodeData*) Allocator.alloc(dataNodeSize);
 
 		static if (is(T == string))
 		{

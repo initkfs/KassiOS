@@ -191,7 +191,16 @@ Token* createToken(const TokenType type, Token* prev, const char value)
 
 void initToken(Token* token, size_t dataLength)
 {
-    token.dataPtr = cast(TokenData*) Allocator.alloc(TokenData.sizeof + dataLength);
+    import MathStrict = os.std.math.math_strict;
+    import os.std.errors;
+
+    size_t buffSize;
+    if (const sumErr = MathStrict.addExact(TokenData.sizeof, dataLength, buffSize))
+    {
+        panic(sumErr);
+    }
+
+    token.dataPtr = cast(TokenData*) Allocator.alloc(buffSize);
     token.dataPtr.length = dataLength;
     token.isInit = true;
 }

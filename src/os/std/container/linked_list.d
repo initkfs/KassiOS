@@ -160,7 +160,15 @@ struct LinkedList
 			type = ListItemType.BYTE;
 		}
 
-		auto item = cast(ListItem*) Allocator.alloc(ListItem.sizeof + size);
+		import MathStrict = os.std.math.math_strict;
+
+		size_t itemBuffSize;
+		if (const sumErr = MathStrict.addExact(ListItem.sizeof, size, itemBuffSize))
+		{
+			panic(sumErr);
+		}
+
+		auto item = cast(ListItem*) Allocator.alloc(itemBuffSize);
 		item.next = null;
 		item.previous = null;
 		item.key = null;
@@ -184,7 +192,16 @@ struct LinkedList
 		if (!Strings.isBlank(key))
 		{
 			const keyLength = key.length;
-			auto itemKey = cast(ListItemKey*) Allocator.alloc(ListItemKey.sizeof + keyLength);
+
+			import MathStrict = os.std.math.math_strict;
+
+			size_t buffSize;
+			if (const sumErr = MathStrict.addExact(ListItemKey.sizeof, keyLength, buffSize))
+			{
+				panic(sumErr);
+			}
+
+			auto itemKey = cast(ListItemKey*) Allocator.alloc(buffSize);
 			itemKey.length = keyLength;
 			foreach (i, ch; key)
 			{

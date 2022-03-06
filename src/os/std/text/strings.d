@@ -575,7 +575,16 @@ char* reverse(const string s)
     }
 
     const charCount = s.length;
-    char* buf = cast(char*) Allocator.alloc(charCount + 1);
+
+    import MathStrict = os.std.math.math_strict;
+
+    size_t buffSize = charCount;
+    if (const buffErr = MathStrict.incrementExact(buffSize))
+    {
+        panic(buffErr);
+    }
+
+    char* buf = cast(char*) Allocator.alloc(buffSize);
 
     foreach_reverse (i, ch; s)
     {

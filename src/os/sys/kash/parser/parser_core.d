@@ -56,7 +56,9 @@ err runParser(Lexer* lexer, ref AstNode* resultNode, bool function(string) onCom
         if (onCommandExists && onCommandExists(commandName))
         {
             return parseCommandExecuteExpression(token, resultNode);
-        }else {
+        }
+        else
+        {
             return error("Command does not exist");
         }
     }
@@ -118,7 +120,16 @@ AstNode* setNodeValue(T)(TokenType type, AstNode* node, T value)
     {
         valueSize = value.length;
     }
-    auto nodeValue = cast(AstNodeValue*) Allocator.alloc(AstNodeValue.sizeof + valueSize);
+
+    import MathStrict = os.std.math.math_strict;
+
+    size_t buffSize;
+    if (const sumErr = MathStrict.addExact(AstNodeValue.sizeof, valueSize, buffSize))
+    {
+        panic(sumErr);
+    }
+
+    auto nodeValue = cast(AstNodeValue*) Allocator.alloc(buffSize);
     nodeValue.type = type;
     static if (is(T == string))
     {
