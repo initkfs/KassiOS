@@ -26,6 +26,7 @@ private __gshared
 
 struct MemBlock
 {
+    align(1):
     MemBlock* next;
     size_t checksum;
     size_t size;
