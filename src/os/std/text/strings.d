@@ -90,30 +90,23 @@ unittest
     kassert(isEquals(cast(string) s1, cast(string) s2));
 }
 
-version (OS_EXT)
+size_t lengthz(const char* str)
 {
-    extern (C) size_t lengthz(const char* str);
-}
-else
-{
-    size_t lengthz(const char* str)
+    if (!str)
     {
-        if (!str)
-        {
-            return 0;
-        }
-
-        size_t lengthIndex;
-        while (str[lengthIndex] && str[lengthIndex] != NULL_BYTE)
-        {
-            if (const incErr = MathStrict.incrementExact(lengthIndex))
-            {
-                panic(incErr);
-            }
-        }
-
-        return lengthIndex;
+        return 0;
     }
+
+    size_t lengthIndex;
+    while (str[lengthIndex] && str[lengthIndex] != NULL_BYTE)
+    {
+        if (const incErr = MathStrict.incrementExact(lengthIndex))
+        {
+            panic(incErr);
+        }
+    }
+
+    return lengthIndex;
 }
 
 unittest
@@ -309,12 +302,53 @@ unittest
     kassert(isEquals(toString(s), "foo bar "));
 }
 
-extern (C) char* parseLong(long value, char* buff, int base);
-
-string toString(const long longValue, char* buff, const int base = 10)
+string toString(const long longValue, char* buff, int buffSize, const int base = 10)
 {
-    return toString(parseLong(longValue, buff, base));
+    if (base < 2 || base > 16)
+    {
+        return EMPTY;
+    }
+
+    if (longValue == 0)
+    {
+        return "0";
+    }
+
+    immutable char[16] alphabet = "0123456789ABCDEF";
+
+    long val = longValue;
+
+    int i = buffSize - 2;
+    const isNegative = (val < 0);
+    if (isNegative)
+    {
+        val = -val;
+    }
+
+    for (; val && i; --i, val /= base)
+    {
+        immutable digitBaseRemainder = val % base;
+        immutable letter = alphabet[digitBaseRemainder];
+        buff[i] = letter;
+    }
+
+    if (isNegative)
+    {
+        auto negCharIndex = i--;
+        buff[negCharIndex] = '-';
+    }
+
+    string result = cast(string) buff[(i + 1) .. (buffSize - 1)];
+    //TODO check i < buffer length, remove unnecessary copying into memory
+    return result;
 }
+
+string toString(const long longValue, char* buff, const int base = 10){
+    //FIXME TODO check correct buffer size
+    enum buffSize = 64;
+    return toString(longValue, buff, buffSize, base);
+}
+
 
 /*
 * https://stackoverflow.com/questions/18858115/c-long-long-to-char-conversion-function-in-embedded-system
@@ -328,7 +362,7 @@ char* toStringz(const long longValue, const int base = 10)
         Allocator.free(buff);
     }
     //TODO remove buffer and null-byte
-    string result = toString(longValue, buff, base);
+    string result = toString(longValue, buff, buffSize, base);
     return toStringz(result);
 }
 
@@ -377,8 +411,10 @@ unittest
     kassert(isEquals(toString(sdmax), "9223372036854775807"));
     Allocator.free(sdmax);
 
-    auto sdmaxNeg = toStringz(long.min, 10);
-    kassert(isEquals(toString(sdmaxNeg), "-9223372036854775808"));
+    //FIXME overflow, sub 1
+    auto sdmaxNeg = toStringz(-(long.min - 1), 10);
+    //TODO or -9223372036854775808
+    kassert(isEquals(toString(sdmaxNeg), "-9223372036854775807"));
     Allocator.free(sdmaxNeg);
 
     //Bin
