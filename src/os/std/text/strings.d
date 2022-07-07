@@ -411,8 +411,8 @@ unittest
     kassert(isEquals(toString(sdmax), "9223372036854775807"));
     Allocator.free(sdmax);
 
-    //FIXME overflow, sub 1
-    auto sdmaxNeg = toStringz(-(long.min - 1), 10);
+    //FIXME TODO overflow
+    auto sdmaxNeg = toStringz(long.min + 1, 10);
     //TODO or -9223372036854775808
     kassert(isEquals(toString(sdmaxNeg), "-9223372036854775807"));
     Allocator.free(sdmaxNeg);

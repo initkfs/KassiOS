@@ -1,10 +1,10 @@
 syntax:glob
+.vscode/
 build/
 .dub/
 iso/
 os.iso
 serial.txt
-zig-cache/
-zig-out/
-.vscode/
-build.sh
+ovmf/
+uefi/
+uefi-build/

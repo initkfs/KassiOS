@@ -7,23 +7,51 @@
     "copyright": "Copyright © 2021, initkfs",
     "name": "kassios",
     "configurations": [{
-        "name": "kassios-main",
-        "buildOptions": [
+            "name": "legacy",
+            "buildOptions": [
 
-        ],
-        "dflags-dmd": [
-            "-vtls",
-            "-betterC",
-            "-unittest",
-            "-boundscheck=off",
-            "-J=./data"
-        ],
-        "targetType": "staticLibrary",
-        "targetName": "kernel.o",
-        "targetPath": "./build",
-        "sourcePaths": ["./src"],
-        "importPaths": ["./src"],
-        "postBuildCommands": []
-    }],
+            ],
+            "versions": [
+                "legacy"
+            ],
+            "dflags-dmd": [
+                "-vtls",
+                "-betterC",
+                "-unittest",
+                "-boundscheck=off",
+                "-J=./data"
+            ],
+            "targetType": "staticLibrary",
+            "targetName": "kernel.o",
+            "targetPath": "./build",
+            "sourcePaths": ["./src"],
+            "importPaths": ["./src"],
+            "postBuildCommands": []
+        },
+        {
+            "name": "uefi",
+            "buildOptions": [
+
+            ],
+            "versions": [
+                "uefi"
+            ],
+            "dflags-ldc": [
+                "-mtriple=x86_64-unknown-windows-coff",
+                "-boundscheck=off",
+                "--disable-red-zone",
+                "--betterC"
+            ],
+            "targetType": "library",
+            "targetName": "kernel",
+            "targetPath": "./uefi-build",
+            "sourcePaths": ["./src"],
+            "importPaths": ["./src"],
+            "postBuildCommands": [],
+            "dependencies": {
+                "uefi-d": "~>0.0.4"
+            }
+        }
+    ],
     "dependencies": {}
 }

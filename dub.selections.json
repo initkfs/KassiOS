@@ -1,5 +1,6 @@
 {
 	"fileVersion": 1,
 	"versions": {
+		"uefi-d": "0.0.4"
 	}
 }

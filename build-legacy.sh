@@ -14,7 +14,7 @@ while [[ -h "$_source" ]]; do
 done
 scriptDir="$( cd -P "$( dirname "$_source" )" && pwd )"
 if [[ ! -d $scriptDir ]]; then
-  echo "$scriptName error: incorrect script source directory $scriptDir, exit" >&2
+  echo "$scriptName error: incorrect script source directory $scriptDir, exit." >&2
   exit 1
 fi
 #Start script
@@ -33,7 +33,7 @@ osImageDir=$scriptDir/iso
 if [[ -e $buildDir ]]; then
 	gio trash -f "$buildDir"
 	if [[ $? -ne 0 ]]; then
-		echo "Error. Cannot remove build directory: $buildDir">&2
+		echo "Error. Unable to delete build directory: $buildDir">&2
 		exit 1
 	fi
 fi
@@ -47,7 +47,7 @@ fi
 if [[ -e $osImageDir ]]; then
 	gio trash -f "$osImageDir"
 	if [[ $? -ne 0 ]]; then
-		echo "Error. Cannot remove image directory: $osImageDir">&2
+		echo "Error. Unable to delete os image directory: $osImageDir">&2
 		exit 1
 	fi
 fi
@@ -93,7 +93,7 @@ do
 	fileName="${fullName%.*}"
 	nasm -f elf64 -g -o "$buildDir/${fileName}.o" "$asmSourceFile"
 	if [[ $? -ne 0 ]]; then
-		echo "NASM error" >&2
+		echo "NASM error. Exit." >&2
 		exit 1
 	fi
 done <<EOF
@@ -102,11 +102,9 @@ EOF
 
 popd
 
-#dmd -betterC -map -vtls -m64 -i=app.core.main_controller  -boundscheck=off -release -c $sourceDir/kernel.d -of=$buildDir/kernel.o
-#ldc2 -nogc -g -betterC -boundscheck=off -c -od="$buildDir" "$dSourceFile"
-dub build --arch=x86_64
+dub build --arch=x86_64 --config=legacy
 if [[ $? -ne 0 ]]; then
-	echo "Dub build error" >&2
+	echo "Dub build error. Exit." >&2
 	exit 1
 fi
 
@@ -114,7 +112,7 @@ kernelPath=$osImageBootFiles/kernel.bin
 
 ld -n -o -T "${scriptDir}/linker.ld" -o "$kernelPath" "$buildDir"/*.o*
 if [[ $? -ne 0 ]]; then
-	echo "Linker error" >&2
+	echo "Linker error. Exit." >&2
 	exit 1
 fi
 
@@ -135,14 +133,14 @@ osFile=$scriptDir/os.iso
 if [[ -f $osFile ]]; then
 rm "$osFile"
 if [[ $? -ne 0 ]]; then
-	echo "Error. Cannot remove os file: $osFile" >&2
+	echo "Error. Unable to delete os image file: $osFile" >&2
 	exit 1
 fi
 fi
 
 grub-mkrescue -o "$osFile" "$osImageDir" 
 if [[ $? -ne 0 ]]; then
-	echo "Error. Cannot create rescue iso image: $osFile" >&2
+	echo "Error. Unable to create rescue iso image: $osFile" >&2
 	exit 1
 fi
 
@@ -154,4 +152,4 @@ fi
 #bochs -qf /dev/null 'boot: cdrom' 'display_library: sdl' 'vga: extension=vbe, update_freq=5' 'clock: sync=none, time0=local, rtc_sync=1' 'cpu: count=1, ips=200000000' 'cpuid: x86_64=1, mmx=1, sep=1, sse=sse4_2' 'com1: enabled=1, mode=file, dev=serial.txt' 'megs: 64' "ata0-slave: type=cdrom, path=$osFile, status=inserted"
 
 #memory size over 64M may give a mapping error for ACPI (Page Fault) due to the small number of page tables
-qemu-system-x86_64 -serial file:serial.txt -vga std -soundhw pcspk -d int,cpu_reset -s -m 64M -cdrom $osFile -monitor stdio
+qemu-system-x86_64 -serial file:serial.txt -vga std -soundhw pcspk -d int,cpu_reset -s -m 64M -cdrom "$osFile" -monitor stdio
