@@ -22,7 +22,7 @@
                 "-J=./data"
             ],
             "targetType": "staticLibrary",
-            "targetName": "kernel.o",
+            "targetName": "kernel",
             "targetPath": "./build",
             "sourcePaths": ["./src"],
             "importPaths": ["./src"],

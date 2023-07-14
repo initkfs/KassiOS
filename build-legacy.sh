@@ -110,7 +110,7 @@ fi
 
 kernelPath=$osImageBootFiles/kernel.bin
 
-ld -n -o -T "${scriptDir}/linker.ld" -o "$kernelPath" "$buildDir"/*.o*
+ld -n -o -T "${scriptDir}/linker.ld" -o "$kernelPath" "$buildDir"/*.o* "$buildDir"/*.a*
 if [[ $? -ne 0 ]]; then
 	echo "Linker error. Exit." >&2
 	exit 1

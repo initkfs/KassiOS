@@ -1,3 +1,8 @@
-/data
-/build-legacy.sh
-/build-uefi.sh
+/data/
+/build/
+/iso/
+/uefi-build
+/uefi/
+/os.iso
+/serial.txt
+
